@@ -19,3 +19,9 @@ Alexander Lancaster (zonkman)
 3. Those of us that are present will do our best to share with the absent team member(s) what they missed and help them get back up to speed.
 
 4. We will all do our best to contribute to the teams success.
+
+5. Good coding practice.
+
+6. Maintain good communication with team in all stages of development.
+
+7. Discuss with team before making a project decision.
