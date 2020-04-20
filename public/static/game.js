@@ -23,12 +23,15 @@ function preload() {
     this.load.image('ship', '/assets/spaceShips_001.png')
     this.load.image('otherPlayer', 'assets/enemyBlack5.png')
     this.load.image('star', 'assets/star_gold.png')
+    this.load.image('tankbody','assets/tank_body.png')
+    this.load.image('tankbarrel','assets/tank_barrel.png')
 }
 
 function create() {
     let self = this;
     this.socket = io();
     this.otherPlayers = this.physics.add.group(); //Create group to manage other players, makes collision way easier
+    this.otherTankbodys = this.physics.add.group();
     this.socket.on('currentPlayers', function (players) { //Listens for currentPlayers event, executes function when triggered
         //Creates an array from the players object that was passed in from the event in server.js
         Object.keys(players).forEach(function (id) {
@@ -46,6 +49,12 @@ function create() {
         self.otherPlayers.getChildren().forEach(function (otherPlayer) { //getChildren() returns all members of a group in an array
             if (playerId === otherPlayer.playerId) { //Removes the game object from the game
                 otherPlayer.destroy();
+            }
+        })
+
+        self.otherTankbodys.getChildren().forEach(function (otherTankbody) {
+            if (playerId === otherTankbody.playerId) {
+                otherTankbody.destroy();
             }
         })
     })
@@ -82,7 +91,18 @@ function update() {
     if (this.ship) {
 
         let mvtAngle = Math.atan2(this.input.activePointer.y - this.ship.y, this.input.activePointer.x - this.ship.x);
+        
+        if (mvtAngle > 0.0) { //don't aim below the ground!
+            if (mvtAngle < Math.PI*0.5){ //right side but below the ground
+                mvtAngle = 0.0;
+            }
+            else { //left side below the ground
+                mvtAngle = Math.PI;
+            }
+        }
+
         let diffAngle = mvtAngle - (this.ship.rotation - Math.PI*0.5);
+
         if (diffAngle > Math.PI){
             diffAngle -= Math.PI*2.0;
         }
@@ -90,10 +110,6 @@ function update() {
             diffAngle += Math.PI*2.0;
         }
         this.ship.setAngularVelocity(600*diffAngle);
-
-
-        
-        //console.log(this.ship.rotation);
 
         /*if (this.cursors.left.isDown) {
             this.ship.setAngularVelocity(-150);
@@ -130,26 +146,38 @@ function update() {
     }
 }
 
+function addTankBody(self, playerInfo) {
+    return self.add.sprite(playerInfo.x, playerInfo.y+30, 'tankbody').setOrigin(0.5,0.5).setDisplaySize(103,90);
+}
+
 function addPlayer(self, playerInfo) {
     //adds the ship w/ arcade physics
-    self.ship = self.physics.add.image(playerInfo.x, playerInfo.y, 'ship').setOrigin(0.5, 0.5).setDisplaySize(53, 40);
-    if (playerInfo.team === 'blue') {
+    self.ship = self.physics.add.image(playerInfo.x, playerInfo.y, 'tankbarrel').setOrigin(0.5, 1.0).setDisplaySize(23, 60);
+    
+    addTankBody(self, playerInfo);
+
+
+    /*if (playerInfo.team === 'blue') {
         self.ship.setTint(0x0000ff);
     } else {
         self.ship.setTint(0xff0000);
-    }
+    }*/
     self.ship.setDrag(100); //resistance the object will face when moving
     self.ship.setAngularDrag(100);
     self.ship.setMaxVelocity(200); //max speed
 }
 
 function addOtherPlayers(self, playerInfo) {
-    const otherPlayer = self.add.sprite(playerInfo.x, playerInfo.y, 'otherPlayer').setOrigin(0.5, 0.5).setDisplaySize(53, 40);
-    if (playerInfo.team === 'blue') {
+    const otherPlayer = self.add.sprite(playerInfo.x, playerInfo.y, 'tankbarrel').setOrigin(0.5, 1.0).setDisplaySize(23, 60);
+    const otherTankbody = addTankBody(self, playerInfo);
+
+    /*if (playerInfo.team === 'blue') {
         otherPlayer.setTint(0x0000ff);
     } else {
         otherPlayer.setTint(0xff0000);
-    }
+    }*/
     otherPlayer.playerId = playerInfo.playerId;
+    otherTankbody.playerId = playerInfo.playerId;
     self.otherPlayers.add(otherPlayer); //adds the player to the list
+    self.otherTankbodys.add(otherTankbody); //add their tank body to be deleted appropriately
 }
