@@ -62,6 +62,13 @@ function create() {
             missile.setPosition(serverMissiles[missile.id].x, serverMissiles[missile.id].y);
         })
     })
+    this.socket.on('playerMoved', playerInfo => {
+        self.otherPlayers.getChildren().forEach(otherPlayer => {
+            if(playerInfo.playerId === otherPlayer.playerId) {
+                otherPlayer.setRotation(playerInfo.rotation);
+            }
+        })
+    })
     this.socket.on('disconnect', function (playerId) {
         self.otherPlayers.getChildren().forEach(function (otherPlayer) { //getChildren() returns all members of a group in an array
             if (playerId === otherPlayer.playerId) { //Removes the game object from the game
@@ -81,7 +88,6 @@ function create() {
 function update() {
     if (this.ship) {
         let pointer = this.input.activePointer;
-
         let mvtAngle = Math.atan2(pointer.y - this.ship.y, pointer.x - this.ship.x);
         
         if (mvtAngle > 0.0) { //don't aim below the ground!
@@ -102,6 +108,7 @@ function update() {
             diffAngle += Math.PI*2.0;
         }
         this.ship.setAngularVelocity(600*diffAngle);
+        this.socket.emit('rotationChange', this.ship.rotation);
 
         if(!this.shot && pointer.isDown) {
             this.shot = true;
@@ -148,6 +155,5 @@ function addMissile(self, missileInfo) {
     const missile = self.add.sprite(missileInfo.x, missileInfo.y, 'missile');
     missile.angle = missileInfo.rotation;
     missile.id = missileInfo.id;
-    console.log("Missile " + missile.id + " added client-side");
     self.missiles.add(missile);
 }
