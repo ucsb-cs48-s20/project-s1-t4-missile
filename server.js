@@ -62,9 +62,7 @@ io.on('connect', socket => {
 
     socket.on('missileShot', function(missileData) {
         missileData["id"] = missileId;
-        console.log(missileData);
         missiles[missileId] = missileData;
-        console.log("Missile " + missiles[missileId].id + " created");
         missileId++;
         io.emit('newMissile', missiles[missileId-1]);
     })
@@ -90,7 +88,7 @@ function updateMissiles() {
     Object.keys(missiles).forEach(id => {
         missiles[id].x = missiles[id].x + missiles[id].speedX;
         missiles[id].y = missiles[id].y + missiles[id].speedY;
-        if(missiles[id].x < -10 || missiles[id].x > 4000 || missiles[id].y < -10 || missiles[id].y > 4000) {
+        if(missiles[id].x < -10 || missiles[id].x > 4000 || missiles[id].y < -10 || missiles[id].y > 6000) {
             delete missiles[id];
             io.emit('missileDestroyed', id);
         }

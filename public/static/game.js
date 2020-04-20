@@ -30,6 +30,7 @@ function preload() {
 function create() {
     let self = this;
     this.socket = io();
+    this.shot = false;
     this.missiles = this.physics.add.group();
     this.otherPlayers = this.physics.add.group(); //Create group to manage other players, makes collision way easier
     this.otherTankbodys = this.physics.add.group();
@@ -51,14 +52,13 @@ function create() {
     })
     this.socket.on('missileDestroyed', missileId => {
         self.missiles.getChildren().forEach(missile => {
-            if(missile.id = missileId) {
+            if(missile.id == missileId) {
                 missile.destroy();
             }
         })
     })
     this.socket.on('missileUpdate', serverMissiles => {
         self.missiles.getChildren().forEach(missile => {
-            console.log(serverMissiles[missile.id]);
             missile.setPosition(serverMissiles[missile.id].x, serverMissiles[missile.id].y);
         })
     })
@@ -103,8 +103,8 @@ function update() {
         }
         this.ship.setAngularVelocity(600*diffAngle);
 
-        if(pointer.isDown) {
-            console.log("Missile fired");
+        if(!this.shot && pointer.isDown) {
+            this.shot = true;
             this.socket.emit('missileShot', {
                 x: this.ship.x,
                 y: this.ship.y,
@@ -112,6 +112,10 @@ function update() {
                 speedX: -1 * Math.cos(this.ship.rotation + Math.PI / 2) * 20,
                 speedY: -1 * Math.sin(this.ship.rotation + Math.PI / 2) * 20
             })
+        }
+
+        if(!pointer.isDown) {
+            this.shot = false;
         }
         
     }
