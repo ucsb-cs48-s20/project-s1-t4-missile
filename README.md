@@ -36,8 +36,8 @@ https://cs48-s20-mpg-demo-brianlqiu.herokuapp.com/
 
 # How to run/develop 
 
-You need next.js, phaser, and socket.io . then you should be able to say "npm run dev"
-in the command line to start the server on port 3000. This is hardcoded into server.js
-at the moment, because I don't know how to get "process.env.PORT" to work...
+Run `npm install` to install all dependencies (including next.js, Phaser, and socket.io).
+Then run `npm run build` to build next.js, following with `npm run dev` to boot up the server on localhost:3000. 
+
 
 
