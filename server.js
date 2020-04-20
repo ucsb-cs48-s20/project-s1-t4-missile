@@ -16,44 +16,21 @@ nextApp.prepare().then(() => {
     
     server.listen(PORT, (err) => {
         if (err) throw err
-        console.log(`> Ready on {PORT}`)
+        console.log(`> Ready on ${PORT}`)
     })
 })
 
 
 let players = {}; //stores all players in an object
+let missiles = {};
 
-let star = {
-    x: Math.floor(Math.random() * 700) + 50,
-    y: Math.floor(Math.random() * 500) + 50
-}
-
-let scores = {
-    blue: 0,
-    red: 0
-}
+let missileId = 0;
 
 let playerSlots = {
     0: undefined,
     1: undefined,
     2: undefined,
     3: undefined
-}
-
-function getNextSlot(){
-    for (i = 0; i < 4; i += 1)
-    {
-        if (!playerSlots[i]){ return i; }
-    }
-    return -1;
-}
-
-function removeFromSlot(id){
-    for (i = 0; i < 4; i += 1)
-    {
-        if (playerSlots[i] == id){ playerSlots[i] = undefined; return; }
-    }
-    return;
 }
 
 io.on('connect', socket => {
@@ -71,17 +48,10 @@ io.on('connect', socket => {
         x: 100 + 200*nextSlot, //Math.floor(Math.random() * 700) + 50,
         y: 500,//Math.floor(Math.random() * 500) + 50,
         playerId: socket.id,
-        team: (Math.floor(Math.random() * 2) == 0) ? 'red' : 'blue'
     };
-
-    socket.emit('now', {
-        message: 'zeit' //sends message to client
-    })
 
     //Event called currentPlayers passes players object to the new players so their client can render them
     socket.emit('currentPlayers', players); 
-    socket.emit('starLocation', star);
-    socket.emit('scoreUpdate', scores);
     socket.broadcast.emit('newPlayer', players[socket.id]); //passing new player's object to all other players so they can render
     socket.on('disconnect', function() {
         console.log('Disconnect')
@@ -89,21 +59,43 @@ io.on('connect', socket => {
         removeFromSlot(socket.id);
         io.emit('disconnect', socket.id); //tells all other clients to remove the player
     })
-    socket.on('playerMovement', function(movementData) { //updates the player data in the server
-        players[socket.id].x = movementData.x;
-        players[socket.id].y = movementData.y;
-        players[socket.id].rotation = movementData.rotation;
-        socket.broadcast.emit('playerMoved', players[socket.id]); //tells the clients to update their player positions
-    })
-    socket.on('starCollected', function() {
-        if(players[socket.id].team === 'red') {
-            scores.red += 10;
-        } else {
-            scores.blue += 10;
-        }
-        star.x = Math.floor(Math.random() * 700) + 50;
-        star.y = Math.floor(Math.random() * 500) + 50;
-        io.emit('starLocation', star); //creates a new star
-        io.emit('scoreUpdate', scores); //updates score
+
+    socket.on('missileShot', function(missileData) {
+        missileData["id"] = missileId;
+        console.log(missileData);
+        missiles[missileId] = missileData;
+        console.log("Missile " + missiles[missileId].id + " created");
+        missileId++;
+        io.emit('newMissile', missiles[missileId-1]);
     })
 })
+
+function getNextSlot(){
+    for (i = 0; i < 4; i += 1)
+    {
+        if (!playerSlots[i]){ return i; }
+    }
+    return -1;
+}
+
+function removeFromSlot(id){
+    for (i = 0; i < 4; i += 1)
+    {
+        if (playerSlots[i] == id){ playerSlots[i] = undefined; return; }
+    }
+    return;
+}
+
+function updateMissiles() {
+    Object.keys(missiles).forEach(id => {
+        missiles[id].x = missiles[id].x + missiles[id].speedX;
+        missiles[id].y = missiles[id].y + missiles[id].speedY;
+        if(missiles[id].x < -10 || missiles[id].x > 4000 || missiles[id].y < -10 || missiles[id].y > 4000) {
+            delete missiles[id];
+            io.emit('missileDestroyed', id);
+        }
+    })
+    io.emit('missileUpdate', missiles);
+}
+
+setInterval(updateMissiles, 16);
