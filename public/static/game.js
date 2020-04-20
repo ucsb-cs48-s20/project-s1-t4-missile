@@ -22,14 +22,15 @@ let game = new Phaser.Game(config);
 function preload() {
     this.load.image('ship', '/assets/spaceShips_001.png')
     this.load.image('otherPlayer', 'assets/enemyBlack5.png')
-    this.load.image('star', 'assets/star_gold.png')
     this.load.image('tankbody','assets/tank_body.png')
     this.load.image('tankbarrel','assets/tank_barrel.png')
+    this.load.image('missile', '/assets/missile.png')
 }
 
 function create() {
     let self = this;
     this.socket = io();
+    this.missiles = this.physics.add.group();
     this.otherPlayers = this.physics.add.group(); //Create group to manage other players, makes collision way easier
     this.otherTankbodys = this.physics.add.group();
     this.socket.on('currentPlayers', function (players) { //Listens for currentPlayers event, executes function when triggered
@@ -45,6 +46,22 @@ function create() {
     this.socket.on('newPlayer', function (playerInfo) {
         addOtherPlayers(self, playerInfo); //adds new player to the game
     })
+    this.socket.on('newMissile', function(missileInfo) {
+        addMissile(self, missileInfo);
+    })
+    this.socket.on('missileDestroyed', missileId => {
+        self.missiles.getChildren().forEach(missile => {
+            if(missile.id = missileId) {
+                missile.destroy();
+            }
+        })
+    })
+    this.socket.on('missileUpdate', serverMissiles => {
+        self.missiles.getChildren().forEach(missile => {
+            console.log(serverMissiles[missile.id]);
+            missile.setPosition(serverMissiles[missile.id].x, serverMissiles[missile.id].y);
+        })
+    })
     this.socket.on('disconnect', function (playerId) {
         self.otherPlayers.getChildren().forEach(function (otherPlayer) { //getChildren() returns all members of a group in an array
             if (playerId === otherPlayer.playerId) { //Removes the game object from the game
@@ -58,39 +75,14 @@ function create() {
             }
         })
     })
-    this.cursors = this.input.keyboard.createCursorKeys(); //cursors object has 4 main Key objects
-    this.socket.on('playerMoved', function (playerInfo) {
-        self.otherPlayers.getChildren().forEach(function (otherPlayer) {
-            if (playerInfo.playerId === otherPlayer.playerId) {
-                otherPlayer.setRotation(playerInfo.rotation);
-                otherPlayer.setPosition(playerInfo.x, playerInfo.y);
-            }
-        })
-    })
-
-    this.blueScoreText = this.add.text(16, 16, '', { fontSize: '32px', fill: '#0000FF' });
-    this.redScoreText = this.add.text(584, 16, '', { fontSize: '32px', fill: '#FF0000' });
-
-    this.socket.on('scoreUpdate', function (scores) {
-        self.blueScoreText.setText('Blue: ' + scores.blue);
-        self.redScoreText.setText('Red: ' + scores.red);
-    });
-    this.socket.on('starLocation', function(starLocation) {
-        if(self.star) {
-            self.star.destroy(); //if a current star exists, destroy it
-        }
-        self.star = self.physics.add.image(starLocation.x, starLocation.y, 'star');
-        self.physics.add.overlap(self.ship, self.star, function() {
-            this.socket.emit('starCollected'); //if the current ship and the star overlaps, then it emits an event
-        }, null, self)
-    })
 }
 
 
 function update() {
     if (this.ship) {
+        let pointer = this.input.activePointer;
 
-        let mvtAngle = Math.atan2(this.input.activePointer.y - this.ship.y, this.input.activePointer.x - this.ship.x);
+        let mvtAngle = Math.atan2(pointer.y - this.ship.y, pointer.x - this.ship.x);
         
         if (mvtAngle > 0.0) { //don't aim below the ground!
             if (mvtAngle < Math.PI*0.5){ //right side but below the ground
@@ -100,7 +92,7 @@ function update() {
                 mvtAngle = Math.PI;
             }
         }
-
+      
         let diffAngle = mvtAngle - (this.ship.rotation - Math.PI*0.5);
 
         if (diffAngle > Math.PI){
@@ -111,38 +103,17 @@ function update() {
         }
         this.ship.setAngularVelocity(600*diffAngle);
 
-        /*if (this.cursors.left.isDown) {
-            this.ship.setAngularVelocity(-150);
-        } else if (this.cursors.right.isDown) {
-            this.ship.setAngularVelocity(150);
-        } else {
-            this.ship.setAngularVelocity(0);
-        }
-        if (this.cursors.up.isDown) {
-            this.physics.velocityFromRotation(this.ship.rotation + 1.5, -100, this.ship.body.acceleration);
-        } else {
-            this.ship.setAcceleration(0);
-        }*/
-
-        this.physics.world.wrap(this.ship, 5); //ships that go off the side appear on the other side
-
-        let x = this.ship.x;
-        let y = this.ship.y;
-        let r = this.ship.rotation;
-        if (this.ship.oldPosition && (x !== this.ship.oldPosition.x || y !== this.ship.oldPosition.y
-            || r !== this.ship.oldPosition.rotation)) { //If an oldPosition exists and the current ship has changed state
-            this.socket.emit('playerMovement', { //Emits an event called playerMovement containing info about the current ship state
+        if(pointer.isDown) {
+            console.log("Missile fired");
+            this.socket.emit('missileShot', {
                 x: this.ship.x,
                 y: this.ship.y,
-                rotation: this.ship.rotation
+                rotation: this.ship.rotation,
+                speedX: -1 * Math.cos(this.ship.rotation + Math.PI / 2) * 20,
+                speedY: -1 * Math.sin(this.ship.rotation + Math.PI / 2) * 20
             })
         }
-
-        this.ship.oldPosition = { //Makes the current ship position an old one
-            x: this.ship.x,
-            y: this.ship.y,
-            rotation: this.ship.rotation
-        }
+        
     }
 }
 
@@ -155,13 +126,6 @@ function addPlayer(self, playerInfo) {
     self.ship = self.physics.add.image(playerInfo.x, playerInfo.y, 'tankbarrel').setOrigin(0.5, 1.0).setDisplaySize(23, 60);
     
     addTankBody(self, playerInfo);
-
-
-    /*if (playerInfo.team === 'blue') {
-        self.ship.setTint(0x0000ff);
-    } else {
-        self.ship.setTint(0xff0000);
-    }*/
     self.ship.setDrag(100); //resistance the object will face when moving
     self.ship.setAngularDrag(100);
     self.ship.setMaxVelocity(200); //max speed
@@ -170,14 +134,16 @@ function addPlayer(self, playerInfo) {
 function addOtherPlayers(self, playerInfo) {
     const otherPlayer = self.add.sprite(playerInfo.x, playerInfo.y, 'tankbarrel').setOrigin(0.5, 1.0).setDisplaySize(23, 60);
     const otherTankbody = addTankBody(self, playerInfo);
-
-    /*if (playerInfo.team === 'blue') {
-        otherPlayer.setTint(0x0000ff);
-    } else {
-        otherPlayer.setTint(0xff0000);
-    }*/
     otherPlayer.playerId = playerInfo.playerId;
     otherTankbody.playerId = playerInfo.playerId;
     self.otherPlayers.add(otherPlayer); //adds the player to the list
     self.otherTankbodys.add(otherTankbody); //add their tank body to be deleted appropriately
+}
+
+function addMissile(self, missileInfo) {
+    const missile = self.add.sprite(missileInfo.x, missileInfo.y, 'missile');
+    missile.angle = missileInfo.rotation;
+    missile.id = missileInfo.id;
+    console.log("Missile " + missile.id + " added client-side");
+    self.missiles.add(missile);
 }
