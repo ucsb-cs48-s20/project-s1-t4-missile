@@ -63,7 +63,11 @@ io.on('connect', socket => {
     socket.on('missileShot', function(missileData) {
         missileData["id"] = missileId;
         missiles[missileId] = missileData;
-        missileId++;
+        if(missileId > 1000) {
+            missileId = 0;
+        } else {
+            missileId++;
+        }
         io.emit('newMissile', missiles[missileId-1]);
     })
     socket.on('rotationChange', rotation => {
