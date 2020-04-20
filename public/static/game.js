@@ -153,7 +153,7 @@ function addOtherPlayers(self, playerInfo) {
 
 function addMissile(self, missileInfo) {
     const missile = self.add.sprite(missileInfo.x, missileInfo.y, 'missile');
-    missile.angle = missileInfo.rotation;
+    missile.rotation = missileInfo.rotation;
     missile.id = missileInfo.id;
     self.missiles.add(missile);
 }
