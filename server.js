@@ -42,7 +42,7 @@ io.on('connect', socket => {
 
     let nextSlot = getNextSlot();
     if (nextSlot == -1) {
-        console.log('Game\'s full sorry')
+        console.log('Game full')
         return;
     }
     playerSlots[nextSlot] = socket.id;
@@ -115,11 +115,15 @@ function generateComets() {
         for (let i = 0; i < COMET_LIMIT; i++) {
             if (comets[i] == undefined) {
                 numComets++;
+                let startX = 10 + Math.ceil(Math.random() * 780);
+                let endX =  10 + Math.ceil(Math.random() * 780);
+                let angle = Math.atan2(600, endX - startX);
                 comets[i] = {
-                    x: Math.ceil(Math.random() * 790),
+                    x: startX,
                     y: 0,
-                    speedX: 0,
-                    speedY: 2.5,
+                    speedX: Math.cos(angle) * 2.5,
+                    speedY: Math.sin(angle) * 2.5,
+                    rotation: angle - Math.PI / 2, 
                     id: i
                 }
                 io.emit('newComet', comets[i]);
@@ -136,7 +140,7 @@ function updateComets() {
             comets[id].y = comets[id].y + comets[id].speedY;
             if (comets[id].x < -10 || comets[id].x > 810 || comets[id].y < -10 || comets[id].y > 610) {
                 numComets--;
-                delete comets[id];
+                comets[id] = undefined;
                 io.emit('cometDestroyed', id);
             }
         }

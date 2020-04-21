@@ -76,6 +76,7 @@ function create() {
     })
     this.socket.on('cometUpdate', serverComets => {
         self.comets.getChildren().forEach(comet => {
+            console.log(comet);
             comet.setPosition(serverComets[comet.id].x, serverComets[comet.id].y);
         })
     })
@@ -177,6 +178,7 @@ function addMissile(self, missileInfo) {
 
 function addComet(self, cometInfo) {
     const comet = self.add.sprite(cometInfo.x, cometInfo.y, 'comet').setDisplaySize(23, 60);
+    comet.rotation = cometInfo.rotation;
     comet.id = cometInfo.id;
     self.comets.add(comet);
 }
