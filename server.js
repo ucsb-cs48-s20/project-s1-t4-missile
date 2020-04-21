@@ -98,6 +98,11 @@ function removeFromSlot(id) {
     return;
 }
 
+function updateProjectiles() {
+    updateMissiles();
+    updateComets();
+}
+
 function updateMissiles() {
     Object.keys(missiles).forEach(id => {
         missiles[id].x = missiles[id].x + missiles[id].speedX;
@@ -116,14 +121,14 @@ function generateComets() {
             if (comets[i] == undefined) {
                 numComets++;
                 let startX = 10 + Math.ceil(Math.random() * 780);
-                let endX =  10 + Math.ceil(Math.random() * 780);
+                let endX = 10 + Math.ceil(Math.random() * 780);
                 let angle = Math.atan2(600, endX - startX);
                 comets[i] = {
                     x: startX,
                     y: 0,
                     speedX: Math.cos(angle) * 2.5,
                     speedY: Math.sin(angle) * 2.5,
-                    rotation: angle - Math.PI / 2, 
+                    rotation: angle - Math.PI / 2,
                     id: i
                 }
                 io.emit('newComet', comets[i]);
@@ -138,10 +143,27 @@ function updateComets() {
         if (comets[id] != undefined) {
             comets[id].x = comets[id].x + comets[id].speedX;
             comets[id].y = comets[id].y + comets[id].speedY;
+            let removed = false;
             if (comets[id].x < -10 || comets[id].x > 810 || comets[id].y < -10 || comets[id].y > 610) {
                 numComets--;
                 comets[id] = undefined;
+                removed = true;
                 io.emit('cometDestroyed', id);
+            }
+            if (!removed) {
+                Object.keys(missiles).forEach(missileId => {
+                    console.log(comets[id]);
+                    if (comets[id] != undefined) {
+                        let dist = Math.sqrt(Math.pow(comets[id].x - missiles[missileId].x, 2) + Math.pow(comets[id].y - missiles[missileId].y, 2));
+                        if (dist < 20) {
+                            numComets--;
+                            comets[id] = undefined;
+                            delete missiles[id];
+                            io.emit('cometDestroyed', id);
+                            io.emit('missileDestroyed', missileId);
+                        }
+                    }
+                })
             }
         }
     })
