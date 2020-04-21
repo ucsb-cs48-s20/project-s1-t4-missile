@@ -25,6 +25,7 @@ function preload() {
     this.load.image('tankbody','assets/tank_body.png')
     this.load.image('tankbarrel','assets/tank_barrel.png')
     this.load.image('missile', '/assets/missile.png')
+    this.load.image('asteroid', '/assets/asteroid-edited.png')
 }
 
 function create() {
