@@ -152,7 +152,6 @@ function updateComets() {
             }
             if (!removed) {
                 Object.keys(missiles).forEach(missileId => {
-                    console.log(comets[id]);
                     if (comets[id] != undefined) {
                         let dist = Math.sqrt(Math.pow(comets[id].x - missiles[missileId].x, 2) + Math.pow(comets[id].y - missiles[missileId].y, 2));
                         if (dist < 20) {

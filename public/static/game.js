@@ -26,6 +26,7 @@ function preload() {
     this.load.image('tankbarrel','assets/tank_barrel.png')
     this.load.image('missile', '/assets/missile.png')
     this.load.image('comet', '/assets/asteroid-edited.png')
+    this.load.spritesheet('explosion', '/assets/explosion.png', {frameWidth: 16, frameHeight: 16 })
 }
 
 function create() {
@@ -36,6 +37,11 @@ function create() {
     this.comets = this.physics.add.group();
     this.otherPlayers = this.physics.add.group(); //Create group to manage other players, makes collision way easier
     this.otherTankbodys = this.physics.add.group();
+    this.anims.create({
+        key: 'explode',
+        frameRate: 10,
+        frames: this.anims.generateFrameNames('explosion', {start: 0, end: 4})
+    })
     this.socket.on('currentPlayers', function (players) { //Listens for currentPlayers event, executes function when triggered
         //Creates an array from the players object that was passed in from the event in server.js
         Object.keys(players).forEach(function (id) {
@@ -58,6 +64,9 @@ function create() {
     this.socket.on('missileDestroyed', missileId => {
         self.missiles.getChildren().forEach(missile => {
             if(missile.id == missileId) {
+                const explosion = this.add.sprite(missile.x, missile.y, 'explosion', 0).setScale(5);
+                explosion.play('explode');
+                explosion.once(Phaser.Animations.Events.SPRITE_ANIMATION_COMPLETE, () => { explosion.destroy() })
                 missile.destroy();
             }
         })
