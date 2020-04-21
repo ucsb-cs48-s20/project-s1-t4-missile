@@ -37,6 +37,9 @@ let playerSlots = {
     2: undefined,
     3: undefined
 }
+for (let i = 0; i < COMET_LIMIT; i++) {
+    comets[i] = undefined;
+}
 
 io.on('connect', socket => {
     console.log('Connected');
@@ -48,16 +51,15 @@ io.on('connect', socket => {
     }
     playerSlots[nextSlot] = socket.id;
 
-    for (let i = 0; i < COMET_LIMIT; i++) {
-        comets[i] = undefined;
-    }
-
     players[socket.id] = { //on player connect, new player object is created w/ rotation, x-y coords, id, and a random team
         rotation: 0,
         x: 160 + 320 * nextSlot,
         y: 670,
         playerId: socket.id,
     };
+
+    console.log(comets);
+    socket.emit('initComets', comets);
 
     //Event called currentPlayers passes players object to the new players so their client can render them
     socket.emit('currentPlayers', players);
@@ -120,6 +122,7 @@ function updateMissiles() {
 }
 
 function generateComets() {
+    console.log(numComets);
     if (numComets < COMET_LIMIT) {
         for (let i = 0; i < COMET_LIMIT; i++) {
             if (comets[i] == undefined) {
@@ -144,6 +147,7 @@ function generateComets() {
 }
 
 function updateComets() {
+    console.log(comets);
     Object.keys(comets).forEach(id => {
         if (comets[id] != undefined) {
             comets[id].x = comets[id].x + comets[id].speedX;
@@ -165,7 +169,6 @@ function detectCollisions() {
                 let dist = Math.sqrt(Math.pow(comets[cometId].x - missiles[missileId].x, 2) + Math.pow(comets[cometId].y - missiles[missileId].y, 2));
                 if (dist < 25) {
                     comets[cometId].hp -= missiles[missileId].dmg;
-                    console.log(comets[cometId].hp)
                     explosions[missileId] = {
                         x: missiles[missileId].x,
                         y: missiles[missileId].y,

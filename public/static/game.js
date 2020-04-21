@@ -22,11 +22,11 @@ let game = new Phaser.Game(config);
 function preload() {
     this.load.image('background', '/assets/parallax-space-background.png')
     this.load.image('stars', 'assets/parallax-space-stars.png')
-    this.load.image('tankbody','/assets/body_tracks.png')
-    this.load.spritesheet('tankbarrel','/assets/turret_01_mk1.png', {frameWidth: 128, frameHeight: 128})
+    this.load.image('tankbody', '/assets/body_tracks.png')
+    this.load.spritesheet('tankbarrel', '/assets/turret_01_mk1.png', { frameWidth: 128, frameHeight: 128 })
     this.load.image('missile', '/assets/missile.png')
     this.load.image('comet', '/assets/asteroid-edited.png')
-    this.load.spritesheet('explosion', '/assets/explosion.png', {frameWidth: 16, frameHeight: 16 })
+    this.load.spritesheet('explosion', '/assets/explosion.png', { frameWidth: 16, frameHeight: 16 })
 }
 
 function create() {
@@ -42,12 +42,12 @@ function create() {
     this.anims.create({
         key: 'explode',
         frameRate: 10,
-        frames: this.anims.generateFrameNames('explosion', {start: 0, end: 4})
+        frames: this.anims.generateFrameNames('explosion', { start: 0, end: 4 })
     })
     this.anims.create({
         key: 'fire',
         frameRate: 15,
-        frames: this.anims.generateFrameNames('tankbarrel', {start: 1, end: 7})
+        frames: this.anims.generateFrameNames('tankbarrel', { start: 1, end: 7 })
     })
     this.socket.on('currentPlayers', function (players) { //Listens for currentPlayers event, executes function when triggered
         //Creates an array from the players object that was passed in from the event in server.js
@@ -62,13 +62,20 @@ function create() {
     this.socket.on('newPlayer', function (playerInfo) {
         addOtherPlayers(self, playerInfo); //adds new player to the game
     })
-    this.socket.on('newMissile', function(missileInfo) {
+    this.socket.on('newMissile', function (missileInfo) {
         addMissile(self, missileInfo);
     })
     this.socket.on('missileFired', id => {
         self.otherPlayers.getChildren().forEach((otherPlayer) => {
-            if(id == otherPlayer.playerId) {
+            if (id == otherPlayer.playerId) {
                 otherPlayer.play('fire');
+            }
+        })
+    })
+    this.socket.on('initComets', serverComets => {
+        Object.keys(serverComets).forEach(comet => {
+            if (comet != undefined) {
+                addComet(self, serverComets[comet]);
             }
         })
     })
@@ -77,7 +84,7 @@ function create() {
     })
     this.socket.on('missileDestroyed', missileId => {
         self.missiles.getChildren().forEach(missile => {
-            if(missile.id == missileId) {
+            if (missile.id == missileId) {
                 const explosion = this.add.sprite(missile.x, missile.y, 'explosion', 0).setScale(5);
                 explosion.play('explode');
                 explosion.once(Phaser.Animations.Events.SPRITE_ANIMATION_COMPLETE, () => { explosion.destroy() })
@@ -87,7 +94,7 @@ function create() {
     })
     this.socket.on('cometDestroyed', cometId => {
         self.comets.getChildren().forEach(comet => {
-            if(comet.id == cometId) {
+            if (comet.id == cometId) {
                 comet.destroy();
             }
         })
@@ -99,14 +106,14 @@ function create() {
     })
     this.socket.on('cometUpdate', serverComets => {
         self.comets.getChildren().forEach(comet => {
-            if(serverComets[comet.id] != undefined) {
+            if (serverComets[comet.id] != undefined) {
                 comet.setPosition(serverComets[comet.id].x, serverComets[comet.id].y);
             }
         })
     })
     this.socket.on('playerMoved', playerInfo => {
         self.otherPlayers.getChildren().forEach(otherPlayer => {
-            if(playerInfo.playerId === otherPlayer.playerId) {
+            if (playerInfo.playerId === otherPlayer.playerId) {
                 otherPlayer.setRotation(playerInfo.rotation);
             }
         })
@@ -131,28 +138,28 @@ function update() {
     if (this.ship) {
         let pointer = this.input.activePointer;
         let mvtAngle = Math.atan2(pointer.y - this.ship.y, pointer.x - this.ship.x);
-        
+
         if (mvtAngle > 0.0) { //don't aim below the ground!
-            if (mvtAngle < Math.PI*0.5){ //right side but below the ground
+            if (mvtAngle < Math.PI * 0.5) { //right side but below the ground
                 mvtAngle = 0.0;
             }
             else { //left side below the ground
                 mvtAngle = Math.PI;
             }
         }
-      
-        let diffAngle = mvtAngle - (this.ship.rotation - Math.PI*0.5);
 
-        if (diffAngle > Math.PI){
-            diffAngle -= Math.PI*2.0;
+        let diffAngle = mvtAngle - (this.ship.rotation - Math.PI * 0.5);
+
+        if (diffAngle > Math.PI) {
+            diffAngle -= Math.PI * 2.0;
         }
-        if (diffAngle < -Math.PI){
-            diffAngle += Math.PI*2.0;
+        if (diffAngle < -Math.PI) {
+            diffAngle += Math.PI * 2.0;
         }
-        this.ship.setAngularVelocity(600*diffAngle);
+        this.ship.setAngularVelocity(600 * diffAngle);
         this.socket.emit('rotationChange', this.ship.rotation);
 
-        if(!this.shot && pointer.isDown) {
+        if (!this.shot && pointer.isDown) {
             this.shot = true;
             this.ship.play('fire');
             this.socket.emit('missileShot', {
@@ -166,10 +173,10 @@ function update() {
             })
         }
 
-        if(!pointer.isDown) {
+        if (!pointer.isDown) {
             this.shot = false;
         }
-        
+
     }
 }
 
@@ -203,6 +210,7 @@ function addMissile(self, missileInfo) {
 }
 
 function addComet(self, cometInfo) {
+    console.log("Adding comet at " + cometInfo.x + ", " + cometInfo.y)
     const comet = self.add.sprite(cometInfo.x, cometInfo.y, 'comet').setDisplaySize(23, 60);
     comet.rotation = cometInfo.rotation;
     comet.id = cometInfo.id;
