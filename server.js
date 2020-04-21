@@ -24,6 +24,7 @@ nextApp.prepare().then(() => {
 let players = {}; //stores all players in an object
 let missiles = {};
 let comets = {};
+let explosions = {};
 let numComets = 0;
 
 const COMET_LIMIT = 20;
@@ -102,6 +103,7 @@ function updateProjectiles() {
     updateMissiles();
     updateComets();
     detectCollisions();
+    explosionDamage();
 }
 
 function updateMissiles() {
@@ -145,7 +147,7 @@ function updateComets() {
         if (comets[id] != undefined) {
             comets[id].x = comets[id].x + comets[id].speedX;
             comets[id].y = comets[id].y + comets[id].speedY;
-            if (comets[id].hp == 0 || comets[id].x < -10 || comets[id].x > 810 || comets[id].y < -10 || comets[id].y > 610) {
+            if (comets[id].hp <= 0 || comets[id].x < -10 || comets[id].x > 810 || comets[id].y < -10 || comets[id].y > 610) {
                 numComets--;
                 comets[id] = undefined;
                 io.emit('cometDestroyed', id);
@@ -162,11 +164,33 @@ function detectCollisions() {
                 let dist = Math.sqrt(Math.pow(comets[cometId].x - missiles[missileId].x, 2) + Math.pow(comets[cometId].y - missiles[missileId].y, 2));
                 if (dist < 25) {
                     comets[cometId].hp -= missiles[missileId].dmg;
+                    console.log(comets[cometId].hp)
+                    explosions[missileId] = {
+                        x: missiles[missileId].x,
+                        y: missiles[missileId].y,
+                        id: missileId,
+                        dmg: missiles[missileId].dmg,
+                        radius: missiles[missileId].radius
+                    }
                     delete missiles[missileId];
                     io.emit('missileDestroyed', missileId);
                 }
             }
         })
+    })
+}
+
+function explosionDamage() {
+    Object.keys(explosions).forEach(explosionId => {
+        Object.keys(comets).forEach(cometId => {
+            if(comets[cometId] != undefined && explosions[explosionId] != undefined) {
+                let dist = Math.sqrt(Math.pow(comets[cometId].x - explosions[explosionId].x, 2) + Math.pow(comets[cometId].y - explosions[explosionId].y, 2));
+                if(dist < explosions[explosionId].radius) {
+                    comets[cometId].hp -= explosions[explosionId].dmg;
+                }
+            }
+        })
+        delete explosions[explosionId];
     })
 }
 
