@@ -130,6 +130,7 @@ function generateComets() {
                     speedX: Math.cos(angle) * 2.5,
                     speedY: Math.sin(angle) * 2.5,
                     rotation: angle - Math.PI / 2,
+                    hp: 1,
                     id: i
                 }
                 io.emit('newComet', comets[i]);
@@ -144,11 +145,9 @@ function updateComets() {
         if (comets[id] != undefined) {
             comets[id].x = comets[id].x + comets[id].speedX;
             comets[id].y = comets[id].y + comets[id].speedY;
-            let removed = false;
-            if (comets[id].x < -10 || comets[id].x > 810 || comets[id].y < -10 || comets[id].y > 610) {
+            if (comets[id].hp == 0 || comets[id].x < -10 || comets[id].x > 810 || comets[id].y < -10 || comets[id].y > 610) {
                 numComets--;
                 comets[id] = undefined;
-                removed = true;
                 io.emit('cometDestroyed', id);
             }
         }
@@ -162,10 +161,8 @@ function detectCollisions() {
             if (comets[cometId] != undefined && missiles[missileId] != undefined) {
                 let dist = Math.sqrt(Math.pow(comets[cometId].x - missiles[missileId].x, 2) + Math.pow(comets[cometId].y - missiles[missileId].y, 2));
                 if (dist < 25) {
-                    numComets--;
-                    comets[cometId] = undefined;
+                    comets[cometId].hp -= missiles[missileId].dmg;
                     delete missiles[missileId];
-                    io.emit('cometDestroyed', cometId);
                     io.emit('missileDestroyed', missileId);
                 }
             }

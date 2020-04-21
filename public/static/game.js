@@ -85,7 +85,6 @@ function create() {
     })
     this.socket.on('cometUpdate', serverComets => {
         self.comets.getChildren().forEach(comet => {
-            console.log(comet);
             comet.setPosition(serverComets[comet.id].x, serverComets[comet.id].y);
         })
     })
@@ -144,7 +143,8 @@ function update() {
                 y: this.ship.y,
                 rotation: this.ship.rotation,
                 speedX: -1 * Math.cos(this.ship.rotation + Math.PI / 2) * 20,
-                speedY: -1 * Math.sin(this.ship.rotation + Math.PI / 2) * 20
+                speedY: -1 * Math.sin(this.ship.rotation + Math.PI / 2) * 20,
+                dmg: 1
             })
         }
 
