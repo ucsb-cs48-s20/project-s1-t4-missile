@@ -101,6 +101,7 @@ function removeFromSlot(id) {
 function updateProjectiles() {
     updateMissiles();
     updateComets();
+    detectCollisions();
 }
 
 function updateMissiles() {
@@ -150,25 +151,27 @@ function updateComets() {
                 removed = true;
                 io.emit('cometDestroyed', id);
             }
-            if (!removed) {
-                Object.keys(missiles).forEach(missileId => {
-                    if (comets[id] != undefined) {
-                        let dist = Math.sqrt(Math.pow(comets[id].x - missiles[missileId].x, 2) + Math.pow(comets[id].y - missiles[missileId].y, 2));
-                        if (dist < 20) {
-                            numComets--;
-                            comets[id] = undefined;
-                            delete missiles[id];
-                            io.emit('cometDestroyed', id);
-                            io.emit('missileDestroyed', missileId);
-                        }
-                    }
-                })
-            }
         }
     })
     io.emit('cometUpdate', comets);
 }
 
+function detectCollisions() {
+    Object.keys(missiles).forEach(missileId => {
+        Object.keys(comets).forEach(cometId => {
+            if (comets[cometId] != undefined && missiles[missileId] != undefined) {
+                let dist = Math.sqrt(Math.pow(comets[cometId].x - missiles[missileId].x, 2) + Math.pow(comets[cometId].y - missiles[missileId].y, 2));
+                if (dist < 25) {
+                    numComets--;
+                    comets[cometId] = undefined;
+                    delete missiles[missileId];
+                    io.emit('cometDestroyed', cometId);
+                    io.emit('missileDestroyed', missileId);
+                }
+            }
+        })
+    })
+}
+
 setInterval(generateComets, 300 + Math.ceil(Math.random() * 200));
-setInterval(updateComets, 16);
-setInterval(updateMissiles, 16);
+setInterval(updateProjectiles, 16);
