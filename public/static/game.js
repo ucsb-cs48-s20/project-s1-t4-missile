@@ -25,7 +25,7 @@ function preload() {
     this.load.image('tankbody','assets/tank_body.png')
     this.load.image('tankbarrel','assets/tank_barrel.png')
     this.load.image('missile', '/assets/missile.png')
-    this.load.image('asteroid', '/assets/asteroid-edited.png')
+    this.load.image('comet', '/assets/asteroid-edited.png')
 }
 
 function create() {
@@ -33,6 +33,7 @@ function create() {
     this.socket = io();
     this.shot = false;
     this.missiles = this.physics.add.group();
+    this.comets = this.physics.add.group();
     this.otherPlayers = this.physics.add.group(); //Create group to manage other players, makes collision way easier
     this.otherTankbodys = this.physics.add.group();
     this.socket.on('currentPlayers', function (players) { //Listens for currentPlayers event, executes function when triggered
@@ -51,6 +52,9 @@ function create() {
     this.socket.on('newMissile', function(missileInfo) {
         addMissile(self, missileInfo);
     })
+    this.socket.on('newComet', cometInfo => {
+        addComet(self, cometInfo);
+    })
     this.socket.on('missileDestroyed', missileId => {
         self.missiles.getChildren().forEach(missile => {
             if(missile.id == missileId) {
@@ -58,9 +62,21 @@ function create() {
             }
         })
     })
+    this.socket.on('cometDestroyed', cometId => {
+        self.comets.getChildren().forEach(comet => {
+            if(comet.id == cometId) {
+                comet.destroy();
+            }
+        })
+    })
     this.socket.on('missileUpdate', serverMissiles => {
         self.missiles.getChildren().forEach(missile => {
             missile.setPosition(serverMissiles[missile.id].x, serverMissiles[missile.id].y);
+        })
+    })
+    this.socket.on('cometUpdate', serverComets => {
+        self.comets.getChildren().forEach(comet => {
+            comet.setPosition(serverComets[comet.id].x, serverComets[comet.id].y);
         })
     })
     this.socket.on('playerMoved', playerInfo => {
@@ -157,4 +173,10 @@ function addMissile(self, missileInfo) {
     missile.rotation = missileInfo.rotation;
     missile.id = missileInfo.id;
     self.missiles.add(missile);
+}
+
+function addComet(self, cometInfo) {
+    const comet = self.add.sprite(cometInfo.x, cometInfo.y, 'comet').setDisplaySize(23, 60);
+    comet.id = cometInfo.id;
+    self.comets.add(comet);
 }
