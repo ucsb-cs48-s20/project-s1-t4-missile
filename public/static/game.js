@@ -22,8 +22,8 @@ let game = new Phaser.Game(config);
 function preload() {
     this.load.image('background', '/assets/parallax-space-background.png')
     this.load.image('stars', 'assets/parallax-space-stars.png')
-    this.load.image('tankbody','assets/tank_body.png')
-    this.load.image('tankbarrel','assets/tank_barrel.png')
+    this.load.image('tankbody','/assets/body_tracks.png')
+    this.load.spritesheet('tankbarrel','/assets/turret_01_mk1.png', {frameWidth: 128, frameHeight: 128})
     this.load.image('missile', '/assets/missile.png')
     this.load.image('comet', '/assets/asteroid-edited.png')
     this.load.spritesheet('explosion', '/assets/explosion.png', {frameWidth: 16, frameHeight: 16 })
@@ -44,6 +44,11 @@ function create() {
         frameRate: 10,
         frames: this.anims.generateFrameNames('explosion', {start: 0, end: 4})
     })
+    this.anims.create({
+        key: 'fire',
+        frameRate: 15,
+        frames: this.anims.generateFrameNames('tankbarrel', {start: 1, end: 7})
+    })
     this.socket.on('currentPlayers', function (players) { //Listens for currentPlayers event, executes function when triggered
         //Creates an array from the players object that was passed in from the event in server.js
         Object.keys(players).forEach(function (id) {
@@ -59,6 +64,13 @@ function create() {
     })
     this.socket.on('newMissile', function(missileInfo) {
         addMissile(self, missileInfo);
+    })
+    this.socket.on('missileFired', id => {
+        self.otherPlayers.getChildren().forEach((otherPlayer) => {
+            if(id == otherPlayer.playerId) {
+                otherPlayer.play('fire');
+            }
+        })
     })
     this.socket.on('newComet', cometInfo => {
         addComet(self, cometInfo);
@@ -142,6 +154,7 @@ function update() {
 
         if(!this.shot && pointer.isDown) {
             this.shot = true;
+            this.ship.play('fire');
             this.socket.emit('missileShot', {
                 x: this.ship.x,
                 y: this.ship.y,
@@ -161,22 +174,21 @@ function update() {
 }
 
 function addTankBody(self, playerInfo) {
-    return self.add.sprite(playerInfo.x, playerInfo.y+30, 'tankbody').setOrigin(0.5,0.5).setDisplaySize(103,90);
+    return self.add.sprite(playerInfo.x, playerInfo.y - 10, 'tankbody').setScale(1.25);
 }
 
 function addPlayer(self, playerInfo) {
     //adds the ship w/ arcade physics
-    self.ship = self.physics.add.image(playerInfo.x, playerInfo.y, 'tankbarrel').setOrigin(0.5, 1.0).setDisplaySize(23, 60);
-    
     addTankBody(self, playerInfo);
+    self.ship = self.physics.add.sprite(playerInfo.x, playerInfo.y - 10, 'tankbarrel').setScale(1.25);
     self.ship.setDrag(100); //resistance the object will face when moving
     self.ship.setAngularDrag(100);
     self.ship.setMaxVelocity(200); //max speed
 }
 
 function addOtherPlayers(self, playerInfo) {
-    const otherPlayer = self.add.sprite(playerInfo.x, playerInfo.y, 'tankbarrel').setOrigin(0.5, 1.0).setDisplaySize(23, 60);
     const otherTankbody = addTankBody(self, playerInfo);
+    const otherPlayer = self.add.sprite(playerInfo.x, playerInfo.y - 10, 'tankbarrel').setScale(1.25);
     otherPlayer.playerId = playerInfo.playerId;
     otherTankbody.playerId = playerInfo.playerId;
     self.otherPlayers.add(otherPlayer); //adds the player to the list

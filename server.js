@@ -78,6 +78,7 @@ io.on('connect', socket => {
             missileId++;
         }
         io.emit('newMissile', missiles[missileId - 1]);
+        socket.broadcast.emit('missileFired', socket.id);
     })
     socket.on('rotationChange', rotation => {
         players[socket.id].rotation = rotation;
