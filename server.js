@@ -54,8 +54,8 @@ io.on('connect', socket => {
 
     players[socket.id] = { //on player connect, new player object is created w/ rotation, x-y coords, id, and a random team
         rotation: 0,
-        x: 100 + 200 * nextSlot, //Math.floor(Math.random() * 700) + 50,
-        y: 500,//Math.floor(Math.random() * 500) + 50,
+        x: 160 + 320 * nextSlot,
+        y: 670,
         playerId: socket.id,
     };
 
@@ -110,7 +110,7 @@ function updateMissiles() {
     Object.keys(missiles).forEach(id => {
         missiles[id].x = missiles[id].x + missiles[id].speedX;
         missiles[id].y = missiles[id].y + missiles[id].speedY;
-        if (missiles[id].x < -10 || missiles[id].x > 810 || missiles[id].y < -10 || missiles[id].y > 610) {
+        if (missiles[id].x < -10 || missiles[id].x > 1290 || missiles[id].y < -10 || missiles[id].y > 730) {
             delete missiles[id];
             io.emit('missileDestroyed', id);
         }
@@ -123,9 +123,9 @@ function generateComets() {
         for (let i = 0; i < COMET_LIMIT; i++) {
             if (comets[i] == undefined) {
                 numComets++;
-                let startX = 10 + Math.ceil(Math.random() * 780);
-                let endX = 10 + Math.ceil(Math.random() * 780);
-                let angle = Math.atan2(600, endX - startX);
+                let startX = 10 + Math.ceil(Math.random() * 1260);
+                let endX = 10 + Math.ceil(Math.random() * 1260);
+                let angle = Math.atan2(720, endX - startX);
                 comets[i] = {
                     x: startX,
                     y: 0,
@@ -147,7 +147,7 @@ function updateComets() {
         if (comets[id] != undefined) {
             comets[id].x = comets[id].x + comets[id].speedX;
             comets[id].y = comets[id].y + comets[id].speedY;
-            if (comets[id].hp <= 0 || comets[id].x < -10 || comets[id].x > 810 || comets[id].y < -10 || comets[id].y > 610) {
+            if (comets[id].hp <= 0 || comets[id].x < -10 || comets[id].x > 1290 || comets[id].y < -10 || comets[id].y > 730) {
                 numComets--;
                 comets[id] = undefined;
                 io.emit('cometDestroyed', id);

@@ -1,8 +1,8 @@
 let config = {
     type: Phaser.AUTO, //chooses the render type (WebGL or Canvas, if browser supports WebGL will use WebGL, otherwise Canvas)
     parent: 'phaser-example', //renders the game in an existing <canvas> element with 'phaser-example' if it exists, otherwise creates it
-    width: 800, //screen width/height
-    height: 600,
+    width: 1280, //screen width/height
+    height: 720,
     physics: {
         default: 'arcade', //Phaser stuff
         arcade: {
@@ -20,8 +20,8 @@ let config = {
 let game = new Phaser.Game(config);
 
 function preload() {
-    this.load.image('ship', '/assets/spaceShips_001.png')
-    this.load.image('otherPlayer', 'assets/enemyBlack5.png')
+    this.load.image('background', '/assets/parallax-space-background.png')
+    this.load.image('stars', 'assets/parallax-space-stars.png')
     this.load.image('tankbody','assets/tank_body.png')
     this.load.image('tankbarrel','assets/tank_barrel.png')
     this.load.image('missile', '/assets/missile.png')
@@ -31,6 +31,8 @@ function preload() {
 
 function create() {
     let self = this;
+    this.add.image(640, 360, 'background').setScale(5);
+    this.add.image(640, 360, 'stars').setScale(4);
     this.socket = io();
     this.shot = false;
     this.missiles = this.physics.add.group();
