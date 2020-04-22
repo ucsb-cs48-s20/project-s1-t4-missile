@@ -25,12 +25,9 @@ function preload() {
     this.load.image('tankbody', '/assets/body_tracks.png')
     this.load.spritesheet('tankbarrel', '/assets/turret_01_mk1.png', { frameWidth: 128, frameHeight: 128 })
     this.load.image('missile', '/assets/missile.png')
-<<<<<<< HEAD
     this.load.image('comet', '/assets/asteroid-edited.png')
     this.load.spritesheet('explosion', '/assets/explosion.png', { frameWidth: 16, frameHeight: 16 })
-=======
     this.load.image('base', '/assets/base.png')
->>>>>>> bq - added pictures
 }
 
 function create() {
