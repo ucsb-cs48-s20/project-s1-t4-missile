@@ -62,6 +62,7 @@ function create() {
         })
     })
     this.socket.on('initHealth', baseHealth => {
+        this.healthText = this.add.text(540, 100, `Health: ${baseHealth}`, { fontSize: '32px' })
     })
     this.socket.on('newPlayer', function (playerInfo) {
         addOtherPlayers(self, playerInfo); //adds new player to the game
@@ -103,9 +104,10 @@ function create() {
             }
         })
     })
-    this.socket.on('baseDamaged', cometId => {
+    this.socket.on('baseDamaged', info => {
         self.comets.getChildren().forEach(comet => {
-            if(comet.id == cometId) {
+            if(comet.id == info[0]) {
+                this.healthText.setText(`Health: ${info[1]}`);
                 const explosion = this.add.sprite(comet.x, comet.y, 'explosion', 0).setScale(5);
                 explosion.play('explode');
                 explosion.once(Phaser.Animations.Events.SPRITE_ANIMATION_COMPLETE, () => { explosion.destroy() })

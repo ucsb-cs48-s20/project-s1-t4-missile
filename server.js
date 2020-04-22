@@ -188,7 +188,7 @@ function detectCollisions() {
                 numComets--;
                 baseHealth -= comets[cometId].hp;
                 comets[cometId] = undefined;
-                io.emit('baseDamaged', cometId);
+                io.emit('baseDamaged', [cometId, baseHealth]);
             }
         }
     })
