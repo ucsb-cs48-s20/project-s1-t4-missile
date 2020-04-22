@@ -34,6 +34,7 @@ function create() {
     let self = this;
     this.add.image(640, 360, 'background').setScale(5);
     this.add.image(640, 360, 'stars').setScale(4);
+    this.add.image(640, 820, 'base').setScale(15);
     this.socket = io();
     this.shot = false;
     this.missiles = this.physics.add.group();
@@ -59,6 +60,8 @@ function create() {
                 addOtherPlayers(self, players[id]);
             }
         })
+    })
+    this.socket.on('initHealth', baseHealth => {
     })
     this.socket.on('newPlayer', function (playerInfo) {
         addOtherPlayers(self, playerInfo); //adds new player to the game
@@ -96,6 +99,16 @@ function create() {
     this.socket.on('cometDestroyed', cometId => {
         self.comets.getChildren().forEach(comet => {
             if (comet.id == cometId) {
+                comet.destroy();
+            }
+        })
+    })
+    this.socket.on('baseDamaged', cometId => {
+        self.comets.getChildren().forEach(comet => {
+            if(comet.id == cometId) {
+                const explosion = this.add.sprite(comet.x, comet.y, 'explosion', 0).setScale(5);
+                explosion.play('explode');
+                explosion.once(Phaser.Animations.Events.SPRITE_ANIMATION_COMPLETE, () => { explosion.destroy() })
                 comet.destroy();
             }
         })
@@ -210,7 +223,6 @@ function addMissile(self, missileInfo) {
 }
 
 function addComet(self, cometInfo) {
-    console.log("Adding comet at " + cometInfo.x + ", " + cometInfo.y)
     const comet = self.add.sprite(cometInfo.x, cometInfo.y, 'comet').setDisplaySize(23, 60);
     comet.rotation = cometInfo.rotation;
     comet.id = cometInfo.id;
