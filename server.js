@@ -43,6 +43,8 @@ for (let i = 0; i < COMET_LIMIT; i++) {
     comets[i] = undefined;
 }
 
+let timer = 120;
+
 io.on('connect', socket => {
     console.log('Connected');
 
@@ -53,7 +55,7 @@ io.on('connect', socket => {
     }
     playerSlots[nextSlot] = socket.id;
 
-    players[socket.id] = { //on player connect, new player object is created w/ rotation, x-y coords, id, and a random team
+    players[socket.id] = { 
         rotation: 0,
         x: 160 + 320 * nextSlot,
         y: 670,
@@ -64,8 +66,9 @@ io.on('connect', socket => {
     socket.emit('initHealth', baseHealth);
 
     //Event called currentPlayers passes players object to the new players so their client can render them
+    socket.emit('initTimer', timer);
     socket.emit('currentPlayers', players);
-    socket.broadcast.emit('newPlayer', players[socket.id]); //passing new player's object to all other players so they can render
+    socket.broadcast.emit('newPlayer', players[socket.id]); 
     socket.on('disconnect', function () {
         console.log('Disconnect')
         delete players[socket.id]; //removes the player
@@ -208,5 +211,9 @@ function explosionDamage() {
     })
 }
 
+setInterval(() => {
+    timer--;
+    io.emit('timerUpdate', timer);
+}, 1000);
 setInterval(generateComets, 300 + Math.ceil(Math.random() * 200));
 setInterval(updateProjectiles, 16);

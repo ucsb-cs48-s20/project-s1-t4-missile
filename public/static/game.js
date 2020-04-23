@@ -51,8 +51,7 @@ function create() {
         frameRate: 15,
         frames: this.anims.generateFrameNames('tankbarrel', { start: 1, end: 7 })
     })
-    this.socket.on('currentPlayers', function (players) { //Listens for currentPlayers event, executes function when triggered
-        //Creates an array from the players object that was passed in from the event in server.js
+    this.socket.on('currentPlayers', function (players) { 
         Object.keys(players).forEach(function (id) {
             if (players[id].playerId === self.socket.id) {
                 addPlayer(self, players[id]); //pass current player info and reference to current scene
@@ -62,7 +61,10 @@ function create() {
         })
     })
     this.socket.on('initHealth', baseHealth => {
-        this.healthText = this.add.text(540, 100, `Health: ${baseHealth}`, { fontSize: '32px' })
+        this.healthText = this.add.text(50, 100, `Health: ${baseHealth}`, { fontSize: '24px' })
+    })
+    this.socket.on('initTimer', timer => {
+        this.timerText = this.add.text(50, 50, `Time: ${timer}`, {fontSize: '24px'});
     })
     this.socket.on('newPlayer', function (playerInfo) {
         addOtherPlayers(self, playerInfo); //adds new player to the game
@@ -134,6 +136,9 @@ function create() {
             }
         })
     })
+    this.socket.on('timerUpdate', timer => {
+        this.timerText.setText(`Time: ${timer}`);
+    })
     this.socket.on('disconnect', function (playerId) {
         self.otherPlayers.getChildren().forEach(function (otherPlayer) { //getChildren() returns all members of a group in an array
             if (playerId === otherPlayer.playerId) { //Removes the game object from the game
@@ -146,6 +151,7 @@ function create() {
             }
         })
     })
+    
 }
 
 
