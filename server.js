@@ -81,8 +81,10 @@ io.on('connect', socket => {
         socket.broadcast.emit('missileFired', socket.id);
     })
     socket.on('rotationChange', rotation => {
-        players[socket.id].rotation = rotation;
-        socket.broadcast.emit('playerMoved', players[socket.id]);
+        if (players[socket.id] != undefined) {
+            players[socket.id].rotation = rotation;
+            socket.broadcast.emit('playerMoved', players[socket.id]);
+        }
     })
 
     //Destroys objects on server & clients
