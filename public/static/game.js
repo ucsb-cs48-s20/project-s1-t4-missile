@@ -1,6 +1,8 @@
 import GameScene from '/static/gameScene.js'
+import EndScene from '/static/endScene.js'
 
 let gameScene = new GameScene();
+let endScene = new EndScene();
 
 let config = {
     type: Phaser.AUTO, 
@@ -18,6 +20,6 @@ let config = {
 let game = new Phaser.Game(config);
 
 game.scene.add('gameScene', gameScene);
-
+game.scene.add('endScene', endScene);
 game.scene.start('gameScene');
 

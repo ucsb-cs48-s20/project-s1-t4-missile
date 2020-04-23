@@ -118,6 +118,9 @@ class GameScene extends Phaser.Scene {
                 }
             })
         })
+        this.socket.on('gameOver', () => {
+            this.scene.switch('endScene');
+        })
 
         //Events where object states are updated
         this.socket.on('baseDamaged', info => {
