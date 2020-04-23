@@ -29,6 +29,8 @@ let numComets = 0;
 
 const COMET_LIMIT = 20;
 
+let baseHealth = 50;
+
 let missileId = 0;
 
 let playerSlots = {
@@ -58,8 +60,8 @@ io.on('connect', socket => {
         playerId: socket.id,
     };
 
-    console.log(comets);
     socket.emit('initComets', comets);
+    socket.emit('initHealth', baseHealth);
 
     //Event called currentPlayers passes players object to the new players so their client can render them
     socket.emit('currentPlayers', players);
@@ -122,7 +124,6 @@ function updateMissiles() {
 }
 
 function generateComets() {
-    console.log(numComets);
     if (numComets < COMET_LIMIT) {
         for (let i = 0; i < COMET_LIMIT; i++) {
             if (comets[i] == undefined) {
@@ -147,7 +148,6 @@ function generateComets() {
 }
 
 function updateComets() {
-    console.log(comets);
     Object.keys(comets).forEach(id => {
         if (comets[id] != undefined) {
             comets[id].x = comets[id].x + comets[id].speedX;
@@ -182,14 +182,24 @@ function detectCollisions() {
             }
         })
     })
+    Object.keys(comets).forEach(cometId => {
+        if (comets[cometId] != undefined) {
+            if (comets[cometId].y >= 600) {
+                numComets--;
+                baseHealth -= comets[cometId].hp;
+                comets[cometId] = undefined;
+                io.emit('baseDamaged', [cometId, baseHealth]);
+            }
+        }
+    })
 }
 
 function explosionDamage() {
     Object.keys(explosions).forEach(explosionId => {
         Object.keys(comets).forEach(cometId => {
-            if(comets[cometId] != undefined && explosions[explosionId] != undefined) {
+            if (comets[cometId] != undefined && explosions[explosionId] != undefined) {
                 let dist = Math.sqrt(Math.pow(comets[cometId].x - explosions[explosionId].x, 2) + Math.pow(comets[cometId].y - explosions[explosionId].y, 2));
-                if(dist < explosions[explosionId].radius) {
+                if (dist < explosions[explosionId].radius) {
                     comets[cometId].hp -= explosions[explosionId].dmg;
                 }
             }

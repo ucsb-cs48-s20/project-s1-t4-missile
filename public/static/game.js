@@ -27,12 +27,14 @@ function preload() {
     this.load.image('missile', '/assets/missile.png')
     this.load.image('comet', '/assets/asteroid-edited.png')
     this.load.spritesheet('explosion', '/assets/explosion.png', { frameWidth: 16, frameHeight: 16 })
+    this.load.image('base', '/assets/base.png')
 }
 
 function create() {
     let self = this;
     this.add.image(640, 360, 'background').setScale(5);
     this.add.image(640, 360, 'stars').setScale(4);
+    this.add.image(640, 820, 'base').setScale(15);
     this.socket = io();
     this.shot = false;
     this.missiles = this.physics.add.group();
@@ -58,6 +60,9 @@ function create() {
                 addOtherPlayers(self, players[id]);
             }
         })
+    })
+    this.socket.on('initHealth', baseHealth => {
+        this.healthText = this.add.text(540, 100, `Health: ${baseHealth}`, { fontSize: '32px' })
     })
     this.socket.on('newPlayer', function (playerInfo) {
         addOtherPlayers(self, playerInfo); //adds new player to the game
@@ -99,6 +104,17 @@ function create() {
             }
         })
     })
+    this.socket.on('baseDamaged', info => {
+        self.comets.getChildren().forEach(comet => {
+            if(comet.id == info[0]) {
+                this.healthText.setText(`Health: ${info[1]}`);
+                const explosion = this.add.sprite(comet.x, comet.y, 'explosion', 0).setScale(5);
+                explosion.play('explode');
+                explosion.once(Phaser.Animations.Events.SPRITE_ANIMATION_COMPLETE, () => { explosion.destroy() })
+                comet.destroy();
+            }
+        })
+    })
     this.socket.on('missileUpdate', serverMissiles => {
         self.missiles.getChildren().forEach(missile => {
             missile.setPosition(serverMissiles[missile.id].x, serverMissiles[missile.id].y);
@@ -124,7 +140,6 @@ function create() {
                 otherPlayer.destroy();
             }
         })
-
         self.otherTankbodys.getChildren().forEach(function (otherTankbody) {
             if (playerId === otherTankbody.playerId) {
                 otherTankbody.destroy();
@@ -210,7 +225,6 @@ function addMissile(self, missileInfo) {
 }
 
 function addComet(self, cometInfo) {
-    console.log("Adding comet at " + cometInfo.x + ", " + cometInfo.y)
     const comet = self.add.sprite(cometInfo.x, cometInfo.y, 'comet').setDisplaySize(23, 60);
     comet.rotation = cometInfo.rotation;
     comet.id = cometInfo.id;
