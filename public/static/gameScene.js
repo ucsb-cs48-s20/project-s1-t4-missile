@@ -53,10 +53,10 @@ class GameScene extends Phaser.Scene {
         this.socket.on('initTimer', timer => {
             this.timerText = this.add.text(50, 50, `Time: ${timer}`, { fontSize: '24px' });
         })
-        this.socket.on('currentPlayers', function (players) {
-            Object.keys(players).forEach(function (id) {
+        this.socket.on('currentPlayers', players => {
+            Object.keys(players).forEach(id => {
                 if (players[id].playerId === self.socket.id) {
-                    self.addPlayer(self, players[id]); //pass current player info and reference to current scene
+                    self.addPlayer(self, players[id]); 
                 } else {
                     self.addOtherPlayers(self, players[id]);
                 }
@@ -71,14 +71,14 @@ class GameScene extends Phaser.Scene {
         })
 
         //Events where new objects are created
-        this.socket.on('newPlayer', function (playerInfo) {
+        this.socket.on('newPlayer', playerInfo => {
             self.addOtherPlayers(self, playerInfo); 
         })
-        this.socket.on('newMissile', function (missileInfo) {
+        this.socket.on('newMissile', missileInfo => {
             self.addMissile(self, missileInfo);
         })
         this.socket.on('missileFired', id => {
-            self.otherPlayers.getChildren().forEach((otherPlayer) => {
+            self.otherPlayers.getChildren().forEach(otherPlayer => {
                 if (id == otherPlayer.playerId) {
                     otherPlayer.play('fire');
                 }
@@ -106,13 +106,13 @@ class GameScene extends Phaser.Scene {
                 }
             })
         })
-        this.socket.on('disconnect', function (playerId) {
-            self.otherPlayers.getChildren().forEach(function (otherPlayer) { //getChildren() returns all members of a group in an array
-                if (playerId === otherPlayer.playerId) { //Removes the game object from the game
+        this.socket.on('disconnect', playerId => {
+            self.otherPlayers.getChildren().forEach(otherPlayer => { 
+                if (playerId === otherPlayer.playerId) { 
                     otherPlayer.destroy();
                 }
             })
-            self.otherTankbodys.getChildren().forEach(function (otherTankbody) {
+            self.otherTankbodys.getChildren().forEach(otherTankbody => {
                 if (playerId === otherTankbody.playerId) {
                     otherTankbody.destroy();
                 }

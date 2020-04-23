@@ -69,7 +69,7 @@ io.on('connect', socket => {
     socket.broadcast.emit('newPlayer', players[socket.id]);
 
     //Handles client inputs
-    socket.on('missileShot', function (missileData) {
+    socket.on('missileShot', missileData => {
         missileData["id"] = missileId;
         missiles[missileId] = missileData;
         if (missileId > 1000) {
@@ -86,7 +86,7 @@ io.on('connect', socket => {
     })
 
     //Destroys objects on server & clients
-    socket.on('disconnect', function () {
+    socket.on('disconnect', () => {
         console.log(`${socket.id} disconnected`)
         delete players[socket.id];
         removeFromSlot(socket.id);
