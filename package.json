@@ -14,7 +14,8 @@
   },
   "devDependencies": {},
   "scripts": {
-    "dev": "node server.js",
+    "dev-nobuild": "node server.js",
+    "dev-build": "next build && node server.js",
     "build": "next build",
     "start": "NODE_ENV=production node server.js"
   },
