@@ -14,7 +14,7 @@ Alexander Lancaster (zonkman)
 
 # Tech Stack
 
-next.js
+next.js + socket.io + Phaser3
 
 # Description
 
@@ -27,12 +27,6 @@ Player - the people playing the game
 # Roles and Permissions
 
 There are no restrictions on who can play the game.
-
-# Progress
-
-This prototype is based off the demo spike which is at this link:
-
-https://cs48-s20-mpg-demo-brianlqiu.herokuapp.com/
 
 # How to run/develop 
 
