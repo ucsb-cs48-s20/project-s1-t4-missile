@@ -204,7 +204,7 @@ function detectCollisions() {
                     if (baseHealth > 0) {
                         io.emit('baseDamaged', [cometId, baseHealth]);
                     } else {
-                        self.clearGame();
+                        this.clearGame();
                         io.emit('gameOver');
                     }
                 }
