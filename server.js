@@ -204,7 +204,11 @@ function detectCollisions() {
                     if (baseHealth > 0) {
                         io.emit('baseDamaged', [cometId, baseHealth]);
                     } else {
+<<<<<<< HEAD
                         clearGame();
+=======
+                        this.clearGame();
+>>>>>>> da669b1245b910fef586de77f3f6c371aa618d9a
                         io.emit('gameOver');
                     }
                 }
