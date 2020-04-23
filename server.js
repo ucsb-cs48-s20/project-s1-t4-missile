@@ -1,14 +1,12 @@
+//Server setup
 const app = require('express')();
 const server = require('http').Server(app);
 const io = require('socket.io')(server)
 const next = require('next');
-
 const dev = process.env.NODE_ENV
 const nextApp = next({ dev });
 const nextHandler = nextApp.getRequestHandler();
-
 const PORT = process.env.PORT || 3000;
-
 nextApp.prepare().then(() => {
     app.get('*', (req, res) => {
         return nextHandler(req, res)
@@ -20,19 +18,14 @@ nextApp.prepare().then(() => {
     })
 })
 
+//Constants
+const COMET_LIMIT = 20;
 
-let players = {}; //stores all players in an object
+//Object storage
+let players = {}; 
 let missiles = {};
 let comets = {};
 let explosions = {};
-let numComets = 0;
-
-const COMET_LIMIT = 20;
-
-let baseHealth = 50;
-
-let missileId = 0;
-
 let playerSlots = {
     0: undefined,
     1: undefined,
@@ -43,11 +36,16 @@ for (let i = 0; i < COMET_LIMIT; i++) {
     comets[i] = undefined;
 }
 
+//Game variables
+let numComets = 0;
+let baseHealth = 50;
+let missileId = 0;
 let timer = 120;
 
 io.on('connect', socket => {
-    console.log('Connected');
+    console.log(`${socket.id} connected`);
 
+    //Room capacity check
     let nextSlot = getNextSlot();
     if (nextSlot == -1) {
         console.log('Game full')
@@ -55,27 +53,20 @@ io.on('connect', socket => {
     }
     playerSlots[nextSlot] = socket.id;
 
+    //Initializes clients w/ server objects
     players[socket.id] = { 
         rotation: 0,
         x: 160 + 320 * nextSlot,
         y: 670,
         playerId: socket.id,
     };
-
     socket.emit('initComets', comets);
     socket.emit('initHealth', baseHealth);
-
-    //Event called currentPlayers passes players object to the new players so their client can render them
     socket.emit('initTimer', timer);
     socket.emit('currentPlayers', players);
     socket.broadcast.emit('newPlayer', players[socket.id]); 
-    socket.on('disconnect', function () {
-        console.log('Disconnect')
-        delete players[socket.id]; //removes the player
-        removeFromSlot(socket.id);
-        io.emit('disconnect', socket.id); //tells all other clients to remove the player
-    })
 
+    //Handles client inputs
     socket.on('missileShot', function (missileData) {
         missileData["id"] = missileId;
         missiles[missileId] = missileData;
@@ -91,8 +82,17 @@ io.on('connect', socket => {
         players[socket.id].rotation = rotation;
         socket.broadcast.emit('playerMoved', players[socket.id]);
     })
+
+    //Destroys objects on server & clients
+    socket.on('disconnect', function () {
+        console.log(`${socket.id} disconnected`)
+        delete players[socket.id]; 
+        removeFromSlot(socket.id);
+        io.emit('disconnect', socket.id); 
+    })
 })
 
+//Helper functions
 function getNextSlot() {
     for (i = 0; i < 4; i += 1) {
         if (!playerSlots[i]) { return i; }
@@ -107,6 +107,7 @@ function removeFromSlot(id) {
     return;
 }
 
+//Update functions
 function updateProjectiles() {
     updateMissiles();
     updateComets();
@@ -211,6 +212,7 @@ function explosionDamage() {
     })
 }
 
+//Game loops
 setInterval(() => {
     timer--;
     io.emit('timerUpdate', timer);
