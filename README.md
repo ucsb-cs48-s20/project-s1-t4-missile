@@ -36,8 +36,10 @@ https://cs48-s20-mpg-demo-brianlqiu.herokuapp.com/
 
 # How to run/develop 
 
-Run `npm install` to install all dependencies (including next.js, Phaser, and socket.io).
-Then run `npm run build` to build next.js, following with `npm run dev` to boot up the server on localhost:3000. 
+1. Run `npm install` to install all dependencies (including next.js, Phaser, and socket.io).
+
+2. a) If this is your first time running/you've made changes to the html (stuff unrelated to the game), run `npm run dev-build`. This automatically rebuilds the code with next and then starts up the server on localhost:3000.<br/><br/> b) If you've made changes to server.js but not the html, run `npm run dev-nobuild` to just restart the server.<br/><br/> c) If you've only made changes to game.js, a simple refresh should let you see the changes you've made without restarting the server.
+
 
 
 
