@@ -6,6 +6,7 @@ let endScene = new EndScene();
 
 let config = {
     type: Phaser.AUTO, 
+    parent: 'gameWindow',
     width: 1280, 
     height: 720,
     physics: {
