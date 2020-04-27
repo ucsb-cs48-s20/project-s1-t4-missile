@@ -1,6 +1,7 @@
 import { Component } from 'react'
 import io from 'socket.io-client'
 import { render } from 'react-dom'
+import Favicon from 'react-favicon'
 
 const styles = {
     body: {
@@ -58,6 +59,7 @@ class Test extends Component {
     render() {
         return (
             <div style={styles.container}>
+                <Favicon url="/static/favicon.ico"></Favicon>
                 <h1>{this.state.pageTitle}</h1>
                 <script src="/socket.io/socket.io.js"></script>
                 <script src="//cdn.jsdelivr.net/npm/phaser@3.22.0/dist/phaser.js"></script>
