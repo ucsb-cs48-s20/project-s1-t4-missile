@@ -4,12 +4,20 @@ import { render } from 'react-dom'
 
 const styles = {
     body: {
-        backgroundColor: '#888888',
+        backgroundColor: '#444444',
+        fontFamily: '"Trebuchet MS", Roboto, sans-serif',
+        color: '#eeeeee'
     },
 
     container: {
         textAlign: 'center',
     },
+
+    gameWindow: {
+        padding: '5px',
+        border: '1px solid #eeeeee',
+    },
+
 }
 
 class Test extends Component {
@@ -54,7 +62,7 @@ class Test extends Component {
                 <script src="/socket.io/socket.io.js"></script>
                 <script src="//cdn.jsdelivr.net/npm/phaser@3.22.0/dist/phaser.js"></script>
                 <script type='module' src='/static/game.js'></script>
-                <div id="gameWindow"></div>
+                <div id="gameWindow" style={styles.gameWindow}></div>
             </div>
         )
     }
