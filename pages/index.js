@@ -6,6 +6,7 @@ import Favicon from 'react-favicon'
 const styles = {
     body: {
         backgroundColor: '#444444',
+        backgroundImage: 'url("/static/images/webpage-background.png")',
         fontFamily: '"Trebuchet MS", Roboto, sans-serif',
         color: '#eeeeee'
     },
@@ -59,7 +60,7 @@ class Test extends Component {
     render() {
         return (
             <div style={styles.container}>
-                <Favicon url="/static/favicon.ico"></Favicon>
+                <Favicon url="/static/images/favicon.ico"></Favicon>
                 <h1>{this.state.pageTitle}</h1>
                 <script src="/socket.io/socket.io.js"></script>
                 <script src="//cdn.jsdelivr.net/npm/phaser@3.22.0/dist/phaser.js"></script>
