@@ -7,23 +7,24 @@ class Test extends Component {
         super(props)
         
         this.state = {
-            hello: 'Star Collector'
+            pageTitle: 'Missile Defense Game'
         }
     }
-/*
+
     componentDidMount() {
-        this.socket = io();
+        /*this.socket = io();
         this.socket.on('now', data => {
             this.setState({
                 hello: data.message
             })
-        });
+        });*/
+        document.title = this.state.pageTitle;
     }
-  */  
+
     render() {
         return (
             <div>
-                <h1>{this.state.hello}</h1>
+                <h1>{this.state.pageTitle}</h1>
                 <script src="/socket.io/socket.io.js"></script>
                 <script src="//cdn.jsdelivr.net/npm/phaser@3.22.0/dist/phaser.js"></script>
                 <script type='module' src='/static/game.js'></script>
