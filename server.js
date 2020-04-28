@@ -233,6 +233,10 @@ function explosionDamage() {
     }
 }
 
+function increaseDifficulty() {
+    cometLimit += 10;
+}
+
 function clearGame() {
     gameRunning = false;
     Object.keys(players).forEach(playerId => {
@@ -262,6 +266,7 @@ setInterval(() => {
             roundOver = true;
             round++;
             timer = 10;
+            increaseDifficulty();
         } else if (roundOver && timer <= 0) {
             roundOver = false;
             timer = 60;
