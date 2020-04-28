@@ -7,4 +7,4 @@
 | Mon 04/20 | Alex Lancaster    | Will lead first Retro                                  |
 | Mon 05/04 | Jeffery Sun       | Will lead second Retro                                 |
 | Tue 05/05 | Parth Atre        | Spring Goal Discussion                                 |
-| Thu 05/07 | Brian Qiun        | Demo MVP                                               |
+| Thu 05/07 | Brian Qiu         | Demo MVP                                               |
