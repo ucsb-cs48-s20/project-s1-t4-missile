@@ -18,8 +18,17 @@ nextApp.prepare().then(() => {
     })
 })
 
-//Constants
-const COMET_LIMIT = 20;
+//Game variables
+let round = 1;
+let numComets = 0;
+let baseHealth = 1000;
+let missileId = 0;
+let timer = 60;
+let gameRunning = true;
+let roundOver = false;
+
+//Variables that change with rounds
+let cometLimit = 10;
 
 //Object storage
 let players = {};
@@ -32,16 +41,9 @@ let playerSlots = {
     2: undefined,
     3: undefined
 }
-for (let i = 0; i < COMET_LIMIT; i++) {
+for (let i = 0; i < cometLimit; i++) {
     comets[i] = undefined;
 }
-
-//Game variables
-let numComets = 0;
-let baseHealth = 50;
-let missileId = 0;
-let timer = 120;
-let gameRunning = true;
 
 io.on('connect', socket => {
     gameRunning = true;
@@ -136,8 +138,8 @@ function updateMissiles() {
 }
 
 function generateComets() {
-    if (gameRunning && numComets < COMET_LIMIT) {
-        for (let i = 0; i < COMET_LIMIT; i++) {
+    if (!roundOver && gameRunning && numComets < cometLimit) {
+        for (let i = 0; i < cometLimit; i++) {
             if (comets[i] == undefined) {
                 numComets++;
                 let startX = 10 + Math.ceil(Math.random() * 1260);
@@ -255,12 +257,14 @@ function clearGame() {
 setInterval(() => {
     if (gameRunning) {
         timer--;
-        if (timer > 0) {
-            io.emit('timerUpdate', timer);
-        } else {
-            clearGame();
-            io.emit('gameOver');
-
+        io.emit('timerUpdate', timer);
+        if (!roundOver && timer <= 0) {
+            roundOver = true;
+            round++;
+            timer = 10;
+        } else if (roundOver && timer <= 0) {
+            roundOver = false;
+            timer = 60;
         }
     }
 }, 1000);
