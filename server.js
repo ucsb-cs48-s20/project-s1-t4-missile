@@ -21,7 +21,7 @@ nextApp.prepare().then(() => {
 //Game variables
 let round = 1;
 let numComets = 0;
-let baseHealth = 1000;
+let baseHealth = 100;
 let missileId = 0;
 let timer = 60;
 let gameRunning = true;
