@@ -30,6 +30,7 @@ let roundOver = false;
 //Variables that change with rounds
 let cometLimit = 10;
 let cometRate = 1500;
+let cometHealth = 1;
 
 //Object storage
 let players = {};
@@ -215,6 +216,9 @@ function increaseDifficulty() {
     if(cometRate >= 750) {
         cometRate -= 250;
     }
+    if(round % 3 == 0) {
+        cometHealth++;
+    }
 }
 
 function clearGame() {
@@ -254,7 +258,7 @@ function clearGame() {
                         speedX: Math.cos(angle) * 2.5,
                         speedY: Math.sin(angle) * 2.5,
                         rotation: angle - Math.PI / 2,
-                        hp: 1,
+                        hp: cometHealth,
                         id: i
                     }
                     io.emit('newComet', comets[i]);
