@@ -31,6 +31,7 @@ let roundOver = false;
 let cometLimit = 10;
 let cometRate = 1500;
 let cometHealth = 1;
+let cometSpeed = 2.5;
 
 //Object storage
 let players = {};
@@ -219,6 +220,9 @@ function increaseDifficulty() {
     if(round % 3 == 0) {
         cometHealth++;
     }
+    if(round % 2 == 0) {
+        cometSpeed += 0.5;
+    }
 }
 
 function clearGame() {
@@ -238,7 +242,7 @@ function clearGame() {
     numComets = 0;
     baseHealth = 50;
     missileId = 0;
-    timer = 120;
+    timer = 60;
 }
 
 //Game loops
@@ -255,8 +259,8 @@ function clearGame() {
                     comets[i] = {
                         x: startX,
                         y: 0,
-                        speedX: Math.cos(angle) * 2.5,
-                        speedY: Math.sin(angle) * 2.5,
+                        speedX: Math.cos(angle) * cometSpeed,
+                        speedY: Math.sin(angle) * cometSpeed,
                         rotation: angle - Math.PI / 2,
                         hp: cometHealth,
                         id: i
