@@ -29,6 +29,7 @@ let roundOver = false;
 
 //Variables that change with rounds
 let cometLimit = 10;
+let cometRate = 1500;
 
 //Object storage
 let players = {};
@@ -137,30 +138,6 @@ function updateMissiles() {
     }
 }
 
-function generateComets() {
-    if (!roundOver && gameRunning && numComets < cometLimit) {
-        for (let i = 0; i < cometLimit; i++) {
-            if (comets[i] == undefined) {
-                numComets++;
-                let startX = 10 + Math.ceil(Math.random() * 1260);
-                let endX = 10 + Math.ceil(Math.random() * 1260);
-                let angle = Math.atan2(720, endX - startX);
-                comets[i] = {
-                    x: startX,
-                    y: 0,
-                    speedX: Math.cos(angle) * 2.5,
-                    speedY: Math.sin(angle) * 2.5,
-                    rotation: angle - Math.PI / 2,
-                    hp: 1,
-                    id: i
-                }
-                io.emit('newComet', comets[i]);
-                break;
-            }
-        }
-    }
-}
-
 function updateComets() {
     if (gameRunning) {
         Object.keys(comets).forEach(id => {
@@ -235,6 +212,9 @@ function explosionDamage() {
 
 function increaseDifficulty() {
     cometLimit += 10;
+    if(cometRate >= 750) {
+        cometRate -= 250;
+    }
 }
 
 function clearGame() {
@@ -258,6 +238,33 @@ function clearGame() {
 }
 
 //Game loops
+(function generateComets() {
+    let timer = cometRate - 250 + Math.ceil(Math.random() * 500);
+    setTimeout(() => {
+        if (!roundOver && gameRunning && numComets < cometLimit) {
+            for (let i = 0; i < cometLimit; i++) {
+                if (comets[i] == undefined) {
+                    numComets++;
+                    let startX = 10 + Math.ceil(Math.random() * 1260);
+                    let endX = 10 + Math.ceil(Math.random() * 1260);
+                    let angle = Math.atan2(720, endX - startX);
+                    comets[i] = {
+                        x: startX,
+                        y: 0,
+                        speedX: Math.cos(angle) * 2.5,
+                        speedY: Math.sin(angle) * 2.5,
+                        rotation: angle - Math.PI / 2,
+                        hp: 1,
+                        id: i
+                    }
+                    io.emit('newComet', comets[i]);
+                    break;
+                }
+            }
+        }
+        generateComets();
+    }, timer);
+}());
 setInterval(() => {
     if (gameRunning) {
         timer--;
@@ -273,5 +280,4 @@ setInterval(() => {
         }
     }
 }, 1000);
-setInterval(generateComets, 300 + Math.ceil(Math.random() * 200));
 setInterval(updateProjectiles, 16);
