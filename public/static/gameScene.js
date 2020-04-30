@@ -189,10 +189,6 @@ class GameScene extends Phaser.Scene {
                     x: this.ship.x,
                     y: this.ship.y,
                     rotation: this.ship.rotation,
-                    speedX: -1 * Math.cos(this.ship.rotation + Math.PI / 2) * 20,
-                    speedY: -1 * Math.sin(this.ship.rotation + Math.PI / 2) * 20,
-                    dmg: 1,
-                    radius: 75
                 })
             }
             if (!pointer.isDown) {
