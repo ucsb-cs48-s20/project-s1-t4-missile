@@ -18,8 +18,20 @@ nextApp.prepare().then(() => {
     })
 })
 
-//Constants
-const COMET_LIMIT = 20;
+//Game variables
+let round = 1;
+let numComets = 0;
+let baseHealth = 100;
+let missileId = 0;
+let timer = 60;
+let gameRunning = true;
+let roundOver = false;
+
+//Variables that change with rounds
+let cometLimit = 10;
+let cometRate = 1500;
+let cometHealth = 1;
+let cometSpeed = 2.5;
 
 //Object storage
 let players = {};
@@ -32,16 +44,9 @@ let playerSlots = {
     2: undefined,
     3: undefined
 }
-for (let i = 0; i < COMET_LIMIT; i++) {
+for (let i = 0; i < cometLimit; i++) {
     comets[i] = undefined;
 }
-
-//Game variables
-let numComets = 0;
-let baseHealth = 50;
-let missileId = 0;
-let timer = 120;
-let gameRunning = true;
 
 io.on('connect', socket => {
     gameRunning = true;
@@ -140,30 +145,6 @@ function updateMissiles() {
     }
 }
 
-function generateComets() {
-    if (gameRunning && numComets < COMET_LIMIT) {
-        for (let i = 0; i < COMET_LIMIT; i++) {
-            if (comets[i] == undefined) {
-                numComets++;
-                let startX = 10 + Math.ceil(Math.random() * 1260);
-                let endX = 10 + Math.ceil(Math.random() * 1260);
-                let angle = Math.atan2(720, endX - startX);
-                comets[i] = {
-                    x: startX,
-                    y: 0,
-                    speedX: Math.cos(angle) * 2.5,
-                    speedY: Math.sin(angle) * 2.5,
-                    rotation: angle - Math.PI / 2,
-                    hp: 1,
-                    id: i
-                }
-                io.emit('newComet', comets[i]);
-                break;
-            }
-        }
-    }
-}
-
 function updateComets() {
     if (gameRunning) {
         Object.keys(comets).forEach(id => {
@@ -236,6 +217,19 @@ function explosionDamage() {
     }
 }
 
+function increaseDifficulty() {
+    cometLimit += 10;
+    if(cometRate >= 750) {
+        cometRate -= 250;
+    }
+    if(round % 3 == 0) {
+        cometHealth++;
+    }
+    if(round % 2 == 0) {
+        cometSpeed += 0.5;
+    }
+}
+
 function clearGame() {
     gameRunning = false;
     Object.keys(players).forEach(playerId => {
@@ -253,21 +247,50 @@ function clearGame() {
     numComets = 0;
     baseHealth = 50;
     missileId = 0;
-    timer = 120;
+    timer = 60;
 }
 
 //Game loops
+(function generateComets() {
+    let timer = cometRate - 250 + Math.ceil(Math.random() * 500);
+    setTimeout(() => {
+        if (!roundOver && gameRunning && numComets < cometLimit) {
+            for (let i = 0; i < cometLimit; i++) {
+                if (comets[i] == undefined) {
+                    numComets++;
+                    let startX = 10 + Math.ceil(Math.random() * 1260);
+                    let endX = 10 + Math.ceil(Math.random() * 1260);
+                    let angle = Math.atan2(720, endX - startX);
+                    comets[i] = {
+                        x: startX,
+                        y: 0,
+                        speedX: Math.cos(angle) * cometSpeed,
+                        speedY: Math.sin(angle) * cometSpeed,
+                        rotation: angle - Math.PI / 2,
+                        hp: cometHealth,
+                        id: i
+                    }
+                    io.emit('newComet', comets[i]);
+                    break;
+                }
+            }
+        }
+        generateComets();
+    }, timer);
+}());
 setInterval(() => {
     if (gameRunning) {
         timer--;
-        if (timer > 0) {
-            io.emit('timerUpdate', timer);
-        } else {
-            clearGame();
-            io.emit('gameOver');
-
+        io.emit('timerUpdate', timer);
+        if (!roundOver && timer <= 0) {
+            roundOver = true;
+            round++;
+            timer = 10;
+            increaseDifficulty();
+        } else if (roundOver && timer <= 0) {
+            roundOver = false;
+            timer = 60;
         }
     }
 }, 1000);
-setInterval(generateComets, 300 + Math.ceil(Math.random() * 200));
 setInterval(updateProjectiles, 16);
