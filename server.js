@@ -77,6 +77,11 @@ io.on('connect', socket => {
     socket.on('missileShot', missileData => {
         missileData["id"] = missileId;
         missiles[missileId] = missileData;
+        missiles[missileId].speedX = -1 * Math.cos(missileData.rotation + Math.PI / 2) * 20;
+        missiles[missileId].speedY = -1 * Math.sin(missileData.rotation + Math.PI / 2) * 20;
+        missiles[missileId].dmg = 1;
+        missiles[missileId].radius = 75;
+        missiles[missileId].playerId = socket.id;
         if (missileId > 1000) {
             missileId = 0;
         } else {
@@ -263,7 +268,8 @@ function clearGame() {
                         speedY: Math.sin(angle) * cometSpeed,
                         rotation: angle - Math.PI / 2,
                         hp: cometHealth,
-                        id: i
+                        id: i,
+                        credits: 100 * cometHealth,
                     }
                     io.emit('newComet', comets[i]);
                     break;
