@@ -66,6 +66,7 @@ io.on('connect', socket => {
         x: 160 + 320 * nextSlot,
         y: 670,
         playerId: socket.id,
+        credits: 0,
     };
     socket.emit('initComets', comets);
     socket.emit('initHealth', baseHealth);
@@ -151,11 +152,6 @@ function updateComets() {
             if (comets[id] != undefined) {
                 comets[id].x = comets[id].x + comets[id].speedX;
                 comets[id].y = comets[id].y + comets[id].speedY;
-                if (comets[id].hp <= 0 || comets[id].x < -10 || comets[id].x > 1290 || comets[id].y < -10 || comets[id].y > 730) {
-                    numComets--;
-                    comets[id] = undefined;
-                    io.emit('cometDestroyed', id);
-                }
             }
         })
         io.emit('cometUpdate', comets);
@@ -170,12 +166,19 @@ function detectCollisions() {
                     let dist = Math.sqrt(Math.pow(comets[cometId].x - missiles[missileId].x, 2) + Math.pow(comets[cometId].y - missiles[missileId].y, 2));
                     if (dist < 25) {
                         comets[cometId].hp -= missiles[missileId].dmg;
+                        if (comets[cometId].hp <= 0 || comets[cometId].x < -10 || comets[cometId].x > 1290 || comets[cometId].y < -10 || comets[cometId].y > 730) {
+                            players[missiles[missileId].playerId].credits += comets[cometId].credits;
+                            numComets--;
+                            comets[cometId] = undefined;
+                            io.emit('cometDestroyed', cometId);
+                        }
                         explosions[missileId] = {
                             x: missiles[missileId].x,
                             y: missiles[missileId].y,
                             id: missileId,
                             dmg: missiles[missileId].dmg,
-                            radius: missiles[missileId].radius
+                            radius: missiles[missileId].radius,
+                            playerId: missiles[missileId].playerId,
                         }
                         delete missiles[missileId];
                         io.emit('missileDestroyed', missileId);
@@ -248,6 +251,7 @@ function clearGame() {
     baseHealth = 50;
     missileId = 0;
     timer = 60;
+    round = 0;
 }
 
 //Game loops
