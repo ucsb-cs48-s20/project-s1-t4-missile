@@ -268,7 +268,8 @@ function clearGame() {
                         speedY: Math.sin(angle) * cometSpeed,
                         rotation: angle - Math.PI / 2,
                         hp: cometHealth,
-                        id: i
+                        id: i,
+                        credits: 100 * cometHealth,
                     }
                     io.emit('newComet', comets[i]);
                     break;
