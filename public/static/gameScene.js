@@ -156,6 +156,9 @@ class GameScene extends Phaser.Scene {
         this.socket.on('timerUpdate', timer => {
             this.timerText.setText(`Time: ${timer}`);
         })
+        this.socket.on('creditsEarned', amount => {
+            this.credits += amount;
+        })
     }
 
     update() {
