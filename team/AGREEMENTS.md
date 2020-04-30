@@ -1,3 +1,7 @@
+# Public
+
+This project will be public.
+
 # Members
 
 Xinyi Zhang (XhenryZhang)
