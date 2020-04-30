@@ -2,25 +2,13 @@ import { Component } from 'react'
 import io from 'socket.io-client'
 import { render } from 'react-dom'
 import Favicon from 'react-favicon'
+import dynamic from 'next/dynamic'
+import styles from '../components/styles'
 
-const styles = {
-    body: {
-        backgroundColor: '#444444',
-        backgroundImage: 'url("/static/images/webpage-background.png")',
-        fontFamily: '"Trebuchet MS", Roboto, sans-serif',
-        color: '#eeeeee'
-    },
-
-    container: {
-        textAlign: 'center',
-    },
-
-    gameWindow: {
-        padding: '5px',
-        border: '1px solid #eeeeee',
-    },
-
-}
+const DynamicGameWindow = dynamic(
+    () => import("../components/gameWindow"),
+    { ssr: true }
+)
 
 class Test extends Component {
     constructor(props) {
@@ -65,7 +53,7 @@ class Test extends Component {
                 <script src="/socket.io/socket.io.js"></script>
                 <script src="//cdn.jsdelivr.net/npm/phaser@3.22.0/dist/phaser.js"></script>
                 <script type='module' src='/static/game.js'></script>
-                <div id="gameWindow" style={styles.gameWindow}></div>
+                <DynamicGameWindow />
             </div>
         )
     }
