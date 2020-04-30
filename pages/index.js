@@ -7,7 +7,7 @@ import styles from '../components/styles'
 
 const DynamicGameWindow = dynamic(
     () => import("../components/gameWindow"),
-    { ssr: true }
+    { ssr: false }
 )
 
 class Test extends Component {
@@ -50,10 +50,12 @@ class Test extends Component {
             <div style={styles.container}>
                 <Favicon url="/static/images/favicon.ico"></Favicon>
                 <h1>{this.state.pageTitle}</h1>
+                <DynamicGameWindow />
+                <script type='module' src='/static/game.js'></script>
+                <script src='/static/parentGameWindow.js'></script>
                 <script src="/socket.io/socket.io.js"></script>
                 <script src="//cdn.jsdelivr.net/npm/phaser@3.22.0/dist/phaser.js"></script>
-                <script type='module' src='/static/game.js'></script>
-                <DynamicGameWindow />
+
             </div>
         )
     }
