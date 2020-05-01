@@ -212,6 +212,12 @@ function explosionDamage() {
                     let dist = Math.sqrt(Math.pow(comets[cometId].x - explosions[explosionId].x, 2) + Math.pow(comets[cometId].y - explosions[explosionId].y, 2));
                     if (dist < explosions[explosionId].radius) {
                         comets[cometId].hp -= explosions[explosionId].dmg;
+                        if (comets[cometId].hp <= 0 || comets[cometId].x < -10 || comets[cometId].x > 1290 || comets[cometId].y < -10 || comets[cometId].y > 730) {
+                            players[expolsions[explosionId].playerId].credits += comets[cometId].credits;
+                            numComets--;
+                            comets[cometId] = undefined;
+                            io.emit('cometDestroyed', cometId);
+                        }
                     }
                 }
             })
