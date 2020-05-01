@@ -5,6 +5,8 @@ import Favicon from 'react-favicon'
 import dynamic from 'next/dynamic'
 import styles from '../components/styles'
 
+import Chat from '../components/ChatLayout'
+
 const DynamicGameWindow = dynamic(
     () => import("../components/gameWindow"),
     { ssr: false }
@@ -46,7 +48,7 @@ class Test extends Component {
                 <script src='/static/parentGameWindow.js'></script>
                 <script src="/socket.io/socket.io.js"></script>
                 <script src="//cdn.jsdelivr.net/npm/phaser@3.22.0/dist/phaser.js"></script>
-
+                <Chat />
             </div>
         )
     }
