@@ -7,6 +7,10 @@ const dev = process.env.NODE_ENV
 const nextApp = next({ dev });
 const nextHandler = nextApp.getRequestHandler();
 const PORT = process.env.PORT || 3000;
+const cors = require('cors');
+
+const { addUser, removeUser, getUser } = require('./util.js');
+
 nextApp.prepare().then(() => {
     app.get('*', (req, res) => {
         return nextHandler(req, res)
@@ -48,64 +52,103 @@ for (let i = 0; i < cometLimit; i++) {
     comets[i] = undefined;
 }
 
+let socketCount = 0
 io.on('connect', socket => {
-    gameRunning = true;
-    console.log(`${socket.id} connected`);
+    if(socketCount % 2 == 0) {
+        gameRunning = true;
+        console.log(`${socket.id} connected`);
+    
+        //Room capacity check
+        let nextSlot = getNextSlot();
+        if (nextSlot == -1) {
+            console.log('Game full')
+            return;
+        }
+        playerSlots[nextSlot] = socket.id;
+    
+        //Initializes clients w/ server objects
+        players[socket.id] = {
+            rotation: 0,
+            x: 160 + 320 * nextSlot,
+            y: 670,
+            playerId: socket.id,
+            credits: 0,
+        };
+        socket.emit('initComets', comets);
+        socket.emit('initHealth', baseHealth);
+        socket.emit('initTimer', timer);
+        io.to(socket.id).emit('initCredits', 0);
+        socket.emit('currentPlayers', players);
+        socket.broadcast.emit('newPlayer', players[socket.id]);
+    
+        //Handles client inputs
+        socket.on('missileShot', missileData => {
+            missileData["id"] = missileId;
+            missiles[missileId] = missileData;
+            missiles[missileId].speedX = -1 * Math.cos(missileData.rotation + Math.PI / 2) * 20;
+            missiles[missileId].speedY = -1 * Math.sin(missileData.rotation + Math.PI / 2) * 20;
+            missiles[missileId].dmg = 1;
+            missiles[missileId].radius = 75;
+            missiles[missileId].playerId = socket.id;
+            if (missileId > 1000) {
+                missileId = 0;
+            } else {
+                missileId++;
+            }
+            io.emit('newMissile', missiles[missileId - 1]);
+            socket.broadcast.emit('missileFired', socket.id);
+        })
+        socket.on('rotationChange', rotation => {
+            if (players[socket.id] != undefined) {
+                players[socket.id].rotation = rotation;
+                socket.broadcast.emit('playerMoved', players[socket.id]);
+            }
+        })
+    
+        //Destroys objects on server & clients
+        socket.on('disconnect', () => {
+            console.log(`${socket.id} disconnected`)
+            delete players[socket.id];
+            removeFromSlot(socket.id);
+            io.emit('disconnect', socket.id);
+        })
+    } else {
+        //Handles the chat stuff
+        socket.on('disconnect', () => {
+            console.log('User has left!');
+            const user = removeUser(socket.id);
+    
+            if (user) {
+                io.to(user.room).emit('message', { user: 'admin', text: `${user.name} has left.`});
+            }
+    
+            socket.disconnect();
+        })
 
-    //Room capacity check
-    let nextSlot = getNextSlot();
-    if (nextSlot == -1) {
-        console.log('Game full')
-        return;
+        socket.on('join', (obj, callback) => {
+            const { error, user } = addUser({ id: socket.id, name: obj.name, room: 'Room' });
+            console.log(`Adding ${obj.name} to room ${user.room}`);
+
+            if (error) {
+                return (callback(error));
+            }
+
+            socket.emit('message', { user: 'admin', text: `${user.name}, welcome to the room ${user.room}!`});
+            socket.broadcast.to(user.room).emit('message', { user: 'admin', text: `${user.name} has joined the room.`});
+            socket.join(user.room);
+
+            callback();
+        });
+
+        socket.on('sendMessage', (message, callback) => {
+            const user = getUser(socket.id);
+
+            io.to(user.room).emit('message', { user: user.name, text: message });
+            callback();
+        });
+
     }
-    playerSlots[nextSlot] = socket.id;
-
-    //Initializes clients w/ server objects
-    players[socket.id] = {
-        rotation: 0,
-        x: 160 + 320 * nextSlot,
-        y: 670,
-        playerId: socket.id,
-        credits: 0,
-    };
-    socket.emit('initComets', comets);
-    socket.emit('initHealth', baseHealth);
-    socket.emit('initTimer', timer);
-    io.to(socket.id).emit('initCredits', 0);
-    socket.emit('currentPlayers', players);
-    socket.broadcast.emit('newPlayer', players[socket.id]);
-
-    //Handles client inputs
-    socket.on('missileShot', missileData => {
-        missileData["id"] = missileId;
-        missiles[missileId] = missileData;
-        missiles[missileId].speedX = -1 * Math.cos(missileData.rotation + Math.PI / 2) * 20;
-        missiles[missileId].speedY = -1 * Math.sin(missileData.rotation + Math.PI / 2) * 20;
-        missiles[missileId].dmg = 1;
-        missiles[missileId].radius = 75;
-        missiles[missileId].playerId = socket.id;
-        if (missileId > 1000) {
-            missileId = 0;
-        } else {
-            missileId++;
-        }
-        io.emit('newMissile', missiles[missileId - 1]);
-        socket.broadcast.emit('missileFired', socket.id);
-    })
-    socket.on('rotationChange', rotation => {
-        if (players[socket.id] != undefined) {
-            players[socket.id].rotation = rotation;
-            socket.broadcast.emit('playerMoved', players[socket.id]);
-        }
-    })
-
-    //Destroys objects on server & clients
-    socket.on('disconnect', () => {
-        console.log(`${socket.id} disconnected`)
-        delete players[socket.id];
-        removeFromSlot(socket.id);
-        io.emit('disconnect', socket.id);
-    })
+    socketCount++
 })
 
 //Helper functions
