@@ -71,6 +71,7 @@ io.on('connect', socket => {
     socket.emit('initComets', comets);
     socket.emit('initHealth', baseHealth);
     socket.emit('initTimer', timer);
+    io.to(socket.id).emit('initCredits', 0);
     socket.emit('currentPlayers', players);
     socket.broadcast.emit('newPlayer', players[socket.id]);
 
@@ -168,6 +169,7 @@ function detectCollisions() {
                         comets[cometId].hp -= missiles[missileId].dmg;
                         if (comets[cometId].hp <= 0 || comets[cometId].x < -10 || comets[cometId].x > 1290 || comets[cometId].y < -10 || comets[cometId].y > 730) {
                             players[missiles[missileId].playerId].credits += comets[cometId].credits;
+                            io.to(missiles[missileId].playerId).emit('updateCredits', players[missiles[missileId].playerId].credits);
                             numComets--;
                             comets[cometId] = undefined;
                             io.emit('cometDestroyed', cometId);
@@ -214,6 +216,7 @@ function explosionDamage() {
                         comets[cometId].hp -= explosions[explosionId].dmg;
                         if (comets[cometId].hp <= 0 || comets[cometId].x < -10 || comets[cometId].x > 1290 || comets[cometId].y < -10 || comets[cometId].y > 730) {
                             players[expolsions[explosionId].playerId].credits += comets[cometId].credits;
+                            io.to(explosions[explosionId].playerId).emit('updateCredits', players[explosions[explosionId].playerId].credits);
                             numComets--;
                             comets[cometId] = undefined;
                             io.emit('cometDestroyed', cometId);
