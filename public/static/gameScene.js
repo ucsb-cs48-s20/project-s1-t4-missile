@@ -48,10 +48,13 @@ class GameScene extends Phaser.Scene {
 
         //Initializing server-handled objects
         this.socket.on('initHealth', baseHealth => {
-            this.healthText = this.add.text(50, 100, `Health: ${baseHealth}`, { fontSize: '24px' })
+            this.healthText = this.add.text(50, 100, `Health: ${baseHealth}`, { fontSize: '24px' });
         })
         this.socket.on('initTimer', timer => {
             this.timerText = this.add.text(50, 50, `Time: ${timer}`, { fontSize: '24px' });
+        })
+        this.socket.on('initCredits', cred => {
+            this.creditText = this.add.text(50, 150, `Credits: ${cred}`, { fontSize: '24px' });
         })
         this.socket.on('currentPlayers', players => {
             Object.keys(players).forEach(id => {
@@ -155,6 +158,9 @@ class GameScene extends Phaser.Scene {
         })
         this.socket.on('timerUpdate', timer => {
             this.timerText.setText(`Time: ${timer}`);
+        })
+        this.socket.on('updateCredits', credits => {
+            this.creditText.setText(`Credits: ${credits}`);
         })
     }
 

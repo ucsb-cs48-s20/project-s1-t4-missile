@@ -20,14 +20,6 @@ class Test extends Component {
     }
 
     componentDidMount() {
-        /*
-        this.socket = io();
-        this.socket.on('now', data => {
-            this.setState({
-                hello: data.message
-            })
-        });
-        */
 
         //set body style
         document.title = this.state.pageTitle;
