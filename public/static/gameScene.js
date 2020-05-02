@@ -12,6 +12,7 @@ class GameScene extends Phaser.Scene {
         this.load.image('comet', '/assets/comet.png')
         this.load.spritesheet('explosion', '/assets/explosion.png', { frameWidth: 16, frameHeight: 16 })
         this.load.image('base', '/assets/base.png')
+        this.load.image('button', '/assets/button.png')
     }
 
     create() {
@@ -43,17 +44,7 @@ class GameScene extends Phaser.Scene {
         this.otherPlayers = this.physics.add.group();
         this.otherTankbodys = this.physics.add.group();
 
-        let upgradeGraphics = this.add.graphics({
-            fillStyle: {
-                color: 0x898989,
-                alpha: 1,
-            },
-        }
-        );
-
-
-        let missileSpeedUpgrade = this.add.rectangle(1230, 50, 100, 100);
-        upgradeGraphics.fillRectShape(missileSpeedUpgrade);
+        let speedUpgrade = this.add.image(1230, 50, 'button').setDepth(2).setScale(1.5);
 
 
         //Game variables

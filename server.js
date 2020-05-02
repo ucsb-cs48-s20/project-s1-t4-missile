@@ -21,7 +21,7 @@ nextApp.prepare().then(() => {
 //Game variables
 let round = 1;
 let numComets = 0;
-let baseHealth = 100;
+let baseHealth = 10000;
 let missileId = 0;
 let timer = 60;
 let gameRunning = true;
@@ -67,6 +67,7 @@ io.on('connect', socket => {
         y: 670,
         playerId: socket.id,
         credits: 0,
+        missileSpeed: 10,
     };
     socket.emit('initComets', comets);
     socket.emit('initHealth', baseHealth);
@@ -79,8 +80,8 @@ io.on('connect', socket => {
     socket.on('missileShot', missileData => {
         missileData["id"] = missileId;
         missiles[missileId] = missileData;
-        missiles[missileId].speedX = -1 * Math.cos(missileData.rotation + Math.PI / 2) * 20;
-        missiles[missileId].speedY = -1 * Math.sin(missileData.rotation + Math.PI / 2) * 20;
+        missiles[missileId].speedX = -1 * Math.cos(missileData.rotation + Math.PI / 2) * players[socket.id].missileSpeed;
+        missiles[missileId].speedY = -1 * Math.sin(missileData.rotation + Math.PI / 2) * players[socket.id].missileSpeed;
         missiles[missileId].dmg = 1;
         missiles[missileId].radius = 75;
         missiles[missileId].playerId = socket.id;
