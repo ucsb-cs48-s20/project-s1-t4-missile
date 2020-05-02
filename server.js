@@ -82,11 +82,13 @@ io.on('connect', socket => {
         missiles[missileId].dmg = 1;
         missiles[missileId].radius = 75;
         missiles[missileId].playerId = socket.id;
+
         if (missileId > 1000) {
             missileId = 0;
         } else {
             missileId++;
         }
+
         io.emit('newMissile', missiles[missileId - 1]);
         socket.broadcast.emit('missileFired', socket.id);
     })
@@ -131,12 +133,25 @@ function updateProjectiles() {
     }
 }
 
+// TODO: match explosion duration with animation
+// TODO: explosion size changes with animation
+// TODO: find explosion animation
 function updateMissiles() {
     if (gameRunning) {
         Object.keys(missiles).forEach(id => {
             missiles[id].x = missiles[id].x + missiles[id].speedX;
             missiles[id].y = missiles[id].y + missiles[id].speedY;
-            if (missiles[id].x < -10 || missiles[id].x > 1290 || missiles[id].y < -10 || missiles[id].y > 730) {
+            if ((missiles[id].x >= missiles[id].mouseX - 10 && missiles[id].x <= missiles[id].mouseX + 10) && (missiles[id].y >= missiles[id].mouseY - 10 && missiles[id].y <= missiles[id].mouseY + 10)) {
+                // create explosion on missile destroy
+                explosions[id] = {
+                    x: missiles[id].x,
+                    y: missiles[id].y,
+                    id: id,
+                    dmg: missiles[id].dmg,
+                    radius: missiles[id].radius,
+                    durationLimit: 30,
+                    startTick: 0
+                }
                 delete missiles[id];
                 io.emit('missileDestroyed', id);
             }
@@ -146,6 +161,7 @@ function updateMissiles() {
 }
 
 function updateComets() {
+    // TODO: make comets spawn explosions as well
     if (gameRunning) {
         Object.keys(comets).forEach(id => {
             if (comets[id] != undefined) {
@@ -164,6 +180,8 @@ function updateComets() {
 
 function detectCollisions() {
     if (gameRunning) {
+        // missiles and comets (missiles shouldn't collide with comets)
+        /*
         Object.keys(missiles).forEach(missileId => {
             Object.keys(comets).forEach(cometId => {
                 if (comets[cometId] != undefined && missiles[missileId] != undefined) {
@@ -182,7 +200,7 @@ function detectCollisions() {
                     }
                 }
             })
-        })
+        }) */
         Object.keys(comets).forEach(cometId => {
             if (comets[cometId] != undefined) {
                 if (comets[cometId].y >= 600) {
@@ -201,18 +219,26 @@ function detectCollisions() {
     }
 }
 
+// TODO: each explosion can only damage one comet once
 function explosionDamage() {
     if (gameRunning) {
         Object.keys(explosions).forEach(explosionId => {
             Object.keys(comets).forEach(cometId => {
                 if (comets[cometId] != undefined && explosions[explosionId] != undefined) {
                     let dist = Math.sqrt(Math.pow(comets[cometId].x - explosions[explosionId].x, 2) + Math.pow(comets[cometId].y - explosions[explosionId].y, 2));
+                    // TODO: make explosion animation sprite reflect its radius
                     if (dist < explosions[explosionId].radius) {
                         comets[cometId].hp -= explosions[explosionId].dmg;
                     }
                 }
             })
-            delete explosions[explosionId];
+
+            // explosion duration
+            // delete explosion if it lasts more than its duration
+            explosions[explosionId].startTick++;
+            if (explosions[explosionId].startTick > explosions[explosionId].durationLimit) {
+                delete explosions[explosionId];
+            }
         })
     }
 }

@@ -94,6 +94,9 @@ class GameScene extends Phaser.Scene {
                 if (missile.id == missileId) {
                     const explosion = this.add.sprite(missile.x, missile.y, 'explosion', 0).setScale(5);
                     explosion.play('explode');
+                    // TODO: make explosion length animation reflect its duration
+                    // TODO: make explosion size reflect its size
+                    //explosion.anims.msPerFrame = 500;
                     explosion.once(Phaser.Animations.Events.SPRITE_ANIMATION_COMPLETE, () => { explosion.destroy() })
                     missile.destroy();
                 }
@@ -178,6 +181,7 @@ class GameScene extends Phaser.Scene {
             if (diffAngle < -Math.PI) {
                 diffAngle += Math.PI * 2.0;
             }
+
             this.ship.setAngularVelocity(600 * diffAngle);
             this.socket.emit('rotationChange', this.ship.rotation);
     
@@ -188,13 +192,15 @@ class GameScene extends Phaser.Scene {
                 this.socket.emit('missileShot', {
                     x: this.ship.x,
                     y: this.ship.y,
-                    rotation: this.ship.rotation,
+                    mouseX: pointer.x,
+                    mouseY: pointer.y,
+                    rotation: this.ship.rotation
                 })
             }
+
             if (!pointer.isDown) {
                 this.shot = false;
             }
-    
         }
     }
 
