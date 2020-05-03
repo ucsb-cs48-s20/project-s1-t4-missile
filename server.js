@@ -26,6 +26,7 @@ let missileId = 0;
 let timer = 60;
 let gameRunning = true;
 let roundOver = false;
+let score = 0;
 
 //Variables that change with rounds
 let cometLimit = 10;
@@ -72,6 +73,7 @@ io.on('connect', socket => {
     socket.emit('initComets', comets);
     socket.emit('initHealth', baseHealth);
     socket.emit('initTimer', timer);
+    socket.emit('initScore', score);
     io.to(socket.id).emit('initCredits', 0);
     socket.emit('currentPlayers', players);
     socket.broadcast.emit('newPlayer', players[socket.id]);
@@ -181,7 +183,9 @@ function detectCollisions() {
                         comets[cometId].hp -= missiles[missileId].dmg;
                         if (comets[cometId].hp <= 0 || comets[cometId].x < -10 || comets[cometId].x > 1290 || comets[cometId].y < -10 || comets[cometId].y > 730) {
                             players[missiles[missileId].playerId].credits += comets[cometId].credits;
+                            score += comets[cometId].credits;
                             io.to(missiles[missileId].playerId).emit('updateCredits', players[missiles[missileId].playerId].credits);
+                            io.emit('updateScore', score);
                             numComets--;
                             comets[cometId] = undefined;
                             io.emit('cometDestroyed', cometId);
@@ -228,7 +232,9 @@ function explosionDamage() {
                         comets[cometId].hp -= explosions[explosionId].dmg;
                         if (comets[cometId].hp <= 0 || comets[cometId].x < -10 || comets[cometId].x > 1290 || comets[cometId].y < -10 || comets[cometId].y > 730) {
                             players[explosions[explosionId].playerId].credits += comets[cometId].credits;
+                            score += comets[cometId].credits;
                             io.to(explosions[explosionId].playerId).emit('updateCredits', players[explosions[explosionId].playerId].credits);
+                            io.emit('updateScore', score);
                             numComets--;
                             comets[cometId] = undefined;
                             io.emit('cometDestroyed', cometId);

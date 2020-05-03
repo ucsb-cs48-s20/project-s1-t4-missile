@@ -71,6 +71,9 @@ class GameScene extends Phaser.Scene {
         this.socket.on('initCredits', cred => {
             this.creditText = this.add.text(50, 150, `Credits: ${cred}`, { fontSize: '24px' });
         })
+        this.socket.on('initScore', score => {
+            this.scoreText = this.add.text(50, 200, `Score: ${score}`, { fontSize: '24px' });
+        })
         this.socket.on('currentPlayers', players => {
             Object.keys(players).forEach(id => {
                 if (players[id].playerId === self.socket.id) {
@@ -177,10 +180,15 @@ class GameScene extends Phaser.Scene {
         this.socket.on('updateCredits', credits => {
             this.creditText.setText(`Credits: ${credits}`);
         })
+      
         this.socket.on('updateCost', info => {
             if(info[0] == 'speed') {
                 this.speedUpgradeText.setText(`Missile\nSpeed\n\n${info[1]}`)
             }
+
+        this.socket.on('updateScore', score => {
+            this.scoreText.setText(`Score: ${score}`);
+
         })
     }
 
