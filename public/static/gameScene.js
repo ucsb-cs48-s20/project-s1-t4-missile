@@ -12,7 +12,6 @@ class GameScene extends Phaser.Scene {
         this.load.image('comet', '/assets/comet.png')
         this.load.spritesheet('explosion', '/assets/explosion.png', { frameWidth: 16, frameHeight: 16 })
         this.load.image('base', '/assets/base.png')
-        this.load.image('button', '/assets/button.png')
     }
 
     create() {
@@ -41,22 +40,8 @@ class GameScene extends Phaser.Scene {
         //Groups
         this.missiles = this.physics.add.group();
         this.comets = this.physics.add.group();
-        this.otherPlayers = this.physics.add.group();
+        this.otherPlayers = this.physics.add.group(); 
         this.otherTankbodys = this.physics.add.group();
-
-        this.speedUpgradeText = this.add.text(1190, 25, 'Missile\nSpeed\n\n1000', { fontSize: '18px' }).setDepth(3)
-        this.speedUpgrade = this.add.image(1230, 50, 'button').setDepth(2).setScale(1.5).setTint(0xcfcfcf)
-            .setInteractive()
-            .on('pointerover', () => {
-                speedUpgrade.setTint(0xfcfcfc);
-            })
-            .on('pointerout', () => {
-                speedUpgrade.setTint(0xcfcfcf)
-            })
-            .on('pointerdown', () => {
-                this.socket.emit('attemptUpgrade', 'speed')
-            })
-
 
         //Game variables
         this.shot = false;
@@ -77,7 +62,7 @@ class GameScene extends Phaser.Scene {
         this.socket.on('currentPlayers', players => {
             Object.keys(players).forEach(id => {
                 if (players[id].playerId === self.socket.id) {
-                    self.addPlayer(self, players[id]);
+                    self.addPlayer(self, players[id]); 
                 } else {
                     self.addOtherPlayers(self, players[id]);
                 }
@@ -93,7 +78,7 @@ class GameScene extends Phaser.Scene {
 
         //Events where new objects are created
         this.socket.on('newPlayer', playerInfo => {
-            self.addOtherPlayers(self, playerInfo);
+            self.addOtherPlayers(self, playerInfo); 
         })
         this.socket.on('newMissile', missileInfo => {
             self.addMissile(self, missileInfo);
@@ -128,8 +113,8 @@ class GameScene extends Phaser.Scene {
             })
         })
         this.socket.on('disconnect', playerId => {
-            self.otherPlayers.getChildren().forEach(otherPlayer => {
-                if (playerId === otherPlayer.playerId) {
+            self.otherPlayers.getChildren().forEach(otherPlayer => { 
+                if (playerId === otherPlayer.playerId) { 
                     otherPlayer.destroy();
                 }
             })
@@ -180,15 +165,8 @@ class GameScene extends Phaser.Scene {
         this.socket.on('updateCredits', credits => {
             this.creditText.setText(`Credits: ${credits}`);
         })
-      
-        this.socket.on('updateCost', info => {
-            if(info[0] == 'speed') {
-                this.speedUpgradeText.setText(`Missile\nSpeed\n\n${info[1]}`)
-            }
-
         this.socket.on('updateScore', score => {
             this.scoreText.setText(`Score: ${score}`);
-
         })
     }
 
@@ -197,11 +175,11 @@ class GameScene extends Phaser.Scene {
             //Mouse handling
             let pointer = this.input.activePointer;
             let mvtAngle = Math.atan2(pointer.y - this.ship.y, pointer.x - this.ship.x);
-            if (mvtAngle > 0.0) {
-                if (mvtAngle < Math.PI * 0.5) {
+            if (mvtAngle > 0.0) { 
+                if (mvtAngle < Math.PI * 0.5) { 
                     mvtAngle = 0.0;
                 }
-                else {
+                else { 
                     mvtAngle = Math.PI;
                 }
             }
@@ -214,7 +192,7 @@ class GameScene extends Phaser.Scene {
             }
             this.ship.setAngularVelocity(600 * diffAngle);
             this.socket.emit('rotationChange', this.ship.rotation);
-
+    
             //Shot handling
             if (!this.shot && pointer.isDown) {
                 this.shot = true;
@@ -228,7 +206,7 @@ class GameScene extends Phaser.Scene {
             if (!pointer.isDown) {
                 this.shot = false;
             }
-
+    
         }
     }
 
@@ -236,31 +214,31 @@ class GameScene extends Phaser.Scene {
     addTankBody(self, playerInfo) {
         return self.add.sprite(playerInfo.x, playerInfo.y - 10, 'tankbody').setScale(1.25);
     }
-
+    
     addPlayer(self, playerInfo) {
         self.addTankBody(self, playerInfo);
         self.ship = self.physics.add.sprite(playerInfo.x, playerInfo.y - 10, 'tankbarrel').setScale(1.25);
-        self.ship.setDrag(100);
+        self.ship.setDrag(100); 
         self.ship.setAngularDrag(100);
-        self.ship.setMaxVelocity(200);
+        self.ship.setMaxVelocity(200); 
     }
-
+    
     addOtherPlayers(self, playerInfo) {
         const otherTankbody = self.addTankBody(self, playerInfo);
         const otherPlayer = self.add.sprite(playerInfo.x, playerInfo.y - 10, 'tankbarrel').setScale(1.25);
         otherPlayer.playerId = playerInfo.playerId;
         otherTankbody.playerId = playerInfo.playerId;
-        self.otherPlayers.add(otherPlayer);
+        self.otherPlayers.add(otherPlayer); 
         self.otherTankbodys.add(otherTankbody);
     }
-
+    
     addMissile(self, missileInfo) {
         const missile = self.add.sprite(missileInfo.x, missileInfo.y, 'missile');
         missile.rotation = missileInfo.rotation;
         missile.id = missileInfo.id;
         self.missiles.add(missile);
     }
-
+    
     addComet(self, cometInfo) {
         const comet = self.add.sprite(cometInfo.x, cometInfo.y, 'comet').setDisplaySize(23, 60);
         comet.rotation = cometInfo.rotation;
