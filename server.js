@@ -21,7 +21,7 @@ nextApp.prepare().then(() => {
 //Game variables
 let round = 1;
 let numComets = 0;
-let baseHealth = 10000;
+let baseHealth = 100;
 let missileId = 0;
 let timer = 60;
 let gameRunning = true;
@@ -106,6 +106,7 @@ io.on('connect', socket => {
                 players[socket.id].missileSpeed = players[socket.id].missileSpeed + 1;
                 players[socket.id].credits -= cost;
                 io.to(socket.id).emit('updateCredits', players[socket.id].credits)
+                io.to(socket.id).emit('updateCost', ['speed', cost + 100])
             }
         }
     })
