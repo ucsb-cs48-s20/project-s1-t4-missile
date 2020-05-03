@@ -44,7 +44,18 @@ class GameScene extends Phaser.Scene {
         this.otherPlayers = this.physics.add.group();
         this.otherTankbodys = this.physics.add.group();
 
-        let speedUpgrade = this.add.image(1230, 50, 'button').setDepth(2).setScale(1.5);
+        let speedUpgradeText = this.add.text(1190, 25, 'Missile\nSpeed\n\n1000', { fontSize: '18px' }).setDepth(3)
+        let speedUpgrade = this.add.image(1230, 50, 'button').setDepth(2).setScale(1.5).setTint(0xcfcfcf)
+            .setInteractive()
+            .on('pointerover', () => {
+                speedUpgrade.setTint(0xfcfcfc);
+            })
+            .on('pointerout', () => {
+                speedUpgrade.setTint(0xcfcfcf)
+            })
+            .on('pointerdown', () => {
+                this.socket.emit('attemptUpgrade', 'speed')
+            })
 
 
         //Game variables

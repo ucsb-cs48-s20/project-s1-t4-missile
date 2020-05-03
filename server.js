@@ -99,6 +99,16 @@ io.on('connect', socket => {
             socket.broadcast.emit('playerMoved', players[socket.id]);
         }
     })
+    socket.on('attemptUpgrade', upgrade => {
+        if(upgrade == 'speed') {
+            let cost = players[socket.id].missileSpeed * 100;
+            if(players[socket.id].credits >= cost) {
+                players[socket.id].missileSpeed = players[socket.id].missileSpeed + 1;
+                players[socket.id].credits -= cost;
+                io.to(socket.id).emit('updateCredits', players[socket.id].credits)
+            }
+        }
+    })
 
     //Destroys objects on server & clients
     socket.on('disconnect', () => {
@@ -261,7 +271,11 @@ function clearGame() {
     baseHealth = 50;
     missileId = 0;
     timer = 60;
-    round = 0;
+    round = 1;
+    cometLimit = 10;
+    cometRate = 1500;
+    cometHealth = 1;
+    cometSpeed = 2.5;
 }
 
 //Game loops
