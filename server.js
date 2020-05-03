@@ -45,6 +45,7 @@ let playerSlots = {
     2: undefined,
     3: undefined
 }
+
 for (let i = 0; i < cometLimit; i++) {
     comets[i] = undefined;
 }
@@ -165,6 +166,7 @@ function updateMissiles() {
                     id: id,
                     dmg: missiles[id].dmg,
                     radius: missiles[id].radius,
+                    playerId: missiles[id].playerId,
                     durationLimit: 30,
                     startTick: 0
                 }
@@ -177,7 +179,6 @@ function updateMissiles() {
 }
 
 function updateComets() {
-    // TODO: make comets spawn explosions as well
     if (gameRunning) {
         Object.keys(comets).forEach(id => {
             if (comets[id] != undefined) {
@@ -256,6 +257,18 @@ function explosionDamage() {
                             io.to(explosions[explosionId].playerId).emit('updateCredits', players[explosions[explosionId].playerId].credits);
                             io.emit('updateScore', score);
                             numComets--;
+
+                            explosions[cometId + 'comet'] = {
+                                x: comets[cometId].x,
+                                y: comets[cometId].y,
+                                id: cometId + 'comet',
+                                dmg: comets[cometId].dmg,
+                                radius: comets[cometId].radius,
+                                playerId: explosions[explosionId].playerId,
+                                durationLimit: 30,
+                                startTick: 0
+                            }
+
                             comets[cometId] = undefined;
                             io.emit('cometDestroyed', cometId);
                         }
@@ -332,15 +345,19 @@ function clearGame() {
                         hp: cometHealth,
                         id: i,
                         credits: 100 * cometHealth,
+                        dmg: 1,
+                        radius: 40,
                     }
                     io.emit('newComet', comets[i]);
                     break;
+                    // dmg and radius attributes are for the comet explosion
                 }
             }
         }
         generateComets();
     }, timer);
 }());
+
 setInterval(() => {
     if (gameRunning) {
         timer--;
