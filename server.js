@@ -68,6 +68,7 @@ io.on('connect', socket => {
         y: 670,
         playerId: socket.id,
         credits: 0,
+        missileSpeed: 10,
     };
     socket.emit('initComets', comets);
     socket.emit('initHealth', baseHealth);
@@ -81,8 +82,8 @@ io.on('connect', socket => {
     socket.on('missileShot', missileData => {
         missileData["id"] = missileId;
         missiles[missileId] = missileData;
-        missiles[missileId].speedX = -1 * Math.cos(missileData.rotation + Math.PI / 2) * 20;
-        missiles[missileId].speedY = -1 * Math.sin(missileData.rotation + Math.PI / 2) * 20;
+        missiles[missileId].speedX = -1 * Math.cos(missileData.rotation + Math.PI / 2) * players[socket.id].missileSpeed;
+        missiles[missileId].speedY = -1 * Math.sin(missileData.rotation + Math.PI / 2) * players[socket.id].missileSpeed;
         missiles[missileId].dmg = 1;
         missiles[missileId].radius = 75;
         missiles[missileId].playerId = socket.id;
@@ -98,6 +99,17 @@ io.on('connect', socket => {
         if (players[socket.id] != undefined) {
             players[socket.id].rotation = rotation;
             socket.broadcast.emit('playerMoved', players[socket.id]);
+        }
+    })
+    socket.on('attemptUpgrade', upgrade => {
+        if(upgrade == 'speed') {
+            let cost = players[socket.id].missileSpeed * 100;
+            if(players[socket.id].credits >= cost) {
+                players[socket.id].missileSpeed = players[socket.id].missileSpeed + 1;
+                players[socket.id].credits -= cost;
+                io.to(socket.id).emit('updateCredits', players[socket.id].credits)
+                io.to(socket.id).emit('updateCost', ['speed', cost + 100])
+            }
         }
     })
 
@@ -266,7 +278,12 @@ function clearGame() {
     baseHealth = 50;
     missileId = 0;
     timer = 60;
-    round = 0;
+    round = 1;
+    cometLimit = 10;
+    cometRate = 1500;
+    cometHealth = 1;
+    cometSpeed = 2.5;
+    score = 0;
 }
 
 //Game loops

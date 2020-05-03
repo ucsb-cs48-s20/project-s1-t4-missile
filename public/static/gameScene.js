@@ -12,6 +12,7 @@ class GameScene extends Phaser.Scene {
         this.load.image('comet', '/assets/comet.png')
         this.load.spritesheet('explosion', '/assets/explosion.png', { frameWidth: 16, frameHeight: 16 })
         this.load.image('base', '/assets/base.png')
+        this.load.image('button', '/assets/button.png')
     }
 
     create() {
@@ -42,6 +43,21 @@ class GameScene extends Phaser.Scene {
         this.comets = this.physics.add.group();
         this.otherPlayers = this.physics.add.group(); 
         this.otherTankbodys = this.physics.add.group();
+
+        this.speedUpgradeText = this.add.text(1190, 25, 'Missile\nSpeed\n\n1000', { fontSize: '18px' }).setDepth(3)
+        this.speedUpgrade = this.add.image(1230, 50, 'button').setDepth(2).setScale(1.5).setTint(0xcfcfcf)
+            .setInteractive()
+
+        this.speedUpgrade.on('pointerover', () => {
+                this.speedUpgrade.setTint(0xfcfcfc);
+            })
+            .on('pointerout', () => {
+                this.speedUpgrade.setTint(0xcfcfcf)
+            })  
+            .on('pointerdown', () => {
+                this.socket.emit('attemptUpgrade', 'speed')
+            })
+
 
         //Game variables
         this.shot = false;
@@ -167,6 +183,11 @@ class GameScene extends Phaser.Scene {
         })
         this.socket.on('updateScore', score => {
             this.scoreText.setText(`Score: ${score}`);
+        })
+        this.socket.on('updateCost', info => {
+            if(info[0] == 'speed') {
+                this.speedUpgradeText.setText(`Missile\nSpeed\n\n${info[1]}`)
+            }
         })
     }
 
