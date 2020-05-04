@@ -204,14 +204,17 @@ class GameScene extends Phaser.Scene {
                     mvtAngle = Math.PI;
                 }
             }
-            let diffAngle = mvtAngle - (this.ship.rotation - Math.PI * 0.5);
+            //instant rotation change
+            this.ship.rotation = mvtAngle + Math.PI*0.5;
+            //the commented out section would have made the movement smooth, we longer want that
+            /*let diffAngle = mvtAngle - (this.ship.rotation - Math.PI * 0.5);
             if (diffAngle > Math.PI) {
                 diffAngle -= Math.PI * 2.0;
             }
             if (diffAngle < -Math.PI) {
                 diffAngle += Math.PI * 2.0;
             }
-            this.ship.setAngularVelocity(600 * diffAngle);
+            this.ship.setAngularVelocity(600 * diffAngle);*/
             this.socket.emit('rotationChange', this.ship.rotation);
     
             //Shot handling
