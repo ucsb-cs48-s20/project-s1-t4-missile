@@ -45,20 +45,28 @@ class GameScene extends Phaser.Scene {
         this.otherPlayers = this.physics.add.group(); 
         this.otherTankbodys = this.physics.add.group();
 
-        this.speedUpgradeText = this.add.text(1190, 25, 'Missile\nSpeed\n\n1000', { fontSize: '18px' }).setDepth(3)
-        this.speedUpgrade = this.add.image(1230, 50, 'button').setDepth(2).setScale(1.5).setTint(0xcfcfcf)
-            .setInteractive()
+        this.spectate = false;
 
-        this.speedUpgrade.on('pointerover', () => {
-                this.speedUpgrade.setTint(0xfcfcfc);
-            })
-            .on('pointerout', () => {
-                this.speedUpgrade.setTint(0xcfcfcf)
-            })  
-            .on('pointerdown', () => {
-                this.socket.emit('attemptUpgrade', 'speed')
-            })
+        this.socket.on('spectate', () => {
+            this.spectate = true;
+            this.spectateText = this.add.text(50, 150, 'Spectating', { fontSize: '24px' });
+        })
+        
+        if(!this.spectate) {
+            this.speedUpgradeText = this.add.text(1190, 25, 'Missile\nSpeed\n\n1000', { fontSize: '18px' }).setDepth(3)
+            this.speedUpgrade = this.add.image(1230, 50, 'button').setDepth(2).setScale(1.5).setTint(0xcfcfcf)
+                .setInteractive()
 
+            this.speedUpgrade.on('pointerover', () => {
+                    this.speedUpgrade.setTint(0xfcfcfc);
+                })
+                .on('pointerout', () => {
+                    this.speedUpgrade.setTint(0xcfcfcf)
+                })  
+                .on('pointerdown', () => {
+                    this.socket.emit('attemptUpgrade', 'speed')
+                })
+        }
 
         //Game variables
         this.shot = false;
@@ -210,7 +218,7 @@ class GameScene extends Phaser.Scene {
     }
 
     update() {
-        if (this.ship) {
+        if (!this.spectate && this.ship) {
             //Mouse handling
             let pointer = this.input.activePointer;
             let mvtAngle = Math.atan2(pointer.y - this.ship.y, pointer.x - this.ship.x);
@@ -270,6 +278,7 @@ class GameScene extends Phaser.Scene {
         const otherTankbody = self.addTankBody(self, playerInfo);
         const otherPlayer = self.add.sprite(playerInfo.x, playerInfo.y - 10, 'tankbarrel').setScale(1.25);
         otherPlayer.playerId = playerInfo.playerId;
+        otherPlayer.rotation = playerInfo.rotation;
         otherTankbody.playerId = playerInfo.playerId;
         self.otherPlayers.add(otherPlayer); 
         self.otherTankbodys.add(otherTankbody);
