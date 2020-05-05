@@ -76,6 +76,7 @@ io.on('connect', socket => {
     socket.emit('initHealth', baseHealth);
     socket.emit('initTimer', timer);
     socket.emit('initScore', score);
+    socket.emit('initRound', round);
     io.to(socket.id).emit('initCredits', 0);
     socket.emit('currentPlayers', players);
     socket.broadcast.emit('newPlayer', players[socket.id]);
@@ -336,6 +337,7 @@ setInterval(() => {
         if (!roundOver && timer <= 0) {
             roundOver = true;
             round++;
+            io.emit('updateRound', round); 
             timer = 10;
             increaseDifficulty();
         } else if (roundOver && timer <= 0) {

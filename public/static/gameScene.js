@@ -72,10 +72,13 @@ class GameScene extends Phaser.Scene {
             this.timerText = this.add.text(50, 50, `Time: ${timer}`, { fontSize: '24px' });
         })
         this.socket.on('initCredits', cred => {
-            this.creditText = this.add.text(50, 150, `Credits: ${cred}`, { fontSize: '24px' });
+            this.creditText = this.add.text(50, 200, `Credits: ${cred}`, { fontSize: '24px' });
         })
         this.socket.on('initScore', score => {
-            this.scoreText = this.add.text(50, 200, `Score: ${score}`, { fontSize: '24px' });
+            this.scoreText = this.add.text(50, 150, `Score: ${score}`, { fontSize: '24px' });
+        })
+        this.socket.on('initRound', round => {
+            this.roundText = this.add.text(50, 250, `Round: ${round}`, { fontSize: '24px' });
         })
         this.socket.on('currentPlayers', players => {
             Object.keys(players).forEach(id => {
@@ -206,6 +209,9 @@ class GameScene extends Phaser.Scene {
             if(info[0] == 'speed') {
                 this.speedUpgradeText.setText(`Missile\nSpeed\n\n${info[1]}`)
             }
+        })
+        this.socket.on('updateRound', round => {
+            this.roundText.setText(`Round: ${round}`);
         })
     }
 
