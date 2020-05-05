@@ -257,7 +257,7 @@ function explosionDamage() {
                             io.to(explosions[explosionId].playerId).emit('updateCredits', players[explosions[explosionId].playerId].credits);
                             io.emit('updateScore', score);
                             numComets--;
-
+                            
                             explosions[cometId + 'comet'] = {
                                 x: comets[cometId].x,
                                 y: comets[cometId].y,
