@@ -116,13 +116,13 @@ class GameScene extends Phaser.Scene {
         this.socket.on('missileReload', (id, reloadTime) => {
             if (id == self.playerId) {
                 this.reloading = true;
-                setTimeout(() => { this.reloading = false; }, reloadTime*1000);
-                //add reload bar
+                setTimeout(() => { this.reloading = false; }, reloadTime);
+                self.displayReloadBar(self, this.ship.x, reloadTime);
             }
             else {
                 self.otherPlayers.getChildren().forEach(otherPlayer => {
                     if (id == otherPlayer.playerId) {
-                        //add reload bar
+                        self.displayReloadBar(self, otherPlayer.x, reloadTime);
                     }
                 })
             }
@@ -287,6 +287,34 @@ class GameScene extends Phaser.Scene {
         comet.rotation = cometInfo.rotation;
         comet.id = cometInfo.id;
         self.comets.add(comet);
+    }
+
+    displayReloadBar(self, positionX, reloadTime) {
+        const width = 120;
+        const height = 16;
+        const positionY = 708;
+        
+        //show the empty bar
+        const reloadBarBase = self.add.sprite(positionX, positionY, 'reloadmeter').setDisplaySize(width, height).setTint(0xbb0000);
+        const reloadBarFront = self.add.sprite(positionX - (width*0.5), positionY, 'reloadmeter').setDisplaySize(0, height).setTint(0x00ff00);
+        //update every frame until it's full
+        let timer = 0;
+        var drawLoop = null;
+        drawLoop = setInterval(() => {
+            if (timer >= reloadTime){
+                reloadBarBase.destroy();
+                reloadBarFront.destroy();
+                clearInterval(drawLoop);
+            }
+            else
+            {
+                let progress = timer/reloadTime;
+                reloadBarFront.setPosition(positionX - (width*0.5) + (progress*width*0.5), positionY);
+                reloadBarFront.setDisplaySize(progress*width, height);
+                timer += 16;
+            }
+        }, 16);
+
     }
 }
 

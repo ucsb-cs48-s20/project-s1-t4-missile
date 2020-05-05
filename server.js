@@ -69,7 +69,7 @@ io.on('connect', socket => {
         playerId: socket.id,
         credits: 0,
         missileSpeed: 10,
-        reloadTime: 0.6,
+        reloadTimeInSeconds: 0.6,
         reloading: false,
     };
     socket.emit('initComets', comets);
@@ -99,8 +99,8 @@ io.on('connect', socket => {
             }
             io.emit('newMissile', missiles[missileId - 1]);
             socket.broadcast.emit('missileFired', socket.id);
-            io.emit('missileReload', socket.id, thisPlayer.reloadTime);
-            setTimeout(() => { thisPlayer.reloading = false; }, thisPlayer.reloadTime*1000);
+            io.emit('missileReload', socket.id, thisPlayer.reloadTimeInSeconds*1000);
+            setTimeout(() => { thisPlayer.reloading = false; }, thisPlayer.reloadTimeInSeconds*1000);
         }
     })
     socket.on('rotationChange', rotation => {
