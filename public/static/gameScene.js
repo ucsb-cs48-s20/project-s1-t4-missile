@@ -13,6 +13,7 @@ class GameScene extends Phaser.Scene {
         this.load.spritesheet('explosion', '/assets/explosion.png', { frameWidth: 16, frameHeight: 16 })
         this.load.image('base', '/assets/base.png')
         this.load.image('button', '/assets/button.png')
+        this.load.image('reloadmeter', '/assets/reload-meter-tex.png')
     }
 
     create() {
@@ -61,6 +62,7 @@ class GameScene extends Phaser.Scene {
 
         //Game variables
         this.shot = false;
+        this.reloading = false;
 
         //Initializing server-handled objects
         this.socket.on('initHealth', baseHealth => {
@@ -108,6 +110,22 @@ class GameScene extends Phaser.Scene {
         })
         this.socket.on('newComet', cometInfo => {
             self.addComet(self, cometInfo);
+        })
+
+        //reload bar display. this event is recieved by all players including who shot it
+        this.socket.on('missileReload', (id, reloadTime) => {
+            if (id == self.playerId) {
+                this.reloading = true;
+                setTimeout(() => { this.reloading = false; }, reloadTime);
+                self.displayReloadBar(self, this.ship.x, reloadTime);
+            }
+            else {
+                self.otherPlayers.getChildren().forEach(otherPlayer => {
+                    if (id == otherPlayer.playerId) {
+                        self.displayReloadBar(self, otherPlayer.x, reloadTime);
+                    }
+                })
+            }
         })
 
         //Events where objects are destroyed
@@ -218,7 +236,7 @@ class GameScene extends Phaser.Scene {
             this.socket.emit('rotationChange', this.ship.rotation);
     
             //Shot handling
-            if (!this.shot && pointer.isDown) {
+            if (!this.shot && pointer.isDown && !this.reloading) {
                 this.shot = true;
                 this.ship.play('fire');
                 this.socket.emit('missileShot', {
@@ -245,6 +263,7 @@ class GameScene extends Phaser.Scene {
         self.ship.setDrag(100); 
         self.ship.setAngularDrag(100);
         self.ship.setMaxVelocity(200); 
+        self.playerId = playerInfo.playerId;
     }
     
     addOtherPlayers(self, playerInfo) {
@@ -268,6 +287,34 @@ class GameScene extends Phaser.Scene {
         comet.rotation = cometInfo.rotation;
         comet.id = cometInfo.id;
         self.comets.add(comet);
+    }
+
+    displayReloadBar(self, positionX, reloadTime) {
+        const width = 120;
+        const height = 16;
+        const positionY = 708;
+        
+        //show the empty bar
+        const reloadBarBase = self.add.sprite(positionX, positionY, 'reloadmeter').setDisplaySize(width, height).setTint(0xbb0000);
+        const reloadBarFront = self.add.sprite(positionX - (width*0.5), positionY, 'reloadmeter').setDisplaySize(0, height).setTint(0x00ff00);
+        //update every frame until it's full
+        let timer = 0;
+        var drawLoop = null;
+        drawLoop = setInterval(() => {
+            if (timer >= reloadTime){
+                reloadBarBase.destroy();
+                reloadBarFront.destroy();
+                clearInterval(drawLoop);
+            }
+            else
+            {
+                let progress = timer/reloadTime;
+                reloadBarFront.setPosition(positionX - (width*0.5) + (progress*width*0.5), positionY);
+                reloadBarFront.setDisplaySize(progress*width, height);
+                timer += 16;
+            }
+        }, 16);
+
     }
 }
 

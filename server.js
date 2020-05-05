@@ -69,6 +69,8 @@ io.on('connect', socket => {
         playerId: socket.id,
         credits: 0,
         missileSpeed: 10,
+        reloadTimeInSeconds: 0.6,
+        reloading: false,
     };
     socket.emit('initComets', comets);
     socket.emit('initHealth', baseHealth);
@@ -80,20 +82,26 @@ io.on('connect', socket => {
 
     //Handles client inputs
     socket.on('missileShot', missileData => {
-        missileData["id"] = missileId;
-        missiles[missileId] = missileData;
-        missiles[missileId].speedX = -1 * Math.cos(missileData.rotation + Math.PI / 2) * players[socket.id].missileSpeed;
-        missiles[missileId].speedY = -1 * Math.sin(missileData.rotation + Math.PI / 2) * players[socket.id].missileSpeed;
-        missiles[missileId].dmg = 1;
-        missiles[missileId].radius = 75;
-        missiles[missileId].playerId = socket.id;
-        if (missileId > 1000) {
-            missileId = 0;
-        } else {
-            missileId++;
+        let thisPlayer = players[socket.id];
+        if (!thisPlayer.reloading){
+            thisPlayer.reloading = true;
+            missileData["id"] = missileId;
+            missiles[missileId] = missileData;
+            missiles[missileId].speedX = -1 * Math.cos(missileData.rotation + Math.PI / 2) * players[socket.id].missileSpeed;
+            missiles[missileId].speedY = -1 * Math.sin(missileData.rotation + Math.PI / 2) * players[socket.id].missileSpeed;
+            missiles[missileId].dmg = 1;
+            missiles[missileId].radius = 75;
+            missiles[missileId].playerId = socket.id;
+            if (missileId > 1000) {
+                missileId = 0;
+            } else {
+                missileId++;
+            }
+            io.emit('newMissile', missiles[missileId - 1]);
+            socket.broadcast.emit('missileFired', socket.id);
+            io.emit('missileReload', socket.id, thisPlayer.reloadTimeInSeconds*1000);
+            setTimeout(() => { thisPlayer.reloading = false; }, thisPlayer.reloadTimeInSeconds*1000);
         }
-        io.emit('newMissile', missiles[missileId - 1]);
-        socket.broadcast.emit('missileFired', socket.id);
     })
     socket.on('rotationChange', rotation => {
         if (players[socket.id] != undefined) {
@@ -135,6 +143,10 @@ function removeFromSlot(id) {
         if (playerSlots[i] == id) { playerSlots[i] = undefined; return; }
     }
     return;
+}
+
+function getNumPlayers() {
+    return Object.keys(players).length;
 }
 
 //Update functions
@@ -288,7 +300,9 @@ function clearGame() {
 
 //Game loops
 (function generateComets() {
-    let timer = cometRate - 250 + Math.ceil(Math.random() * 500);
+    let numPlrs = getNumPlayers();
+    numPlrs = Math.max(numPlrs,1); //don't divide by 0, just in case there are 0 players for a very short time before the server shuts down
+    let timer = (cometRate - 250 + Math.ceil(Math.random() * 500))/numPlrs;
     setTimeout(() => {
         if (!roundOver && gameRunning && numComets < cometLimit) {
             for (let i = 0; i < cometLimit; i++) {
