@@ -13,6 +13,7 @@ class GameScene extends Phaser.Scene {
         this.load.spritesheet('explosion', '/assets/explosion.png', { frameWidth: 16, frameHeight: 16 })
         this.load.image('base', '/assets/base.png')
         this.load.image('button', '/assets/button.png')
+        this.load.image('reloadmeter', '/assets/reload-meter-tex.png')
     }
 
     create() {
@@ -61,6 +62,7 @@ class GameScene extends Phaser.Scene {
 
         //Game variables
         this.shot = false;
+        this.reloading = false;
 
         //Initializing server-handled objects
         this.socket.on('initHealth', baseHealth => {
@@ -108,6 +110,22 @@ class GameScene extends Phaser.Scene {
         })
         this.socket.on('newComet', cometInfo => {
             self.addComet(self, cometInfo);
+        })
+
+        //reload bar display. this event is recieved by all players including who shot it
+        this.socket.on('missileReload', (id, reloadTime) => {
+            if (id == self.playerId) {
+                this.reloading = true;
+                setTimeout(() => { this.reloading = false; }, reloadTime*1000);
+                //add reload bar
+            }
+            else {
+                self.otherPlayers.getChildren().forEach(otherPlayer => {
+                    if (id == otherPlayer.playerId) {
+                        //add reload bar
+                    }
+                })
+            }
         })
 
         //Events where objects are destroyed
@@ -218,7 +236,7 @@ class GameScene extends Phaser.Scene {
             this.socket.emit('rotationChange', this.ship.rotation);
     
             //Shot handling
-            if (!this.shot && pointer.isDown) {
+            if (!this.shot && pointer.isDown && !this.reloading) {
                 this.shot = true;
                 this.ship.play('fire');
                 this.socket.emit('missileShot', {
@@ -245,6 +263,7 @@ class GameScene extends Phaser.Scene {
         self.ship.setDrag(100); 
         self.ship.setAngularDrag(100);
         self.ship.setMaxVelocity(200); 
+        self.playerId = playerInfo.playerId;
     }
     
     addOtherPlayers(self, playerInfo) {
