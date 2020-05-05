@@ -21,7 +21,7 @@ nextApp.prepare().then(() => {
 //Game variables
 let round = 1;
 let numComets = 0;
-let baseHealth = 100;
+let baseHealth = 1;
 let missileId = 0;
 let timer = 60;
 let gameRunning = true;
@@ -225,8 +225,8 @@ function detectCollisions() {
                     if (baseHealth > 0) {
                         io.emit('baseDamaged', [cometId, baseHealth]);
                     } else {
+                        io.emit('gameOver', {'round': round, 'score': score });
                         clearGame();
-                        io.emit('gameOver');
                     }
                 }
             }
