@@ -9,7 +9,7 @@ const nextHandler = nextApp.getRequestHandler();
 const PORT = process.env.PORT || 3000;
 const cors = require('cors');
 
-const { addUser, removeUser, getUser } = require('./util.js');
+const { addUser, removeUser, getUser } = require('./utils/chatUsers.js');
 
 nextApp.prepare().then(() => {
     app.get('*', (req, res) => {
@@ -55,10 +55,10 @@ for (let i = 0; i < cometLimit; i++) {
 
 let socketCount = 0
 io.on('connect', socket => {
-    if(socketCount % 2 == 0) {
+    if (socketCount % 2 == 1) {
         gameRunning = true;
         console.log(`${socket.id} connected`);
-    
+
         //Room capacity check
         let nextSlot = getNextSlot();
         if (nextSlot == -1) {
@@ -66,7 +66,7 @@ io.on('connect', socket => {
             return;
         }
         playerSlots[nextSlot] = socket.id;
-    
+
         //Initializes clients w/ server objects
         players[socket.id] = {
             rotation: 0,
@@ -85,7 +85,7 @@ io.on('connect', socket => {
         io.to(socket.id).emit('initCredits', 0);
         socket.emit('currentPlayers', players);
         socket.broadcast.emit('newPlayer', players[socket.id]);
-    
+
         //Handles client inputs
         socket.on('missileShot', missileData => {
             let thisPlayer = players[socket.id];
@@ -126,7 +126,7 @@ io.on('connect', socket => {
                 socket.broadcast.emit('playerMoved', players[socket.id]);
             }
         })
-    
+
         //Destroys objects on server & clients
         socket.on('disconnect', () => {
             console.log(`${socket.id} disconnected`)
@@ -135,28 +135,39 @@ io.on('connect', socket => {
             io.emit('disconnect', socket.id);
         })
     } else {
+        let nextSlot = getNextSlot()
+        console.log(nextSlot)
+        if (nextSlot == -1) {
+            console.log('Game full')
+            return
+        }
+        console.log(`Chat socket ${socket.id} connected`)
+
+        let defaultName = `Player ${nextSlot + 1}`
+
         //Handles the chat stuff
         socket.on('disconnect', () => {
             console.log('User has left!');
             const user = removeUser(socket.id);
-    
+
             if (user) {
-                io.to(user.room).emit('message', { user: 'admin', text: `${user.name} has left.`});
+                io.to(user.room).emit('message', { user: 'admin', text: `${user.name} has left.` });
             }
-    
+
             socket.disconnect();
         })
 
         socket.on('join', (obj, callback) => {
-            const { error, user } = addUser({ id: socket.id, name: obj.name, room: 'Room' });
+            const { error, user } = addUser({ id: socket.id, name: defaultName, room: 'Room' });
             console.log(`Adding ${obj.name} to room ${user.room}`);
 
             if (error) {
                 return (callback(error));
             }
 
-            socket.emit('message', { user: 'admin', text: `${user.name}, welcome to the room ${user.room}!`});
-            socket.broadcast.to(user.room).emit('message', { user: 'admin', text: `${user.name} has joined the room.`});
+            socket.emit('message', { user: 'admin', text: `${user.name}, welcome to the room ${user.room}!` });
+            socket.emit('defaultName', { name: `${defaultName}` });
+            socket.broadcast.to(user.room).emit('message', { user: 'admin', text: `${user.name} has joined the room.` });
             socket.join(user.room);
 
             callback();
@@ -304,13 +315,13 @@ function explosionDamage() {
 
 function increaseDifficulty() {
     cometLimit += 10;
-    if(cometRate >= 750) {
+    if (cometRate >= 750) {
         cometRate -= 250;
     }
-    if(round % 3 == 0) {
+    if (round % 3 == 0) {
         cometHealth++;
     }
-    if(round % 2 == 0) {
+    if (round % 2 == 0) {
         cometSpeed += 0.5;
     }
 }
