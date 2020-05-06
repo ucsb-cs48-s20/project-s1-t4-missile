@@ -74,20 +74,27 @@ io.on('connect', socket => {
             y: 670,
             playerId: socket.id,
             credits: 0,
+<<<<<<< HEAD
             missileSpeed: 10,
             reloadTimeInSeconds: 0.6,
             reloading: false,
+=======
+>>>>>>> 0abb2357162aef48dae24db376007acee49a7ccb
         };
         socket.emit('initComets', comets);
         socket.emit('initHealth', baseHealth);
         socket.emit('initTimer', timer);
+<<<<<<< HEAD
         socket.emit('initScore', score);
+=======
+>>>>>>> 0abb2357162aef48dae24db376007acee49a7ccb
         io.to(socket.id).emit('initCredits', 0);
         socket.emit('currentPlayers', players);
         socket.broadcast.emit('newPlayer', players[socket.id]);
 
         //Handles client inputs
         socket.on('missileShot', missileData => {
+<<<<<<< HEAD
             let thisPlayer = players[socket.id];
             if (!thisPlayer.reloading) {
                 thisPlayer.reloading = true;
@@ -119,6 +126,22 @@ io.on('connect', socket => {
                     io.to(socket.id).emit('updateCost', ['speed', cost + 100])
                 }
             }
+=======
+            missileData["id"] = missileId;
+            missiles[missileId] = missileData;
+            missiles[missileId].speedX = -1 * Math.cos(missileData.rotation + Math.PI / 2) * 20;
+            missiles[missileId].speedY = -1 * Math.sin(missileData.rotation + Math.PI / 2) * 20;
+            missiles[missileId].dmg = 1;
+            missiles[missileId].radius = 75;
+            missiles[missileId].playerId = socket.id;
+            if (missileId > 1000) {
+                missileId = 0;
+            } else {
+                missileId++;
+            }
+            io.emit('newMissile', missiles[missileId - 1]);
+            socket.broadcast.emit('missileFired', socket.id);
+>>>>>>> 0abb2357162aef48dae24db376007acee49a7ccb
         })
         socket.on('rotationChange', rotation => {
             if (players[socket.id] != undefined) {
