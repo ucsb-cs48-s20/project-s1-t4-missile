@@ -89,7 +89,7 @@ io.on('connect', socket => {
         //Handles client inputs
         socket.on('missileShot', missileData => {
             let thisPlayer = players[socket.id];
-            if (!thisPlayer.reloading){
+            if (!thisPlayer.reloading) {
                 thisPlayer.reloading = true;
                 missileData["id"] = missileId;
                 missiles[missileId] = missileData;
@@ -105,14 +105,14 @@ io.on('connect', socket => {
                 }
                 io.emit('newMissile', missiles[missileId - 1]);
                 socket.broadcast.emit('missileFired', socket.id);
-                io.emit('missileReload', socket.id, thisPlayer.reloadTimeInSeconds*1000);
-                setTimeout(() => { thisPlayer.reloading = false; }, thisPlayer.reloadTimeInSeconds*1000);
+                io.emit('missileReload', socket.id, thisPlayer.reloadTimeInSeconds * 1000);
+                setTimeout(() => { thisPlayer.reloading = false; }, thisPlayer.reloadTimeInSeconds * 1000);
             }
         })
         socket.on('attemptUpgrade', upgrade => {
-            if(upgrade == 'speed') {
+            if (upgrade == 'speed') {
                 let cost = players[socket.id].missileSpeed * 100;
-                if(players[socket.id].credits >= cost) {
+                if (players[socket.id].credits >= cost) {
                     players[socket.id].missileSpeed = players[socket.id].missileSpeed + 1;
                     players[socket.id].credits -= cost;
                     io.to(socket.id).emit('updateCredits', players[socket.id].credits)
@@ -355,8 +355,8 @@ function clearGame() {
 //Game loops
 (function generateComets() {
     let numPlrs = getNumPlayers();
-    numPlrs = Math.max(numPlrs,1); //don't divide by 0, just in case there are 0 players for a very short time before the server shuts down
-    let timer = (cometRate - 250 + Math.ceil(Math.random() * 500))/numPlrs;
+    numPlrs = Math.max(numPlrs, 1); //don't divide by 0, just in case there are 0 players for a very short time before the server shuts down
+    let timer = (cometRate - 250 + Math.ceil(Math.random() * 500)) / numPlrs;
     setTimeout(() => {
         if (!roundOver && gameRunning && numComets < cometLimit) {
             for (let i = 0; i < cometLimit; i++) {
