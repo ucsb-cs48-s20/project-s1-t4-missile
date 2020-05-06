@@ -68,6 +68,7 @@ io.on('connect', socket => {
         y: 670,
         playerId: socket.id,
         credits: 0,
+        kills: 0,
         missileSpeed: 10,
         reloadTimeInSeconds: 0.6,
         reloading: false,
@@ -195,6 +196,7 @@ function detectCollisions() {
                         comets[cometId].hp -= missiles[missileId].dmg;
                         if (comets[cometId].hp <= 0 || comets[cometId].x < -10 || comets[cometId].x > 1290 || comets[cometId].y < -10 || comets[cometId].y > 730) {
                             players[missiles[missileId].playerId].credits += comets[cometId].credits;
+                            players[missiles[missileId].playerId].kills += 1;
                             score += comets[cometId].credits;
                             io.to(missiles[missileId].playerId).emit('updateCredits', players[missiles[missileId].playerId].credits);
                             io.emit('updateScore', score);
@@ -225,7 +227,11 @@ function detectCollisions() {
                     if (baseHealth > 0) {
                         io.emit('baseDamaged', [cometId, baseHealth]);
                     } else {
-                        io.emit('gameOver', {'round': round, 'score': score });
+                        kills = [];
+                        Object.keys(players).forEach(playerId => {
+                            kills.push(players[playerId].kills)
+                        })
+                        io.emit('gameOver', {'round': round, 'score': score, 'kills': kills });
                         clearGame();
                     }
                 }
@@ -244,6 +250,7 @@ function explosionDamage() {
                         comets[cometId].hp -= explosions[explosionId].dmg;
                         if (comets[cometId].hp <= 0 || comets[cometId].x < -10 || comets[cometId].x > 1290 || comets[cometId].y < -10 || comets[cometId].y > 730) {
                             players[explosions[explosionId].playerId].credits += comets[cometId].credits;
+                            players[missiles[missileId].playerId].kills += 1;
                             score += comets[cometId].credits;
                             io.to(explosions[explosionId].playerId).emit('updateCredits', players[explosions[explosionId].playerId].credits);
                             io.emit('updateScore', score);
