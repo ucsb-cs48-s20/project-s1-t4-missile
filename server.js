@@ -9,7 +9,7 @@ const nextApp = next({ dev });
 const nextHandler = nextApp.getRequestHandler();
 const PORT = process.env.PORT || 3000;
 
-const { addUser, removeUser, getUser } = require('./util.js');
+const { addUser, removeUser, getUser } = require('./utils/chatUsers.js');
 
 nextApp.prepare().then(() => {
     app.get('*', (req, res) => {
@@ -56,7 +56,7 @@ for (let i = 0; i < cometLimit; i++) {
 
 let socketCount = 0
 io.on('connect', socket => {
-    if (socketCount % 2 == 0) {
+    if (socketCount % 2 == 1) {
         gameRunning = true;
         let spectate = false;
         console.log(`${socket.id} connected`);
@@ -71,6 +71,7 @@ io.on('connect', socket => {
         if (!spectate) {
             playerSlots[nextSlot] = socket.id;
         }
+        
         //Initializes clients w/ server objects
         if (Object.keys(players).length < 4) {
             players[socket.id] = {
@@ -131,6 +132,7 @@ io.on('connect', socket => {
                 socket.broadcast.emit('playerMoved', players[socket.id]);
             }
         })
+        
         socket.on('attemptUpgrade', upgrade => {
             if (upgrade == 'speed') {
                 let cost = 1000 + (players[socket.id].speed - 10) * 100;
@@ -154,6 +156,16 @@ io.on('connect', socket => {
             io.emit('disconnect', socket.id);
         })
     } else {
+        let nextSlot = getNextSlot()
+        console.log(nextSlot)
+        if (nextSlot == -1) {
+            console.log('Game full')
+            return
+        }
+        console.log(`Chat socket ${socket.id} connected`)
+
+        let defaultName = `Player ${nextSlot + 1}`
+
         //Handles the chat stuff
         socket.on('disconnect', () => {
             console.log('User has left!');
@@ -167,7 +179,7 @@ io.on('connect', socket => {
         })
 
         socket.on('join', (obj, callback) => {
-            const { error, user } = addUser({ id: socket.id, name: obj.name, room: 'Room' });
+            const { error, user } = addUser({ id: socket.id, name: defaultName, room: 'Room' });
             console.log(`Adding ${obj.name} to room ${user.room}`);
 
             if (error) {
@@ -175,6 +187,7 @@ io.on('connect', socket => {
             }
 
             socket.emit('message', { user: 'admin', text: `${user.name}, welcome to the room ${user.room}!` });
+            socket.emit('defaultName', { name: `${defaultName}` });
             socket.broadcast.to(user.room).emit('message', { user: 'admin', text: `${user.name} has joined the room.` });
             socket.join(user.room);
 
