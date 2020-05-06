@@ -126,13 +126,24 @@ io.on('connect', socket => {
                 setTimeout(() => { thisPlayer.reloading = false; }, thisPlayer.reloadTimeInSeconds * 1000);
             }
         })
+        socket.on('attemptUpgrade', upgrade => {
+            if (upgrade == 'speed') {
+                let cost = players[socket.id].missileSpeed * 100;
+                if (players[socket.id].credits >= cost) {
+                    players[socket.id].missileSpeed = players[socket.id].missileSpeed + 1;
+                    players[socket.id].credits -= cost;
+                    io.to(socket.id).emit('updateCredits', players[socket.id].credits)
+                    io.to(socket.id).emit('updateCost', ['speed', cost + 100])
+                }
+            }
+        })
         socket.on('rotationChange', rotation => {
             if (players[socket.id] != undefined) {
                 players[socket.id].rotation = rotation;
                 socket.broadcast.emit('playerMoved', players[socket.id]);
             }
         })
-        
+
         socket.on('attemptUpgrade', upgrade => {
             if (upgrade == 'speed') {
                 let cost = 1000 + (players[socket.id].speed - 10) * 100;
