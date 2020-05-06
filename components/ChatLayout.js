@@ -11,6 +11,7 @@ import Messages from "./Messages.js";
 let socket;
 
 const Chat = () => {
+    const [name, setName] = useState("");
     const [message, setMessage] = useState("");
     const [messages, setMessages] = useState([]);
     const ENDPOINT = "localhost:3000";
@@ -18,7 +19,7 @@ const Chat = () => {
     useEffect(() => {
         socket = io(ENDPOINT); // set connection
 
-        socket.emit("join", { name: 'Player' }, (str) => {
+        socket.emit("join", { name: "Player" }, (str) => {
             // if str isn't null, error has occured
             if (str) {
                 alert(str);
@@ -41,6 +42,10 @@ const Chat = () => {
                 return ([...msgs, message]);
             });
         });
+
+        socket.on("defaultName", ({ name }) => {
+            setName(name);
+        });
     }, []);
 
     const sendMessage = (event) => {
@@ -55,7 +60,7 @@ const Chat = () => {
     return (
         <div className="outerContainer">
             <div className="container">
-                <Messages messages={messages} name='Player' />
+                <Messages messages={messages} name={name} />
                 <Input message={message} setMessage={setMessage} sendMessage={sendMessage} />
             </div>
         </div>
