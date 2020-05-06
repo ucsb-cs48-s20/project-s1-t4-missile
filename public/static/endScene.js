@@ -21,7 +21,7 @@ class EndScene extends Phaser.Scene {
         this.add.text(460, 360, `Round: ${this.round}`, {fontSize: '32px' });
         this.add.text(460, 410, `Score: ${this.score}`, {fontSize: '32px' })
         this.kills.forEach((kill, i) => {
-            this.add.text(460, 460 + (50 * i), `Player ${i + 1} destroyed ${kill} comets`)
+            this.add.text(460, 460 + (50 * i), `Player ${i + 1} destroyed ${kill} comets`, {fontSize: '32px'})
         })
     }
 }
