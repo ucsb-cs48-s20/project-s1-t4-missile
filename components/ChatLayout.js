@@ -12,9 +12,13 @@ let socket;
 
 const Chat = () => {
 <<<<<<< HEAD
+<<<<<<< HEAD
     const [name, setName] = useState("");
 =======
 >>>>>>> js/hz - chat shows up if you're lucky
+=======
+    const [name, setName] = useState("");
+>>>>>>> js - add default chat names
     const [message, setMessage] = useState("");
     const [messages, setMessages] = useState([]);
     const ENDPOINT = "localhost:3000";
@@ -23,10 +27,14 @@ const Chat = () => {
         socket = io(ENDPOINT); // set connection
 
 <<<<<<< HEAD
+<<<<<<< HEAD
         socket.emit("join", { name: "Player" }, (str) => {
 =======
         socket.emit("join", { name: 'Player' }, (str) => {
 >>>>>>> js/hz - chat shows up if you're lucky
+=======
+        socket.emit("join", { name: "Player" }, (str) => {
+>>>>>>> js - add default chat names
             // if str isn't null, error has occured
             if (str) {
                 alert(str);
@@ -50,12 +58,18 @@ const Chat = () => {
             });
         });
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> js - add default chat names
 
         socket.on("defaultName", ({ name }) => {
             setName(name);
         });
+<<<<<<< HEAD
 =======
 >>>>>>> js/hz - chat shows up if you're lucky
+=======
+>>>>>>> js - add default chat names
     }, []);
 
     const sendMessage = (event) => {
@@ -71,10 +85,14 @@ const Chat = () => {
         <div className="outerContainer">
             <div className="container">
 <<<<<<< HEAD
+<<<<<<< HEAD
                 <Messages messages={messages} name={name} />
 =======
                 <Messages messages={messages} name='Player' />
 >>>>>>> js/hz - chat shows up if you're lucky
+=======
+                <Messages messages={messages} name={name} />
+>>>>>>> js - add default chat names
                 <Input message={message} setMessage={setMessage} sendMessage={sendMessage} />
             </div>
         </div>
