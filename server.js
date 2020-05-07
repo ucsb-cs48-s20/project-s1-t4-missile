@@ -265,7 +265,7 @@ function explosionDamage() {
                         if (comets[cometId].hp <= 0 || comets[cometId].x < -10 || comets[cometId].x > 1290 || comets[cometId].y < -10 || comets[cometId].y > 730) {
                             if (players[explosions[explosionId].playerId] != undefined && missiles[missileId] != undefined) {
                                 players[explosions[explosionId].playerId].credits += comets[cometId].credits;
-                                players[missiles[missileId].playerId].kills += 1;
+                                players[explosions[explosionId].playerId].kills += 1;
                                 io.to(explosions[explosionId].playerId).emit('updateCredits', players[explosions[explosionId].playerId].credits);
                             }
                             score += comets[cometId].credits;
