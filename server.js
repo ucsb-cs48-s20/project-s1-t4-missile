@@ -21,7 +21,7 @@ nextApp.prepare().then(() => {
 //Game variables
 let round = 1;
 let numComets = 0;
-let baseHealth = 100;
+let baseHealth = 50;
 let missileId = 0;
 let timer = 60;
 let gameRunning = true;
@@ -61,26 +61,29 @@ io.on('connect', socket => {
         spectate = true;
         io.to(socket.id).emit('spectate')
     }
-    if(!spectate) {
+    if (!spectate) {
         playerSlots[nextSlot] = socket.id;
     }
     //Initializes clients w/ server objects
-    players[socket.id] = {
-        rotation: 0,
-        x: 160 + 320 * nextSlot,
-        y: 670,
-        playerId: socket.id,
-        credits: 0,
-        missileSpeed: 10,
-        reloadTimeInSeconds: 0.6,
-        reloading: false,
-    };
+    if (Object.keys(players).length < 4) {
+        players[socket.id] = {
+            rotation: 0,
+            x: 160 + 320 * nextSlot,
+            y: 670,
+            playerId: socket.id,
+            credits: 0,
+            kills: 0,
+            missileSpeed: 10,
+            reloadTimeInSeconds: 0.6,
+            reloading: false,
+        };
+    }
     socket.emit('initComets', comets);
     socket.emit('initHealth', baseHealth);
     socket.emit('initTimer', timer);
     socket.emit('initScore', score);
     socket.emit('initRound', round);
-    if(!spectate) {
+    if (!spectate) {
         io.to(socket.id).emit('initCredits', 0);
     }
     socket.emit('currentPlayers', players);
@@ -89,7 +92,7 @@ io.on('connect', socket => {
     //Handles client inputs
     socket.on('missileShot', missileData => {
         let thisPlayer = players[socket.id];
-        if (!thisPlayer.reloading){
+        if (!thisPlayer.reloading) {
             thisPlayer.reloading = true;
             missileData["id"] = missileId;
             missiles[missileId] = missileData;
@@ -105,8 +108,8 @@ io.on('connect', socket => {
             }
             io.emit('newMissile', missiles[missileId - 1]);
             socket.broadcast.emit('missileFired', socket.id);
-            io.emit('missileReload', socket.id, thisPlayer.reloadTimeInSeconds*1000);
-            setTimeout(() => { thisPlayer.reloading = false; }, thisPlayer.reloadTimeInSeconds*1000);
+            io.emit('missileReload', socket.id, thisPlayer.reloadTimeInSeconds * 1000);
+            setTimeout(() => { thisPlayer.reloading = false; }, thisPlayer.reloadTimeInSeconds * 1000);
         }
     })
     socket.on('rotationChange', rotation => {
@@ -116,9 +119,9 @@ io.on('connect', socket => {
         }
     })
     socket.on('attemptUpgrade', upgrade => {
-        if(upgrade == 'speed') {
+        if (upgrade == 'speed') {
             let cost = players[socket.id].missileSpeed * 100;
-            if(players[socket.id].credits >= cost) {
+            if (players[socket.id].credits >= cost) {
                 players[socket.id].missileSpeed = players[socket.id].missileSpeed + 1;
                 players[socket.id].credits -= cost;
                 io.to(socket.id).emit('updateCredits', players[socket.id].credits)
@@ -130,7 +133,7 @@ io.on('connect', socket => {
     //Destroys objects on server & clients
     socket.on('disconnect', () => {
         console.log(`${socket.id} disconnected`)
-        if(!spectate) {
+        if (!spectate) {
             delete players[socket.id];
         }
         removeFromSlot(socket.id);
@@ -204,8 +207,9 @@ function detectCollisions() {
                     if (dist < 25) {
                         comets[cometId].hp -= missiles[missileId].dmg;
                         if (comets[cometId].hp <= 0 || comets[cometId].x < -10 || comets[cometId].x > 1290 || comets[cometId].y < -10 || comets[cometId].y > 730) {
-                            if(players[missiles[missileId].playerId] != undefined) {
+                            if (players[missiles[missileId].playerId] != undefined) {
                                 players[missiles[missileId].playerId].credits += comets[cometId].credits;
+                                players[missiles[missileId].playerId].kills += 1;
                                 io.to(missiles[missileId].playerId).emit('updateCredits', players[missiles[missileId].playerId].credits);
                             }
                             score += comets[cometId].credits;
@@ -237,8 +241,12 @@ function detectCollisions() {
                     if (baseHealth > 0) {
                         io.emit('baseDamaged', [cometId, baseHealth]);
                     } else {
+                        kills = [];
+                        Object.keys(players).forEach(playerId => {
+                            kills.push(players[playerId].kills)
+                        })
+                        io.emit('gameOver', { 'round': round, 'score': score, 'kills': kills });
                         clearGame();
-                        io.emit('gameOver');
                     }
                 }
             }
@@ -255,8 +263,9 @@ function explosionDamage() {
                     if (dist < explosions[explosionId].radius) {
                         comets[cometId].hp -= explosions[explosionId].dmg;
                         if (comets[cometId].hp <= 0 || comets[cometId].x < -10 || comets[cometId].x > 1290 || comets[cometId].y < -10 || comets[cometId].y > 730) {
-                            if(players[explosions[explosionId].playerId] != undefined) {
+                            if (players[explosions[explosionId].playerId] != undefined && missiles[missileId] != undefined) {
                                 players[explosions[explosionId].playerId].credits += comets[cometId].credits;
+                                players[explosions[explosionId].playerId].kills += 1;
                                 io.to(explosions[explosionId].playerId).emit('updateCredits', players[explosions[explosionId].playerId].credits);
                             }
                             score += comets[cometId].credits;
@@ -275,13 +284,13 @@ function explosionDamage() {
 
 function increaseDifficulty() {
     cometLimit += 10;
-    if(cometRate >= 750) {
+    if (cometRate >= 750) {
         cometRate -= 250;
     }
-    if(round % 3 == 0) {
+    if (round % 3 == 0) {
         cometHealth++;
     }
-    if(round % 2 == 0) {
+    if (round % 2 == 0) {
         cometSpeed += 0.5;
     }
 }
@@ -315,8 +324,8 @@ function clearGame() {
 //Game loops
 (function generateComets() {
     let numPlrs = getNumPlayers();
-    numPlrs = Math.max(numPlrs,1); //don't divide by 0, just in case there are 0 players for a very short time before the server shuts down
-    let timer = (cometRate - 250 + Math.ceil(Math.random() * 500))/numPlrs;
+    numPlrs = Math.max(numPlrs, 1); //don't divide by 0, just in case there are 0 players for a very short time before the server shuts down
+    let timer = (cometRate - 250 + Math.ceil(Math.random() * 500)) / numPlrs;
     setTimeout(() => {
         if (!roundOver && gameRunning && numComets < cometLimit) {
             for (let i = 0; i < cometLimit; i++) {
@@ -350,7 +359,7 @@ setInterval(() => {
         if (!roundOver && timer <= 0) {
             roundOver = true;
             round++;
-            io.emit('updateRound', round); 
+            io.emit('updateRound', round);
             timer = 10;
             increaseDifficulty();
         } else if (roundOver && timer <= 0) {
