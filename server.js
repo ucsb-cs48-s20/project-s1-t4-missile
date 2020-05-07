@@ -203,9 +203,11 @@ function detectCollisions() {
                     if (dist < 25) {
                         comets[cometId].hp -= missiles[missileId].dmg;
                         if (comets[cometId].hp <= 0 || comets[cometId].x < -10 || comets[cometId].x > 1290 || comets[cometId].y < -10 || comets[cometId].y > 730) {
-                            players[missiles[missileId].playerId].credits += comets[cometId].credits;
+                            if(players[missiles[missileId].playerId] != undefined) {
+                                players[missiles[missileId].playerId].credits += comets[cometId].credits;
+                                io.to(missiles[missileId].playerId).emit('updateCredits', players[missiles[missileId].playerId].credits);
+                            }
                             score += comets[cometId].credits;
-                            io.to(missiles[missileId].playerId).emit('updateCredits', players[missiles[missileId].playerId].credits);
                             io.emit('updateScore', score);
                             numComets--;
                             comets[cometId] = undefined;
@@ -252,9 +254,11 @@ function explosionDamage() {
                     if (dist < explosions[explosionId].radius) {
                         comets[cometId].hp -= explosions[explosionId].dmg;
                         if (comets[cometId].hp <= 0 || comets[cometId].x < -10 || comets[cometId].x > 1290 || comets[cometId].y < -10 || comets[cometId].y > 730) {
-                            players[explosions[explosionId].playerId].credits += comets[cometId].credits;
+                            if(players[explosions[explosionId].playerId] != undefined) {
+                                players[explosions[explosionId].playerId].credits += comets[cometId].credits;
+                                io.to(explosions[explosionId].playerId).emit('updateCredits', players[explosions[explosionId].playerId].credits);
+                            }
                             score += comets[cometId].credits;
-                            io.to(explosions[explosionId].playerId).emit('updateCredits', players[explosions[explosionId].playerId].credits);
                             io.emit('updateScore', score);
                             numComets--;
                             comets[cometId] = undefined;
