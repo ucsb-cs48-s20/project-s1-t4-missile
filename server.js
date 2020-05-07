@@ -51,16 +51,19 @@ for (let i = 0; i < cometLimit; i++) {
 
 io.on('connect', socket => {
     gameRunning = true;
+    let spectate = false;
     console.log(`${socket.id} connected`);
 
     //Room capacity check
     let nextSlot = getNextSlot();
     if (nextSlot == -1) {
         console.log('Game full')
-        return;
+        spectate = true;
+        io.to(socket.id).emit('spectate')
     }
-    playerSlots[nextSlot] = socket.id;
-
+    if(!spectate) {
+        playerSlots[nextSlot] = socket.id;
+    }
     //Initializes clients w/ server objects
     players[socket.id] = {
         rotation: 0,
@@ -76,7 +79,9 @@ io.on('connect', socket => {
     socket.emit('initHealth', baseHealth);
     socket.emit('initTimer', timer);
     socket.emit('initScore', score);
-    io.to(socket.id).emit('initCredits', 0);
+    if(!spectate) {
+        io.to(socket.id).emit('initCredits', 0);
+    }
     socket.emit('currentPlayers', players);
     socket.broadcast.emit('newPlayer', players[socket.id]);
 
@@ -124,8 +129,12 @@ io.on('connect', socket => {
     //Destroys objects on server & clients
     socket.on('disconnect', () => {
         console.log(`${socket.id} disconnected`)
-        delete players[socket.id];
+        if(!spectate) {
+            delete players[socket.id];
+        }
         removeFromSlot(socket.id);
+        console.log(players)
+        console.log(playerSlots)
         io.emit('disconnect', socket.id);
     })
 })
@@ -133,7 +142,7 @@ io.on('connect', socket => {
 //Helper functions
 function getNextSlot() {
     for (i = 0; i < 4; i += 1) {
-        if (!playerSlots[i]) { return i; }
+        if (playerSlots[i] == undefined) { return i; }
     }
     return -1;
 }
