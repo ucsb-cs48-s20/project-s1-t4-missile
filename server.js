@@ -7,6 +7,7 @@ const dev = process.env.NODE_ENV
 const nextApp = next({ dev });
 const nextHandler = nextApp.getRequestHandler();
 const PORT = process.env.PORT || 3000;
+
 nextApp.prepare().then(() => {
     app.get('*', (req, res) => {
         return nextHandler(req, res)

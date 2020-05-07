@@ -20,7 +20,6 @@ class Test extends Component {
     }
 
     componentDidMount() {
-
         //set body style
         document.title = this.state.pageTitle;
         var oldBodyStyle = document.body.style;
