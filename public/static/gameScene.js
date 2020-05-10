@@ -386,7 +386,7 @@ class GameScene extends Phaser.Scene {
         const otherTankbody = self.addTankBody(self, playerInfo);
         const otherPlayer = self.add
             .sprite(playerInfo.x, playerInfo.y - 10, "tankbarrel")
-            .setScale(1.25);
+            .setScale(1.25).setDepth(20);
         otherPlayer.playerId = playerInfo.playerId;
         otherPlayer.rotation = playerInfo.rotation;
         otherTankbody.playerId = playerInfo.playerId;
