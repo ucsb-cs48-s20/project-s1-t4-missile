@@ -306,32 +306,7 @@ class GameScene extends Phaser.Scene {
             let UICutoffY = 120;
 
             //make the UI tray come out and go back in
-            if (!this.UITweening) {
-                if (pointer.y >= UICutoffY) {
-                    if (this.UIOut) {
-                        this.tweens.add({
-                            targets: this.shopUI.getChildren(),
-                            y: "-=120",
-                            duration: 100,
-                        });
-                        this.UITweening = true;
-                        setTimeout(() => (this.UITweening = false), 150);
-                        this.UIOut = false;
-                    }
-                }
-                else {
-                    if (!this.UIOut) {
-                        this.tweens.add({
-                            targets: this.shopUI.getChildren(),
-                            y: "+=120",
-                            duration: 100,
-                        });
-                        this.UITweening = true;
-                        setTimeout(() => (this.UITweening = false), 150);
-                        this.UIOut = true;
-                    }
-                }
-            }
+            this.moveUI(pointer, UICutoffY);
 
             //Shot handling
             if (!this.shot && pointer.isDown && pointer.y >= UICutoffY && !this.reloading) {
@@ -348,6 +323,38 @@ class GameScene extends Phaser.Scene {
 
             if (!pointer.isDown) {
                 this.shot = false;
+            }
+        }
+    }
+
+    //Function for UI tray movement
+    moveUI(pointer, UICutoffY) {
+        
+
+        if (!this.UITweening) {
+            if (pointer.y >= UICutoffY) {
+                if (this.UIOut) {
+                    this.tweens.add({
+                        targets: this.shopUI.getChildren(),
+                        y: "-=120",
+                        duration: 100,
+                    });
+                    this.UITweening = true;
+                    setTimeout(() => (this.UITweening = false), 150);
+                    this.UIOut = false;
+                }
+            }
+            else {
+                if (!this.UIOut) {
+                    this.tweens.add({
+                        targets: this.shopUI.getChildren(),
+                        y: "+=120",
+                        duration: 100,
+                    });
+                    this.UITweening = true;
+                    setTimeout(() => (this.UITweening = false), 150);
+                    this.UIOut = true;
+                }
             }
         }
     }
