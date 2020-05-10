@@ -66,6 +66,8 @@ class GameScene extends Phaser.Scene {
         //Game variables
         this.shot = false;
         this.reloading = false;
+        this.UIOut = false;
+        this.UITweening = false;
 
         //Initializing server-handled objects
         this.socket.on('initHealth', baseHealth => {
@@ -301,8 +303,38 @@ class GameScene extends Phaser.Scene {
             this.ship.setAngularVelocity(600 * diffAngle);*/
             this.socket.emit("rotationChange", this.ship.rotation);
 
+            let UICutoffY = 120;
+
+            //make the UI tray come out and go back in
+            if (!this.UITweening) {
+                if (pointer.y >= UICutoffY) {
+                    if (this.UIOut) {
+                        this.tweens.add({
+                            targets: this.shopUI.getChildren(),
+                            y: "-=120",
+                            duration: 100,
+                        });
+                        this.UITweening = true;
+                        setTimeout(() => (this.UITweening = false), 150);
+                        this.UIOut = false;
+                    }
+                }
+                else {
+                    if (!this.UIOut) {
+                        this.tweens.add({
+                            targets: this.shopUI.getChildren(),
+                            y: "+=120",
+                            duration: 100,
+                        });
+                        this.UITweening = true;
+                        setTimeout(() => (this.UITweening = false), 150);
+                        this.UIOut = true;
+                    }
+                }
+            }
+
             //Shot handling
-            if (!this.shot && pointer.isDown && !this.reloading) {
+            if (!this.shot && pointer.isDown && pointer.y >= UICutoffY && !this.reloading) {
                 this.shot = true;
                 this.ship.play("fire");
                 this.socket.emit("missileShot", {
@@ -408,7 +440,7 @@ class GameScene extends Phaser.Scene {
 
     makeUI(self) {
         
-        const shopUIBackground = self.add.sprite(640,80, 'reloadmeter').setDisplaySize(1280,160).setTint(0x404040).setDepth(100);
+        const shopUIBackground = self.add.sprite(640,-40, 'reloadmeter').setDisplaySize(1280,160).setTint(0x404040).setDepth(100);
         self.shopUI.add(shopUIBackground);
 
         if(!self.spectate) {
@@ -418,8 +450,8 @@ class GameScene extends Phaser.Scene {
     }
 
     makeUIButtons(self) {
-        self.speedUpgradeText = self.add.text(1190, 25, 'Missile\nSpeed\n\n1000', { fontSize: '18px' }).setDepth(102);
-            self.speedUpgrade = self.add.image(1230, 50, 'button').setDepth(101).setScale(1.5).setTint(0xcfcfcf)
+        self.speedUpgradeText = self.add.text(40, -75, 'Missile\nSpeed\n\n1000', { fontSize: '18px' }).setDepth(102);
+            self.speedUpgrade = self.add.image(80, -50, 'button').setDepth(101).setScale(1.5).setTint(0xcfcfcf)
                 .setInteractive();
             self.speedUpgrade.on('pointerover', () => {
                     self.speedUpgrade.setTint(0xfcfcfc);
