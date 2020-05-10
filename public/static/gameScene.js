@@ -15,6 +15,7 @@ class GameScene extends Phaser.Scene {
         this.load.image('button', '/assets/button.png')
         this.load.image('reloadmeter', '/assets/reload-meter-tex.png')
         this.load.image('crosshair', '/assets/crosshairs.png')
+        this.load.image('shopbg', '/assets/shop-ui-main.png')
     }
 
     create() {
@@ -70,24 +71,30 @@ class GameScene extends Phaser.Scene {
         this.UITweening = false;
 
         //Initializing server-handled objects
+        let UITextY = 15;
         this.socket.on('initHealth', baseHealth => {
-            this.healthText = this.add.text(50, 100, `Health: ${baseHealth}`, { fontSize: '24px' }).setDepth(101);
+            this.healthText = this.add.text(315, UITextY, `${baseHealth}`, { fontSize: '32px' })
+                                        .setTint(0x303030).setDepth(101);
             this.shopUI.add(this.healthText);
         })
         this.socket.on('initTimer', timer => {
-            this.timerText = this.add.text(50, 50, `Time: ${timer}`, { fontSize: '24px' }).setDepth(101);
+            this.timerText = this.add.text(190, UITextY, `${timer}`, { fontSize: '32px' })
+                                        .setTint(0x303030).setDepth(101);
             this.shopUI.add(this.timerText);
         })
         this.socket.on('initCredits', cred => {
-            this.creditText = this.add.text(50, 200, `Credits: ${cred}`, { fontSize: '24px' }).setDepth(101);
+            this.creditText = this.add.text(700, UITextY, `${cred}`, { fontSize: '32px' })
+                                        .setTint(0x303030).setDepth(101);
             this.shopUI.add(this.creditText);
         })
         this.socket.on('initScore', score => {
-            this.scoreText = this.add.text(50, 150, `Score: ${score}`, { fontSize: '24px' }).setDepth(101);
+            this.scoreText = this.add.text(440, UITextY, `${score}`, { fontSize: '32px' })
+                                        .setTint(0x303030).setDepth(101);
             this.shopUI.add(this.scoreText);
         })
         this.socket.on('initRound', round => {
-            this.roundText = this.add.text(50, 250, `Round: ${round}`, { fontSize: '24px' }).setDepth(101);
+            this.roundText = this.add.text(70, UITextY, `${round}`, { fontSize: '32px' })
+                                         .setTint(0x303030).setDepth(101);
             this.shopUI.add(this.roundText);
         })
         this.socket.on('currentPlayers', players => {
@@ -215,7 +222,7 @@ class GameScene extends Phaser.Scene {
         this.socket.on("baseDamaged", (info) => {
             self.comets.getChildren().forEach((comet) => {
                 if (comet.id == info[0]) {
-                    this.healthText.setText(`Health: ${info[1]}`);
+                    this.healthText.setText(`${info[1]}`);
                     const explosion = this.add
                         .sprite(comet.x, comet.y, "explosion", 0)
                         .setScale(5);
@@ -256,13 +263,13 @@ class GameScene extends Phaser.Scene {
             });
         });
         this.socket.on("timerUpdate", (timer) => {
-            this.timerText.setText(`Time: ${timer}`);
+            this.timerText.setText(`${timer}`);
         });
         this.socket.on("updateCredits", (credits) => {
-            this.creditText.setText(`Credits: ${credits}`);
+            this.creditText.setText(`${credits}`);
         });
         this.socket.on("updateScore", (score) => {
-            this.scoreText.setText(`Score: ${score}`);
+            this.scoreText.setText(`${score}`);
         });
         this.socket.on("updateCost", (info) => {
             if (info[0] == "speed") {
@@ -270,7 +277,7 @@ class GameScene extends Phaser.Scene {
             }
         })
         this.socket.on('updateRound', round => {
-            this.roundText.setText(`Round: ${round}`);
+            this.roundText.setText(`${round}`);
         })
     }
 
@@ -446,8 +453,7 @@ class GameScene extends Phaser.Scene {
     }
 
     makeUI(self) {
-        
-        const shopUIBackground = self.add.sprite(640,-40, 'reloadmeter').setDisplaySize(1280,160).setTint(0x404040).setDepth(100);
+        const shopUIBackground = self.add.sprite(640,-40, 'shopbg').setDisplaySize(1280,200).setTint(0xffffff).setDepth(100);
         self.shopUI.add(shopUIBackground);
 
         if(!self.spectate) {
@@ -456,21 +462,26 @@ class GameScene extends Phaser.Scene {
         
     }
 
-    makeUIButtons(self) {
-        self.speedUpgradeText = self.add.text(40, -75, 'Missile\nSpeed\n\n1000', { fontSize: '18px' }).setDepth(102);
-            self.speedUpgrade = self.add.image(80, -50, 'button').setDepth(101).setScale(1.5).setTint(0xcfcfcf)
-                .setInteractive();
-            self.speedUpgrade.on('pointerover', () => {
-                    self.speedUpgrade.setTint(0xfcfcfc);
-                })
-                .on('pointerout', () => {
-                    self.speedUpgrade.setTint(0xcfcfcf);
-                })  
-                .on('pointerdown', () => {
-                    self.socket.emit('attemptUpgrade', 'speed');
-                })
+    //this helper makes a button
+    makeUIButtonHelper(self, name, xpos, text, upgradeType){
+        self[name + 'Text'] = self.add.text(xpos-40, -110, text, { fontSize: '18px' }).setDepth(102);
+        self[name] = self.add.image(xpos, -85, 'button').setDepth(101).setScale(1.5).setTint(0xcfcfcf)
+            .setInteractive();
+        self.speedUpgrade.on('pointerover', () => {
+                self.speedUpgrade.setTint(0xfcfcfc);
+            })
+            .on('pointerout', () => {
+                self.speedUpgrade.setTint(0xcfcfcf);
+            })  
+            .on('pointerdown', () => {
+                self.socket.emit('attemptUpgrade', upgradeType);
+            })
         self.shopUI.add(self.speedUpgrade);
         self.shopUI.add(self.speedUpgradeText);
+    }
+
+    makeUIButtons(self) {
+        this.makeUIButtonHelper(self, 'speedUpgrade', 80, 'Missile\nSpeed\n\n1000', 'speed');
     }
 }
 
