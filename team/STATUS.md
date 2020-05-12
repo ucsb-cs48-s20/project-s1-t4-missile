@@ -17,3 +17,26 @@ https://cs48-s20-s1-t4-prod.herokuapp.com
 ## MVP Status
 
 * Team has completed all stories for MVP
+
+## Sprint Planning, 05/12/2020
+* Leader: Parth Atre
+* Present: all
+* Absent: none
+
+## Sprint Goal for 05/12-05/21
+Which of the 10 powerful questions did you ask?
+* Which steps are required to achieve this Sprint Goal? Which are the least required or could we do without if we really have to?
+* What would need to happen while working on this Sprint Goal that would be cause for celebration?
+
+Describe your sprint goal here.
+* Complete the basic upgrade system (missile stash, missile reload, and missile explsion radius)
+* lobby system, each room runs separate game instance
+
+Describe briefly how you came up with that goal.
+* finishing what we started in the last sprint (upgrades)
+* fix some of the roadblocks that occured during the implementation of "reach" goals in the last sprint
+  
+## Discussion of previous Sprint Goal
+  
+Briefly: was the sprint goal acheived?  Was it too ambitious?  Too modest?
+Yes! We finished our MVP and added features beyond what was initially planned. It was neither too ambitious nor modest.
