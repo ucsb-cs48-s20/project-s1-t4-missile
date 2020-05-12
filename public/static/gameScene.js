@@ -274,6 +274,8 @@ class GameScene extends Phaser.Scene {
         this.socket.on("updateCost", (info) => {
             if (info[0] == "speed") {
                 this.speedUpgradeText.setText(`Missile\nSpeed\n\n${info[1]}`);
+            } else if(info[0] == "damage") {
+                this.damageUpgradeText.setText(`Missile\nDamage\n\n${info[1]}`);
             }
         })
         this.socket.on('updateRound', round => {
@@ -299,15 +301,6 @@ class GameScene extends Phaser.Scene {
 
             //instant rotation change
             this.ship.rotation = mvtAngle + Math.PI * 0.5;
-            //the commented out section would have made the movement smooth, we longer want that
-            /*let diffAngle = mvtAngle - (this.ship.rotation - Math.PI * 0.5);
-            if (diffAngle > Math.PI) {
-                diffAngle -= Math.PI * 2.0;
-            }
-            if (diffAngle < -Math.PI) {
-                diffAngle += Math.PI * 2.0;
-            }
-            this.ship.setAngularVelocity(600 * diffAngle);*/
             this.socket.emit("rotationChange", this.ship.rotation);
 
             let UICutoffY = 120;
@@ -467,21 +460,22 @@ class GameScene extends Phaser.Scene {
         self[name + 'Text'] = self.add.text(xpos-40, -110, text, { fontSize: '18px' }).setDepth(102);
         self[name] = self.add.image(xpos, -85, 'button').setDepth(101).setScale(1.5).setTint(0xcfcfcf)
             .setInteractive();
-        self.speedUpgrade.on('pointerover', () => {
-                self.speedUpgrade.setTint(0xfcfcfc);
+        self[name].on('pointerover', () => {
+                self[name].setTint(0xfcfcfc);
             })
             .on('pointerout', () => {
-                self.speedUpgrade.setTint(0xcfcfcf);
+                self[name].setTint(0xcfcfcf);
             })  
             .on('pointerdown', () => {
                 self.socket.emit('attemptUpgrade', upgradeType);
             })
-        self.shopUI.add(self.speedUpgrade);
-        self.shopUI.add(self.speedUpgradeText);
+        self.shopUI.add(self[name]);
+        self.shopUI.add(self[name + 'Text']);
     }
 
     makeUIButtons(self) {
         this.makeUIButtonHelper(self, 'speedUpgrade', 80, 'Missile\nSpeed\n\n1000', 'speed');
+        this.makeUIButtonHelper(self, 'damageUpgrade', 240, 'Missile\nDamage\n\n1000', 'damage');
     }
 }
 
