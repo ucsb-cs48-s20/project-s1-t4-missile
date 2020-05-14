@@ -78,6 +78,7 @@ io.on('connect', socket => {
             missileSpeed: 10,
             reloadTimeInSeconds: 0.6,
             reloading: false,
+            damage: 1,
         };
     }
     socket.emit('initComets', comets);
@@ -100,7 +101,7 @@ io.on('connect', socket => {
             missiles[missileId] = missileData;
             missiles[missileId].speedX = -1 * Math.cos(missileData.rotation + Math.PI / 2) * players[socket.id].missileSpeed;
             missiles[missileId].speedY = -1 * Math.sin(missileData.rotation + Math.PI / 2) * players[socket.id].missileSpeed;
-            missiles[missileId].dmg = 1;
+            missiles[missileId].dmg = players[socket.id].damage;
             missiles[missileId].radius = 60;
             missiles[missileId].playerId = socket.id;
 
@@ -131,6 +132,14 @@ io.on('connect', socket => {
                 io.to(socket.id).emit('updateCredits', players[socket.id].credits)
                 io.to(socket.id).emit('updateCost', ['speed', cost + 100])
             }
+        } else if (upgrade == 'damage') {
+            let cost = 900 + (players[socket.id].damage * 100);
+            if(players[socket.id].credits >= cost) {
+                players[socket.id].damage += 1;
+                players[socket.id].credits -= cost;
+                io.to(socket.id).emit('updateCredits', players[socket.id].credits);
+                io.to(socket.id).emit('updateCost', ['damage', cost + 100]);
+            }
         }
     })
 
@@ -141,8 +150,6 @@ io.on('connect', socket => {
             delete players[socket.id];
         }
         removeFromSlot(socket.id);
-        console.log(players)
-        console.log(playerSlots)
         io.emit('disconnect', socket.id);
     })
 })
