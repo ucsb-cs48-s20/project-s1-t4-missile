@@ -38,23 +38,24 @@ I think it went reasonably well, except I was confused about the order in which 
 
 For the next retro leader, I would say it's important to know how to synthesize small stories into a broad action item. And of course, it's also important to establish some priority of discussions, which I overlooked at first.
 
-# Retro 05/04/20
+# Retro 05/11/20
 
-* Led by: name-goes-here
-* Present: name1, name2, ... , nameN
-* Absent: name1, name2, ...
+* Led by: Jeffrey Sun
+* Present: Alex Lancaster, Brian Qiu, Jeffrey Sun, Xinyi Zhang
+* Absent: Parth Atre
 
-## Action item
+## Action item: Testing
 
-* a goal: identify something the team wants to get better at
-* a change: identify one thing that the team will change about how it works together
-* a measurement: identify at least one way to measure whether the change helped the team acheive the goal, or move closer to it.
+* a goal: add better testing to avoid bugs in the game and on the website
+* a change: add TDD/unit-testing and do more multiplayer testing where multiple members are present
+* a measurement: for every PR, multiple people should test it before it gets merged
+
+## Action item: Keep code up-to-date
+
+* a goal: keep code on other branches up-to-date with the code on the master branch to make merging PRs easier
+* a change: notify others on slack whenever a PR is merged into master so that other PRs can rebase with master
+* a measurement: PRs are rebased with master before being submitted for code review
 
 ## Brief description of how retro went
 
-Retro leader fill this in.
-
-* A brief description of what retro outline or process you used.
-* A brief assessment of how it went.
-* What advice would you give to the next person leading a retro
-  based on what you learned today?
+We used the Start-Stop-Continue outline for this week's retro. To implement the outline, we used an online post-it board divided into 3 regions for start, stop, and continue, and added post-it notes to each section. Then, we voted on notes to talk about and came up with action items based on the different notes. I thought it went okay, but I think I could have done a better job facilitating to keep the retro moving smoothly. It also seems like the stop and continue sections weren't really relevant to our discussion in the end. For the next leader, I think it would be good to have a rough idea about how long each part of the retro should take.

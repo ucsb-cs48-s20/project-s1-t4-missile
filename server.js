@@ -7,6 +7,7 @@ const dev = process.env.NODE_ENV
 const nextApp = next({ dev });
 const nextHandler = nextApp.getRequestHandler();
 const PORT = process.env.PORT || 3000;
+
 nextApp.prepare().then(() => {
     app.get('*', (req, res) => {
         return nextHandler(req, res)
@@ -45,6 +46,7 @@ let playerSlots = {
     2: undefined,
     3: undefined
 }
+
 for (let i = 0; i < cometLimit; i++) {
     comets[i] = undefined;
 }
@@ -99,14 +101,16 @@ io.on('connect', socket => {
             missiles[missileId].speedX = -1 * Math.cos(missileData.rotation + Math.PI / 2) * players[socket.id].missileSpeed;
             missiles[missileId].speedY = -1 * Math.sin(missileData.rotation + Math.PI / 2) * players[socket.id].missileSpeed;
             missiles[missileId].dmg = 1;
-            missiles[missileId].radius = 75;
+            missiles[missileId].radius = 60;
             missiles[missileId].playerId = socket.id;
+
             if (missileId > 1000) {
                 missileId = 0;
             } else {
                 missileId++;
             }
             io.emit('newMissile', missiles[missileId - 1]);
+            io.emit('newCrosshair', missiles[missileId - 1]);
             socket.broadcast.emit('missileFired', socket.id);
             io.emit('missileReload', socket.id, thisPlayer.reloadTimeInSeconds * 1000);
             setTimeout(() => { thisPlayer.reloading = false; }, thisPlayer.reloadTimeInSeconds * 1000);
@@ -172,14 +176,31 @@ function updateProjectiles() {
     }
 }
 
+// TODO: match explosion duration with animation
+// TODO: explosion size changes with animation
+// TODO: find explosion animation
 function updateMissiles() {
     if (gameRunning) {
         Object.keys(missiles).forEach(id => {
             missiles[id].x = missiles[id].x + missiles[id].speedX;
             missiles[id].y = missiles[id].y + missiles[id].speedY;
-            if (missiles[id].x < -10 || missiles[id].x > 1290 || missiles[id].y < -10 || missiles[id].y > 730) {
+            if ((missiles[id].x >= missiles[id].mouseX - 10 && missiles[id].x <= missiles[id].mouseX + 10) && (missiles[id].y >= missiles[id].mouseY - 10 && missiles[id].y <= missiles[id].mouseY + 10)) {
+                // create explosion on missile destroy
+                explosions[id] = {
+                    x: missiles[id].x,
+                    y: missiles[id].y,
+                    id: id,
+                    dmg: missiles[id].dmg,
+                    radius: missiles[id].radius,
+                    currentRadius: 0,
+                    playerId: missiles[id].playerId,
+                    durationLimit: 25,
+                    startTick: 0
+                }
+
                 delete missiles[id];
                 io.emit('missileDestroyed', id);
+                io.emit('crosshairDestroyed', id);
             }
         })
         io.emit('missileUpdate', missiles);
@@ -200,38 +221,6 @@ function updateComets() {
 
 function detectCollisions() {
     if (gameRunning) {
-        Object.keys(missiles).forEach(missileId => {
-            Object.keys(comets).forEach(cometId => {
-                if (comets[cometId] != undefined && missiles[missileId] != undefined) {
-                    let dist = Math.sqrt(Math.pow(comets[cometId].x - missiles[missileId].x, 2) + Math.pow(comets[cometId].y - missiles[missileId].y, 2));
-                    if (dist < 25) {
-                        comets[cometId].hp -= missiles[missileId].dmg;
-                        if (comets[cometId].hp <= 0 || comets[cometId].x < -10 || comets[cometId].x > 1290 || comets[cometId].y < -10 || comets[cometId].y > 730) {
-                            if (players[missiles[missileId].playerId] != undefined) {
-                                players[missiles[missileId].playerId].credits += comets[cometId].credits;
-                                players[missiles[missileId].playerId].kills += 1;
-                                io.to(missiles[missileId].playerId).emit('updateCredits', players[missiles[missileId].playerId].credits);
-                            }
-                            score += comets[cometId].credits;
-                            io.emit('updateScore', score);
-                            numComets--;
-                            comets[cometId] = undefined;
-                            io.emit('cometDestroyed', cometId);
-                        }
-                        explosions[missileId] = {
-                            x: missiles[missileId].x,
-                            y: missiles[missileId].y,
-                            id: missileId,
-                            dmg: missiles[missileId].dmg,
-                            radius: missiles[missileId].radius,
-                            playerId: missiles[missileId].playerId,
-                        }
-                        delete missiles[missileId];
-                        io.emit('missileDestroyed', missileId);
-                    }
-                }
-            })
-        })
         Object.keys(comets).forEach(cometId => {
             if (comets[cometId] != undefined) {
                 if (comets[cometId].y >= 600) {
@@ -254,30 +243,59 @@ function detectCollisions() {
     }
 }
 
+// TODO: each explosion can only damage one comet once
 function explosionDamage() {
     if (gameRunning) {
         Object.keys(explosions).forEach(explosionId => {
             Object.keys(comets).forEach(cometId => {
                 if (comets[cometId] != undefined && explosions[explosionId] != undefined) {
                     let dist = Math.sqrt(Math.pow(comets[cometId].x - explosions[explosionId].x, 2) + Math.pow(comets[cometId].y - explosions[explosionId].y, 2));
-                    if (dist < explosions[explosionId].radius) {
+                    // TODO: make explosion animation sprite reflect its radius
+                    if (dist < explosions[explosionId].currentRadius) {
                         comets[cometId].hp -= explosions[explosionId].dmg;
                         if (comets[cometId].hp <= 0 || comets[cometId].x < -10 || comets[cometId].x > 1290 || comets[cometId].y < -10 || comets[cometId].y > 730) {
-                            if (players[explosions[explosionId].playerId] != undefined && missiles[missileId] != undefined) {
+                            if (players[explosions[explosionId].playerId] != undefined) {
                                 players[explosions[explosionId].playerId].credits += comets[cometId].credits;
                                 players[explosions[explosionId].playerId].kills += 1;
                                 io.to(explosions[explosionId].playerId).emit('updateCredits', players[explosions[explosionId].playerId].credits);
                             }
+
                             score += comets[cometId].credits;
                             io.emit('updateScore', score);
                             numComets--;
+
+                            explosions[cometId + 'comet'] = {
+                                x: comets[cometId].x,
+                                y: comets[cometId].y,
+                                id: cometId + 'comet',
+                                dmg: comets[cometId].dmg,
+                                radius: comets[cometId].radius,
+                                currentRadius: 0,
+                                playerId: explosions[explosionId].playerId,
+                                durationLimit: 25,
+                                startTick: 0
+                            }
+
                             comets[cometId] = undefined;
                             io.emit('cometDestroyed', cometId);
                         }
                     }
                 }
             })
-            delete explosions[explosionId];
+
+            // explosion duration
+            // delete explosion if it lasts more than its duration
+            explosions[explosionId].startTick++;
+
+            if (explosions[explosionId].currentRadius < explosions[explosionId].radius) {
+                let increment = explosions[explosionId].radius / explosions[explosionId].durationLimit;
+                explosions[explosionId].currentRadius += increment;
+            }
+
+            // explosions last 5 ticks after they reach their max size
+            if (explosions[explosionId].startTick > explosions[explosionId].durationLimit + 5) {
+                delete explosions[explosionId];
+            }
         })
     }
 }
@@ -343,15 +361,19 @@ function clearGame() {
                         hp: cometHealth,
                         id: i,
                         credits: 100 * cometHealth,
+                        dmg: 1,
+                        radius: 40,
                     }
                     io.emit('newComet', comets[i]);
                     break;
+                    // dmg and radius attributes are for the comet explosion
                 }
             }
         }
         generateComets();
     }, timer);
 }());
+
 setInterval(() => {
     if (gameRunning) {
         timer--;
