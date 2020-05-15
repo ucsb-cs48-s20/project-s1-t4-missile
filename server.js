@@ -79,6 +79,7 @@ io.on('connect', socket => {
             reloadTimeInSeconds: 0.6,
             reloading: false,
             damage: 1,
+            radius: 60,
         };
     }
     socket.emit('initComets', comets);
@@ -102,7 +103,7 @@ io.on('connect', socket => {
             missiles[missileId].speedX = -1 * Math.cos(missileData.rotation + Math.PI / 2) * players[socket.id].missileSpeed;
             missiles[missileId].speedY = -1 * Math.sin(missileData.rotation + Math.PI / 2) * players[socket.id].missileSpeed;
             missiles[missileId].dmg = players[socket.id].damage;
-            missiles[missileId].radius = 60;
+            missiles[missileId].radius = players[socket.id].radius;
             missiles[missileId].playerId = socket.id;
 
             if (missileId > 1000) {
@@ -130,7 +131,7 @@ io.on('connect', socket => {
                 players[socket.id].missileSpeed = players[socket.id].missileSpeed + 1;
                 players[socket.id].credits -= cost;
                 io.to(socket.id).emit('updateCredits', players[socket.id].credits)
-                io.to(socket.id).emit('updateCost', ['speed', cost + 100])
+                io.to(socket.id).emit('updateCost', ['speed', cost + 100]);
             }
         } else if (upgrade == 'damage') {
             let cost = 900 + (players[socket.id].damage * 100);
@@ -140,6 +141,9 @@ io.on('connect', socket => {
                 io.to(socket.id).emit('updateCredits', players[socket.id].credits);
                 io.to(socket.id).emit('updateCost', ['damage', cost + 100]);
             }
+        } else if (upgrade == 'radius') {
+            let cost = 500 + ((players[socket.id].radius - 60) / 20) * 100;
+            attemptUpgrade(socket.id, upgrade, 20, cost, 100);
         }
     })
 
@@ -171,6 +175,15 @@ function removeFromSlot(id) {
 
 function getNumPlayers() {
     return Object.keys(players).length;
+}
+
+function attemptUpgrade(socketID, upgradeName, upgradeIncrement, cost, costIncrement) {
+    if(players[socketID].credits >= cost) {
+        players[socketID][upgradeName] += upgradeIncrement;
+        players[socketID].credits -= cost;
+        io.to(socketID).emit('updateCredits', players[socketID].credits);
+        io.to(socketID).emit('updateCost', [upgradeName, cost + costIncrement]);
+    }
 }
 
 //Update functions
