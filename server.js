@@ -75,7 +75,7 @@ io.on('connect', socket => {
             playerId: socket.id,
             credits: 0,
             kills: 0,
-            missileSpeed: 10,
+            speed: 10,
             reloadTimeInSeconds: 0.6,
             reloading: false,
             damage: 1,
@@ -100,8 +100,8 @@ io.on('connect', socket => {
             thisPlayer.reloading = true;
             missileData["id"] = missileId;
             missiles[missileId] = missileData;
-            missiles[missileId].speedX = -1 * Math.cos(missileData.rotation + Math.PI / 2) * players[socket.id].missileSpeed;
-            missiles[missileId].speedY = -1 * Math.sin(missileData.rotation + Math.PI / 2) * players[socket.id].missileSpeed;
+            missiles[missileId].speedX = -1 * Math.cos(missileData.rotation + Math.PI / 2) * players[socket.id].speed;
+            missiles[missileId].speedY = -1 * Math.sin(missileData.rotation + Math.PI / 2) * players[socket.id].speed;
             missiles[missileId].dmg = players[socket.id].damage;
             missiles[missileId].radius = players[socket.id].radius;
             missiles[missileId].playerId = socket.id;
@@ -126,7 +126,7 @@ io.on('connect', socket => {
     })
     socket.on('attemptUpgrade', upgrade => {
         if (upgrade == 'speed') {
-            let cost = players[socket.id].missileSpeed * 100;
+            let cost = 1000 + (players[socket.id].speed - 10) * 100;
             attemptUpgrade(socket.id, upgrade, 1, cost, 100);
         } else if (upgrade == 'damage') {
             let cost = 900 + (players[socket.id].damage * 100);
