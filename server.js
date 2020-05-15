@@ -100,6 +100,8 @@ io.on('connect', socket => {
             thisPlayer.reloading = true;
             missileData["id"] = missileId;
             missiles[missileId] = missileData;
+            missiles[missileId].startX = missiles[missileId].x
+            missiles[missileId].startY = missiles[missileId].y
             missiles[missileId].speedX = -1 * Math.cos(missileData.rotation + Math.PI / 2) * players[socket.id].speed;
             missiles[missileId].speedY = -1 * Math.sin(missileData.rotation + Math.PI / 2) * players[socket.id].speed;
             missiles[missileId].dmg = players[socket.id].damage;
@@ -168,7 +170,7 @@ function getNumPlayers() {
 }
 
 function attemptUpgrade(socketID, upgradeName, upgradeIncrement, cost, costIncrement) {
-    if(players[socketID].credits >= cost) {
+    if (players[socketID].credits >= cost) {
         players[socketID][upgradeName] += upgradeIncrement;
         players[socketID].credits -= cost;
         io.to(socketID).emit('updateCredits', players[socketID].credits);
@@ -194,11 +196,24 @@ function updateMissiles() {
         Object.keys(missiles).forEach(id => {
             missiles[id].x = missiles[id].x + missiles[id].speedX;
             missiles[id].y = missiles[id].y + missiles[id].speedY;
-            if ((missiles[id].x >= missiles[id].mouseX - 10 && missiles[id].x <= missiles[id].mouseX + 10) && (missiles[id].y >= missiles[id].mouseY - 10 && missiles[id].y <= missiles[id].mouseY + 10)) {
+
+            let travelDist = Math.sqrt(Math.pow(missiles[id].x - missiles[id].startX, 2) + Math.pow(missiles[id].y - missiles[id].startY, 2))
+            let targetDist = Math.sqrt(Math.pow(missiles[id].mouseX - missiles[id].startX, 2) + Math.pow(missiles[id].mouseY - missiles[id].startY, 2))
+            let isAtTarget = missiles[id].x >= missiles[id].mouseX - 10 && missiles[id].x <= missiles[id].mouseX + 10 && missiles[id].y >= missiles[id].mouseY - 10 && missiles[id].y <= missiles[id].mouseY + 10
+            if (isAtTarget || travelDist >= targetDist) {
                 // create explosion on missile destroy
+                explosionLocation = [missiles[id].x, missiles[id].y]
+                // handles the special situation where the missile is travelling too fast and is never detected inside the explosion zone
+                if (travelDist > targetDist && !isAtTarget) {
+                    explosionLocation[0] = missiles[id].mouseX
+                    // use the target y-location only if it is above the base
+                    if (missiles[id].mouseY <= missiles[id].startY) {
+                        explosionLocation[1] = missiles[id].mouseY
+                    }
+                }
                 explosions[id] = {
-                    x: missiles[id].x,
-                    y: missiles[id].y,
+                    x: explosionLocation[0],
+                    y: explosionLocation[1],
                     id: id,
                     dmg: missiles[id].dmg,
                     radius: missiles[id].radius,
@@ -208,6 +223,11 @@ function updateMissiles() {
                     startTick: 0
                 }
 
+                delete missiles[id];
+                io.emit('missileDestroyed', id);
+                io.emit('crosshairDestroyed', id);
+            } else if (missiles[id].x < -10 || missiles[id].x > 1290 || missiles[id].y < -10 || missiles[id].y > 730) {
+                // deletes missiles if they happen to fly off screen
                 delete missiles[id];
                 io.emit('missileDestroyed', id);
                 io.emit('crosshairDestroyed', id);
