@@ -127,23 +127,13 @@ io.on('connect', socket => {
     socket.on('attemptUpgrade', upgrade => {
         if (upgrade == 'speed') {
             let cost = players[socket.id].missileSpeed * 100;
-            if (players[socket.id].credits >= cost) {
-                players[socket.id].missileSpeed = players[socket.id].missileSpeed + 1;
-                players[socket.id].credits -= cost;
-                io.to(socket.id).emit('updateCredits', players[socket.id].credits)
-                io.to(socket.id).emit('updateCost', ['speed', cost + 100]);
-            }
+            attemptUpgrade(socket.id, upgrade, 1, cost, 100);
         } else if (upgrade == 'damage') {
             let cost = 900 + (players[socket.id].damage * 100);
-            if(players[socket.id].credits >= cost) {
-                players[socket.id].damage += 1;
-                players[socket.id].credits -= cost;
-                io.to(socket.id).emit('updateCredits', players[socket.id].credits);
-                io.to(socket.id).emit('updateCost', ['damage', cost + 100]);
-            }
+            attemptUpgrade(socket.id, upgrade, 1, cost, 100);
         } else if (upgrade == 'radius') {
-            let cost = 500 + ((players[socket.id].radius - 60) / 20) * 100;
-            attemptUpgrade(socket.id, upgrade, 20, cost, 100);
+            let cost = 500 + ((players[socket.id].radius - 60) / 10) * 100;
+            attemptUpgrade(socket.id, upgrade, 10, cost, 100);
         }
     })
 
