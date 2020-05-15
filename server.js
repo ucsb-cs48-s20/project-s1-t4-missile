@@ -100,6 +100,8 @@ io.on('connect', socket => {
             thisPlayer.reloading = true;
             missileData["id"] = missileId;
             missiles[missileId] = missileData;
+            missiles[missileId].startX = missiles[missileId].x
+            missiles[missileId].startY = missiles[missileId].y
             missiles[missileId].speedX = -1 * Math.cos(missileData.rotation + Math.PI / 2) * players[socket.id].missileSpeed;
             missiles[missileId].speedY = -1 * Math.sin(missileData.rotation + Math.PI / 2) * players[socket.id].missileSpeed;
             missiles[missileId].dmg = players[socket.id].damage;
@@ -194,10 +196,9 @@ function updateMissiles() {
         Object.keys(missiles).forEach(id => {
             missiles[id].x = missiles[id].x + missiles[id].speedX;
             missiles[id].y = missiles[id].y + missiles[id].speedY;
-            
-            let missileOrigin = [players[missiles[id].playerId].x, players[missiles[id].playerId].y]
-            let travelDist = Math.sqrt(Math.pow(missiles[id].x - missileOrigin[0], 2) + Math.pow(missiles[id].y - missileOrigin[1], 2))
-            let targetDist = Math.sqrt(Math.pow(missiles[id].mouseX - missileOrigin[0], 2) + Math.pow(missiles[id].mouseY - missileOrigin[1], 2))
+
+            let travelDist = Math.sqrt(Math.pow(missiles[id].x - missiles[id].startX, 2) + Math.pow(missiles[id].y - missiles[id].startY, 2))
+            let targetDist = Math.sqrt(Math.pow(missiles[id].mouseX - missiles[id].startX, 2) + Math.pow(missiles[id].mouseY - missiles[id].startY, 2))
             let isAtTarget = missiles[id].x >= missiles[id].mouseX - 10 && missiles[id].x <= missiles[id].mouseX + 10 && missiles[id].y >= missiles[id].mouseY - 10 && missiles[id].y <= missiles[id].mouseY + 10
             if (isAtTarget || travelDist >= targetDist) {
                 // create explosion on missile destroy
@@ -206,7 +207,7 @@ function updateMissiles() {
                 if (travelDist > targetDist && !isAtTarget) {
                     explosionLocation[0] = missiles[id].mouseX
                     // use the target y-location only if it is above the base
-                    if (missiles[id].mouseY <= missileOrigin[1]) {
+                    if (missiles[id].mouseY <= missiles[id].startY) {
                         explosionLocation[1] = missiles[id].mouseY
                     }
                 }
