@@ -170,7 +170,7 @@ function getNumPlayers() {
 }
 
 function attemptUpgrade(socketID, upgradeName, upgradeIncrement, cost, costIncrement) {
-    if(players[socketID].credits >= cost) {
+    if (players[socketID].credits >= cost) {
         players[socketID][upgradeName] += upgradeIncrement;
         players[socketID].credits -= cost;
         io.to(socketID).emit('updateCredits', players[socketID].credits);
