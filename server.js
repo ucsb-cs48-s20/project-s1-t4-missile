@@ -153,6 +153,15 @@ io.on('connect', socket => {
         } else if (upgrade == 'regenSpeed') {
             let cost = 100 + Math.round(1000 * players[socket.id].regenSpeed); // starts at 500 i swear
             attemptUpgrade(socket.id, upgrade, 0.1, cost, 100);
+        } else if (upgrade == 'maxMissiles') {
+            let cost = 400 * players[socket.id].maxMissiles;
+            let upgradeDone = attemptUpgrade(socket.id, upgrade, 1, cost, 400); // doing extra display/reload stuff when succeed
+            if (upgradeDone) {
+                let regenMs = (1.0/players[socket.id].regenSpeed) * 1000;
+                io.emit('missileCountChange', socket.id, players[socket.id].missiles, players[socket.id].maxMissiles, regenMs);
+                players[socket.id].rechargingMissiles = false;
+                giveBulletsUntilMax(socket.id, players[socket.id], regenMs);
+            }
         }
     })
 
@@ -192,16 +201,23 @@ function attemptUpgrade(socketID, upgradeName, upgradeIncrement, cost, costIncre
         players[socketID].credits -= cost;
         io.to(socketID).emit('updateCredits', players[socketID].credits);
         io.to(socketID).emit('updateCost', [upgradeName, cost + costIncrement]);
+        return true;
     }
+
+    return false;
 }
 
 
 // give the player missiles until they have their max amount. 
 function giveBulletsUntilMax(socketId, player, regenMs) {
+    let oldMissilesMax = player.maxMissiles;
     if (!player.rechargingMissiles)
     {
         player.rechargingMissiles = true;
         setTimeout(() => {
+            //giveBulletsUntilMax is called again when missile number is upgraded. this is why i'm checking it after the timeout
+            if (oldMissilesMax != player.maxMissiles) { return; }
+
             player.missiles++;
             io.emit('missileCountChange', socketId, player.missiles, player.maxMissiles, regenMs);
             if (player.missiles >= player.maxMissiles){
