@@ -82,10 +82,10 @@ io.on('connect', socket => {
             damage: 1,
             radius: 60,
 
-            bullets: 2,
-            maxBullets: 2,
-            rechargingBullets: false,
-            nextBulletTimeInSeconds: 2.5,
+            missiles: 2,
+            maxMissiles: 2,
+            rechargingMissiles: false,
+            nextMissileTimeInSeconds: 2.5,
         };
     }
     socket.emit('initComets', comets);
@@ -102,7 +102,7 @@ io.on('connect', socket => {
     //Handles client inputs
     socket.on('missileShot', missileData => {
         let thisPlayer = players[socket.id];
-        if (!thisPlayer.reloading && thisPlayer.bullets > 0) {
+        if (!thisPlayer.reloading && thisPlayer.missiles > 0) {
             thisPlayer.reloading = true;
             missileData["id"] = missileId;
             missiles[missileId] = missileData;
@@ -127,9 +127,11 @@ io.on('connect', socket => {
             io.emit('missileReload', socket.id, thisPlayer.reloadTimeInSeconds * 1000);
             setTimeout(() => { thisPlayer.reloading = false; }, thisPlayer.reloadTimeInSeconds * 1000);
 
-            //change number of bullets
-            thisPlayer.bullets--;
-            giveBulletsUntilMax(thisPlayer);
+            //change number of missiles
+            thisPlayer.missiles--;
+            let regenMs = thisPlayer.nextMissileTimeInSeconds * 1000;
+            io.emit('missileCountChange', socket.id, thisPlayer.missiles, thisPlayer.maxMissiles, regenMs);
+            giveBulletsUntilMax(socket.id, thisPlayer, regenMs);
         }
     })
     socket.on('rotationChange', rotation => {
@@ -191,21 +193,25 @@ function attemptUpgrade(socketID, upgradeName, upgradeIncrement, cost, costIncre
 }
 
 
-// give the player bullets until they have their max amount. 
-// small catch: the interval time can't change in the middle...
-function giveBulletsUntilMax(player) {
-    if (!player.rechargingBullets)
+// give the player missiles until they have their max amount. 
+function giveBulletsUntilMax(socketId, player, regenMs) {
+    if (!player.rechargingMissiles)
     {
-        player.rechargingBullets = true;
-        var thisLoop = null;
-        thisLoop = setInterval(() => {
-            player.bullets++;
-            if (player.bullets >= player.maxBullets){
-                player.bullets = player.maxBullets;
-                player.rechargingBullets = false;
+        player.rechargingMissiles = true;
+        setTimeout(() => {
+            player.missiles++;
+            io.emit('missileCountChange', socketId, player.missiles, player.maxMissiles, regenMs);
+            if (player.missiles >= player.maxMissiles){
+                player.missiles = player.maxMissiles;
+                player.rechargingMissiles = false;
                 clearInterval(thisLoop);
             }
-        }, player.nextBulletTimeInSeconds * 1000);
+            else //why is this part weird? because we want the player to see the decrease immediately, when upgrading regen speed.
+            {
+                player.rechargingMissiles = false;
+                giveBulletsUntilMax(socketId, player, player.nextMissileTimeInSeconds * 1000);
+            }
+        }, regenMs);
     }
 }
 
