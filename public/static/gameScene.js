@@ -69,6 +69,7 @@ class GameScene extends Phaser.Scene {
         this.reloading = false;
         this.UIOut = false;
         this.UITweening = false;
+        this.noMissilesLeft = false;
 
         //Initializing server-handled objects
         let UITextY = 15;
@@ -155,6 +156,7 @@ class GameScene extends Phaser.Scene {
         this.missileCounterUIs = { };
         this.socket.on('missileCountChange', (id, newAmount, maxAmount, regenTime) => {
             if (id == self.playerId) {
+                if (newAmount == 0){ this.noMissilesLeft = true; } else { this.noMissilesLeft = false; }
                 self.displayMissileCount(self, id, this.ship.x, newAmount, maxAmount, regenTime);
             }
             else {
@@ -329,7 +331,7 @@ class GameScene extends Phaser.Scene {
             this.moveUI(pointer, UICutoffY);
 
             //Shot handling
-            if (!this.shot && pointer.isDown && pointer.y >= UICutoffY && !this.reloading ) {
+            if (!this.shot && pointer.isDown && pointer.y >= UICutoffY && !this.reloading && !this.noMissilesLeft) {
                 this.shot = true;
                 this.ship.play("fire");
                 this.socket.emit("missileShot", {
