@@ -228,6 +228,9 @@ class GameScene extends Phaser.Scene {
                     otherTankbody.destroy();
                 }
             })
+            if (playerId in this.missileCounterUIs) { //make sure to delete players UIs when they leave...
+                delete this.missileCounterUIs[playerId];
+            }
         })
         this.socket.on('gameOver', data => {
             this.scene.start('endScene', data);
@@ -462,25 +465,6 @@ class GameScene extends Phaser.Scene {
 
     }
 
-    //helpers for missile counters...
-    deleteMissileCounterById(self, id) {
-        if (!(id in self.missileCounterUIs)) { return; }
-
-        self.missileCounterUIs[id].getChildren().forEach((groupThing) => {
-            groupThing.destroy();
-        })
-        self.missileCounterUIs[id].destroy(); 
-        delete self.missileCounterUIs[id];
-    }
-    
-    deleteMissileCounterByItself(byeGroup) {
-        if (byeGroup == null || byeGroup == undefined) { return; }
-        byeGroup.getChildren().forEach((groupThing) => {
-            groupThing.destroy();
-        })
-        byeGroup.destroy(); 
-    }
-
     displayMissileCount(self, id, positionX, newAmount, maxAmount, regenTime) {
         const positionY = 575;
         const maxDisplayTimeMs = 5000;
@@ -497,15 +481,16 @@ class GameScene extends Phaser.Scene {
         let cleanLoop = null;
         cleanLoop = setInterval(() => {
             if (!(id in self.missileCounterUIs) || !Object.is(self.missileCounterUIs[id],myGroup)) {
-                self.deleteMissileCounterByItself(myGroup);
-                //???
+                missileSprite.destroy();
                 amountText.destroy();
+                myGroup.destroy();
                 clearInterval(cleanLoop);
             }
             else if (timer >= maxDisplayTimeMs) {
-                self.deleteMissileCounterById(self, id);
-                //???
+                missileSprite.destroy();
                 amountText.destroy();
+                myGroup.destroy();
+                delete self.missileCounterUIs[id];
                 clearInterval(cleanLoop);
             }
             timer += 16;
