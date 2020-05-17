@@ -453,8 +453,7 @@ class GameScene extends Phaser.Scene {
         const reloadBarFront = self.add.sprite(positionX - (width*0.5), positionY, 'reloadmeter').setDisplaySize(0, height).setTint(0x00ff00).setDepth(101);
         //update every frame until it's full
         let timer = 0;
-        var drawLoop = null;
-        drawLoop = setInterval(() => {
+        var drawLoop = setInterval(() => {
             if (timer >= reloadTime){
                 reloadBarBase.destroy();
                 reloadBarFront.destroy();
@@ -475,7 +474,6 @@ class GameScene extends Phaser.Scene {
         const positionY = 575;
         const maxDisplayTimeMs = 5000;
         let myGroup = this.add.group();
-        self.missileCounterUIs[id] = myGroup;
         const missileSprite = self.add.sprite(positionX - 45, positionY, 'missile').setDisplaySize(20,30).setDepth(100);
         const amountText = self.add.text(positionX - 15, positionY, '' + newAmount + '/' + maxAmount, { fontSize: '24px' }).setTint(0xffffff).setDepth(100);
         myGroup.add(missileSprite);
@@ -484,8 +482,7 @@ class GameScene extends Phaser.Scene {
 
         //wait until either display time is up or the next one appears.
         let timer = 0;
-        let cleanLoop = null;
-        cleanLoop = setInterval(() => {
+        let cleanLoop = setInterval(() => {
             if (!(id in self.missileCounterUIs) || !Object.is(self.missileCounterUIs[id],myGroup)) {
                 missileSprite.destroy();
                 amountText.destroy();
