@@ -85,7 +85,7 @@ io.on('connect', socket => {
             missiles: 2,
             maxMissiles: 2,
             rechargingMissiles: false,
-            nextMissileTimeInSeconds: 2.5,
+            regenSpeed: 0.4,
         };
     }
     socket.emit('initComets', comets);
@@ -129,7 +129,7 @@ io.on('connect', socket => {
 
             //change number of missiles
             thisPlayer.missiles--;
-            let regenMs = thisPlayer.nextMissileTimeInSeconds * 1000;
+            let regenMs = (1.0/thisPlayer.regenSpeed) * 1000;
             io.emit('missileCountChange', socket.id, thisPlayer.missiles, thisPlayer.maxMissiles, regenMs);
             giveBulletsUntilMax(socket.id, thisPlayer, regenMs);
         }
@@ -150,6 +150,9 @@ io.on('connect', socket => {
         } else if (upgrade == 'radius') {
             let cost = 500 + ((players[socket.id].radius - 60) / 10) * 100;
             attemptUpgrade(socket.id, upgrade, 10, cost, 100);
+        } else if (upgrade == 'regenSpeed') {
+            let cost = 100 + Math.round(1000 * players[socket.id].regenSpeed); // starts at 500 i swear
+            attemptUpgrade(socket.id, upgrade, 0.1, cost, 100);
         }
     })
 
@@ -204,12 +207,11 @@ function giveBulletsUntilMax(socketId, player, regenMs) {
             if (player.missiles >= player.maxMissiles){
                 player.missiles = player.maxMissiles;
                 player.rechargingMissiles = false;
-                clearInterval(thisLoop);
             }
             else //why is this part weird? because we want the player to see the decrease immediately, when upgrading regen speed.
             {
                 player.rechargingMissiles = false;
-                giveBulletsUntilMax(socketId, player, player.nextMissileTimeInSeconds * 1000);
+                giveBulletsUntilMax(socketId, player, (1.0/player.regenSpeed) * 1000);
             }
         }, regenMs);
     }

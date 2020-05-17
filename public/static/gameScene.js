@@ -298,6 +298,8 @@ class GameScene extends Phaser.Scene {
                 this.damageUpgradeText.setText(`Missile\nDamage\n\n${info[1]}`);
             } else if(info[0] == "radius") {
                 this.radiusUpgradeText.setText(`Explosion\nRadius\n\n${info[1]}`);
+            }else if(info[0] == "regenSpeed") {
+                this.regenUpgradeText.setText(`Ammo Regen\nSpeed\n\n${info[1]}`);
             }
         })
         this.socket.on('updateRound', round => {
@@ -531,6 +533,7 @@ class GameScene extends Phaser.Scene {
         this.makeUIButtonHelper(self, 'speedUpgrade', 80, 'Missile\nSpeed\n\n1000', 'speed');
         this.makeUIButtonHelper(self, 'damageUpgrade', 240, 'Missile\nDamage\n\n1000', 'damage');
         this.makeUIButtonHelper(self, 'radiusUpgrade', 400, 'Explosion\nRadius\n\n500', 'radius');
+        this.makeUIButtonHelper(self, 'regenUpgrade', 560, 'Ammo Regen\nSpeed\n\n500', 'regenSpeed');
     }
 }
 
