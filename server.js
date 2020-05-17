@@ -75,11 +75,17 @@ io.on('connect', socket => {
             playerId: socket.id,
             credits: 0,
             kills: 0,
+
             speed: 10,
-            reloadTimeInSeconds: 0.6,
+            reloadTimeInSeconds: 0.5,
             reloading: false,
             damage: 1,
             radius: 60,
+
+            bullets: 2,
+            maxBullets: 2,
+            rechargingBullets: false,
+            nextBulletTimeInSeconds: 2.5,
         };
     }
     socket.emit('initComets', comets);
@@ -96,7 +102,7 @@ io.on('connect', socket => {
     //Handles client inputs
     socket.on('missileShot', missileData => {
         let thisPlayer = players[socket.id];
-        if (!thisPlayer.reloading) {
+        if (!thisPlayer.reloading && thisPlayer.bullets > 0) {
             thisPlayer.reloading = true;
             missileData["id"] = missileId;
             missiles[missileId] = missileData;
@@ -116,8 +122,14 @@ io.on('connect', socket => {
             io.emit('newMissile', missiles[missileId - 1]);
             io.emit('newCrosshair', missiles[missileId - 1]);
             socket.broadcast.emit('missileFired', socket.id);
+
+            //unconditional reload between shots
             io.emit('missileReload', socket.id, thisPlayer.reloadTimeInSeconds * 1000);
             setTimeout(() => { thisPlayer.reloading = false; }, thisPlayer.reloadTimeInSeconds * 1000);
+
+            //change number of bullets
+            thisPlayer.bullets--;
+            giveBulletsUntilMax(thisPlayer);
         }
     })
     socket.on('rotationChange', rotation => {
@@ -175,6 +187,25 @@ function attemptUpgrade(socketID, upgradeName, upgradeIncrement, cost, costIncre
         players[socketID].credits -= cost;
         io.to(socketID).emit('updateCredits', players[socketID].credits);
         io.to(socketID).emit('updateCost', [upgradeName, cost + costIncrement]);
+    }
+}
+
+
+// give the player bullets until they have their max amount. 
+// small catch: the interval time can't change in the middle...
+function giveBulletsUntilMax(player) {
+    if (!player.rechargingBullets)
+    {
+        player.rechargingBullets = true;
+        var thisLoop = null;
+        thisLoop = setInterval(() => {
+            player.bullets++;
+            if (player.bullets >= player.maxBullets){
+                player.bullets = player.maxBullets;
+                player.rechargingBullets = false;
+                clearInterval(thisLoop);
+            }
+        }, player.nextBulletTimeInSeconds * 1000);
     }
 }
 
