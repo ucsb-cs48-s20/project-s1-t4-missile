@@ -151,6 +151,21 @@ class GameScene extends Phaser.Scene {
             }
         })
 
+        //missile count display. similar to the missile reload. it has extra list to keep track of who has the displays.
+        this.missileCounterUIs = { };
+        this.socket.on('missileCountChange', (id, newAmount, maxAmount, regenTime) => {
+            if (id == self.playerId) {
+                self.displayMissileCount(self, id, this.ship.x, newAmount, maxAmount, regenTime);
+            }
+            else {
+                self.otherPlayers.getChildren().forEach(otherPlayer => {
+                    if (id == otherPlayer.playerId) {
+                        self.displayMissileCount(self, id, otherPlayer.x, newAmount, maxAmount, regenTime);
+                    }
+                })
+            }
+        })
+
         //Events where objects are destroyed
         this.socket.on("missileDestroyed", (missileId) => {
             self.missiles.getChildren().forEach((missile) => {
@@ -311,7 +326,7 @@ class GameScene extends Phaser.Scene {
             this.moveUI(pointer, UICutoffY);
 
             //Shot handling
-            if (!this.shot && pointer.isDown && pointer.y >= UICutoffY && !this.reloading) {
+            if (!this.shot && pointer.isDown && pointer.y >= UICutoffY && !this.reloading ) {
                 this.shot = true;
                 this.ship.play("fire");
                 this.socket.emit("missileShot", {
@@ -445,6 +460,56 @@ class GameScene extends Phaser.Scene {
             }
         }, 16);
 
+    }
+
+    //helpers for missile counters...
+    deleteMissileCounterById(self, id) {
+        if (!(id in self.missileCounterUIs)) { return; }
+
+        self.missileCounterUIs[id].getChildren().forEach((groupThing) => {
+            groupThing.destroy();
+        })
+        self.missileCounterUIs[id].destroy(); 
+        delete self.missileCounterUIs[id];
+    }
+    
+    deleteMissileCounterByItself(byeGroup) {
+        if (byeGroup == null || byeGroup == undefined) { return; }
+        byeGroup.getChildren().forEach((groupThing) => {
+            groupThing.destroy();
+        })
+        byeGroup.destroy(); 
+    }
+
+    displayMissileCount(self, id, positionX, newAmount, maxAmount, regenTime) {
+        const positionY = 575;
+        const maxDisplayTimeMs = 5000;
+        let myGroup = this.add.group();
+        self.missileCounterUIs[id] = myGroup;
+        const missileSprite = self.add.sprite(positionX - 45, positionY, 'missile').setDisplaySize(20,30).setDepth(100);
+        const amountText = self.add.text(positionX - 15, positionY, '' + newAmount + '/' + maxAmount, { fontSize: '24px' }).setTint(0xffffff).setDepth(100);
+        myGroup.add(missileSprite);
+        myGroup.add(amountText);
+        self.missileCounterUIs[id] = myGroup;
+
+        //wait until either display time is up or the next one appears.
+        let timer = 0;
+        let cleanLoop = null;
+        cleanLoop = setInterval(() => {
+            if (!(id in self.missileCounterUIs) || !Object.is(self.missileCounterUIs[id],myGroup)) {
+                self.deleteMissileCounterByItself(myGroup);
+                //???
+                amountText.destroy();
+                clearInterval(cleanLoop);
+            }
+            else if (timer >= maxDisplayTimeMs) {
+                self.deleteMissileCounterById(self, id);
+                //???
+                amountText.destroy();
+                clearInterval(cleanLoop);
+            }
+            timer += 16;
+        }, 16);
     }
 
     makeUI(self) {
