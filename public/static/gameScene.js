@@ -69,6 +69,7 @@ class GameScene extends Phaser.Scene {
         this.reloading = false;
         this.UIOut = false;
         this.UITweening = false;
+        this.noMissilesLeft = false;
 
         //Initializing server-handled objects
         let UITextY = 15;
@@ -151,6 +152,21 @@ class GameScene extends Phaser.Scene {
             }
         })
 
+        //missile count display. somewhat similar to the missile reload.
+        this.socket.on('missileCountChange', (id, newAmount, maxAmount, regenTime) => {
+            if (id == self.playerId) {
+                if (newAmount == 0){ this.noMissilesLeft = true; } else { this.noMissilesLeft = false; }
+                self.displayMissileCount(self, self, newAmount, maxAmount, regenTime);
+            }
+            else {
+                self.otherPlayers.getChildren().forEach(otherPlayer => {
+                    if (id == otherPlayer.playerId) {
+                        self.displayMissileCount(self, otherPlayer, newAmount, maxAmount, regenTime);
+                    }
+                })
+            }
+        })
+
         //Events where objects are destroyed
         this.socket.on("missileDestroyed", (missileId) => {
             self.missiles.getChildren().forEach((missile) => {
@@ -205,6 +221,8 @@ class GameScene extends Phaser.Scene {
         this.socket.on("disconnect", (playerId) => {
             self.otherPlayers.getChildren().forEach((otherPlayer) => {
                 if (playerId === otherPlayer.playerId) {
+                    otherPlayer.missileCountSprite.destroy();
+                    otherPlayer.missileCountText.destroy();
                     otherPlayer.destroy();
                 }
             });
@@ -278,6 +296,10 @@ class GameScene extends Phaser.Scene {
                 this.damageUpgradeText.setText(`Missile\nDamage\n\n${info[1]}`);
             } else if(info[0] == "radius") {
                 this.radiusUpgradeText.setText(`Explosion\nRadius\n\n${info[1]}`);
+            }else if(info[0] == "regenSpeed") {
+                this.regenUpgradeText.setText(`Ammo Regen\nSpeed\n\n${info[1]}`);
+            }else if(info[0] == "maxMissiles") {
+                this.missileCountUpgradeText.setText(`Ammo\nCapacity\n\n${info[1]}`);
             }
         })
         this.socket.on('updateRound', round => {
@@ -311,7 +333,7 @@ class GameScene extends Phaser.Scene {
             this.moveUI(pointer, UICutoffY);
 
             //Shot handling
-            if (!this.shot && pointer.isDown && pointer.y >= UICutoffY && !this.reloading) {
+            if (!this.shot && pointer.isDown && pointer.y >= UICutoffY && !this.reloading && !this.noMissilesLeft) {
                 this.shot = true;
                 this.ship.play("fire");
                 this.socket.emit("missileShot", {
@@ -367,6 +389,12 @@ class GameScene extends Phaser.Scene {
             .sprite(playerInfo.x, playerInfo.y - 10, "tankbody")
             .setScale(1.25).setDepth(10);
     }
+    
+    addMissileCounter(self, somePlayer, playerInfo) {
+        somePlayer.missileCountSprite = self.add.sprite(playerInfo.x - 45, 575, 'missile').setDisplaySize(20,30).setDepth(100);
+        somePlayer.missileCountText = self.add.text(playerInfo.x - 15, 575, '' + playerInfo.missiles + '/' + playerInfo.maxMissiles, { fontSize: '24px' })
+                                    .setTint(0xffffff).setDepth(100);
+    }
 
     addPlayer(self, playerInfo) {
         self.addTankBody(self, playerInfo);
@@ -375,6 +403,7 @@ class GameScene extends Phaser.Scene {
         self.ship.setAngularDrag(100);
         self.ship.setMaxVelocity(200); 
         self.playerId = playerInfo.playerId;
+        self.addMissileCounter(self, self, playerInfo);
     }
 
     addOtherPlayers(self, playerInfo) {
@@ -384,9 +413,12 @@ class GameScene extends Phaser.Scene {
             .setScale(1.25).setDepth(20);
         otherPlayer.playerId = playerInfo.playerId;
         otherPlayer.rotation = playerInfo.rotation;
+        self.addMissileCounter(self, otherPlayer, playerInfo);
+
         otherTankbody.playerId = playerInfo.playerId;
         self.otherPlayers.add(otherPlayer);
         self.otherTankbodys.add(otherTankbody);
+        
     }
 
     addMissile(self, missileInfo) {
@@ -429,8 +461,7 @@ class GameScene extends Phaser.Scene {
         const reloadBarFront = self.add.sprite(positionX - (width*0.5), positionY, 'reloadmeter').setDisplaySize(0, height).setTint(0x00ff00).setDepth(101);
         //update every frame until it's full
         let timer = 0;
-        var drawLoop = null;
-        drawLoop = setInterval(() => {
+        var drawLoop = setInterval(() => {
             if (timer >= reloadTime){
                 reloadBarBase.destroy();
                 reloadBarFront.destroy();
@@ -445,6 +476,10 @@ class GameScene extends Phaser.Scene {
             }
         }, 16);
 
+    }
+
+    displayMissileCount(self, somePlayer, newAmount, maxAmount, regenTime) {
+        somePlayer.missileCountText.setText('' + newAmount + '/' + maxAmount);
     }
 
     makeUI(self) {
@@ -479,6 +514,8 @@ class GameScene extends Phaser.Scene {
         this.makeUIButtonHelper(self, 'speedUpgrade', 80, 'Missile\nSpeed\n\n1000', 'speed');
         this.makeUIButtonHelper(self, 'damageUpgrade', 240, 'Missile\nDamage\n\n1000', 'damage');
         this.makeUIButtonHelper(self, 'radiusUpgrade', 400, 'Explosion\nRadius\n\n500', 'radius');
+        this.makeUIButtonHelper(self, 'regenUpgrade', 560, 'Ammo Regen\nSpeed\n\n500', 'regenSpeed');
+        this.makeUIButtonHelper(self, 'missileCountUpgrade', 720, 'Ammo\nCapacity\n\n800', 'maxMissiles');
     }
 }
 
