@@ -11,7 +11,10 @@ import Messages from "./Messages.js";
 let socket;
 
 const Chat = () => {
+<<<<<<< HEAD
     const [name, setName] = useState("");
+=======
+>>>>>>> js/hz - chat shows up if you're lucky
     const [message, setMessage] = useState("");
     const [messages, setMessages] = useState([]);
     const ENDPOINT = "localhost:3000";
@@ -19,7 +22,11 @@ const Chat = () => {
     useEffect(() => {
         socket = io(ENDPOINT); // set connection
 
+<<<<<<< HEAD
         socket.emit("join", { name: "Player" }, (str) => {
+=======
+        socket.emit("join", { name: 'Player' }, (str) => {
+>>>>>>> js/hz - chat shows up if you're lucky
             // if str isn't null, error has occured
             if (str) {
                 alert(str);
@@ -42,10 +49,13 @@ const Chat = () => {
                 return ([...msgs, message]);
             });
         });
+<<<<<<< HEAD
 
         socket.on("defaultName", ({ name }) => {
             setName(name);
         });
+=======
+>>>>>>> js/hz - chat shows up if you're lucky
     }, []);
 
     const sendMessage = (event) => {
@@ -60,7 +70,11 @@ const Chat = () => {
     return (
         <div className="outerContainer">
             <div className="container">
+<<<<<<< HEAD
                 <Messages messages={messages} name={name} />
+=======
+                <Messages messages={messages} name='Player' />
+>>>>>>> js/hz - chat shows up if you're lucky
                 <Input message={message} setMessage={setMessage} sendMessage={sendMessage} />
             </div>
         </div>
