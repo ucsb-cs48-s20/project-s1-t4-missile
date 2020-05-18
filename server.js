@@ -29,6 +29,7 @@ let gameRunning = true;
 let roundOver = false;
 let score = 0;
 let reloadSpeed = 0.5;
+let numMissiles = 2;
 
 //Variables that change with rounds
 let cometLimit = 10;
@@ -78,13 +79,13 @@ io.on('connect', socket => {
             kills: 0,
 
             speed: 10,
-            reloadTimeInSeconds: 0.5,
+            reloadTimeInSeconds: reloadSpeed,
             reloading: false,
             damage: 1,
             radius: 60,
 
-            missiles: 2,
-            maxMissiles: 2,
+            missiles: numMissiles,
+            maxMissiles: numMissiles,
             rechargingMissiles: false,
             regenSpeed: 0.4,
         };
