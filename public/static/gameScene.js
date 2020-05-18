@@ -136,32 +136,26 @@ class GameScene extends Phaser.Scene {
             self.addComet(self, cometInfo);
         });
 
-        //reload bar display. this event is recieved by all players including who shot it
+        //very short delay between any two shots
         this.socket.on('missileReload', (id, reloadTime) => {
             if (id == self.playerId) {
                 this.reloading = true;
                 setTimeout(() => { this.reloading = false; }, reloadTime);
-                self.displayReloadBar(self, this.ship.x, reloadTime);
-            }
-            else {
-                self.otherPlayers.getChildren().forEach(otherPlayer => {
-                    if (id == otherPlayer.playerId) {
-                        self.displayReloadBar(self, otherPlayer.x, reloadTime);
-                    }
-                })
             }
         })
 
-        //missile count display. somewhat similar to the missile reload.
-        this.socket.on('missileCountChange', (id, newAmount, maxAmount, regenTime) => {
+        //missile count display; reload bar display
+        this.socket.on('missileCountChange', (id, newAmount, maxAmount, regenTime, displayBar) => {
             if (id == self.playerId) {
                 if (newAmount == 0){ this.noMissilesLeft = true; } else { this.noMissilesLeft = false; }
                 self.displayMissileCount(self, self, newAmount, maxAmount, regenTime);
+                if (displayBar) { this.displayReloadBar(self, this.ship.x, regenTime); }
             }
             else {
                 self.otherPlayers.getChildren().forEach(otherPlayer => {
                     if (id == otherPlayer.playerId) {
                         self.displayMissileCount(self, otherPlayer, newAmount, maxAmount, regenTime);
+                        if (displayBar) { self.displayReloadBar(self, otherPlayer.x, regenTime); }
                     }
                 })
             }
@@ -459,10 +453,10 @@ class GameScene extends Phaser.Scene {
         //show the empty bar
         const reloadBarBase = self.add.sprite(positionX, positionY, 'reloadmeter').setDisplaySize(width, height).setTint(0xbb0000).setDepth(100);
         const reloadBarFront = self.add.sprite(positionX - (width*0.5), positionY, 'reloadmeter').setDisplaySize(0, height).setTint(0x00ff00).setDepth(101);
-        //update every frame until it's full
+        //update every frame until max missiles
         let timer = 0;
         var drawLoop = setInterval(() => {
-            if (timer >= reloadTime){
+            if (timer >= reloadTime) {
                 reloadBarBase.destroy();
                 reloadBarFront.destroy();
                 clearInterval(drawLoop);
