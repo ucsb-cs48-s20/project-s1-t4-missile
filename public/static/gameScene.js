@@ -152,17 +152,16 @@ class GameScene extends Phaser.Scene {
             }
         })
 
-        //missile count display. similar to the missile reload. it has extra list to keep track of who has the displays.
-        this.missileCounterUIs = { };
+        //missile count display. somewhat similar to the missile reload.
         this.socket.on('missileCountChange', (id, newAmount, maxAmount, regenTime) => {
             if (id == self.playerId) {
                 if (newAmount == 0){ this.noMissilesLeft = true; } else { this.noMissilesLeft = false; }
-                self.displayMissileCount(self, id, this.ship.x, newAmount, maxAmount, regenTime);
+                self.displayMissileCount(self, self, newAmount, maxAmount, regenTime);
             }
             else {
                 self.otherPlayers.getChildren().forEach(otherPlayer => {
                     if (id == otherPlayer.playerId) {
-                        self.displayMissileCount(self, id, otherPlayer.x, newAmount, maxAmount, regenTime);
+                        self.displayMissileCount(self, otherPlayer, newAmount, maxAmount, regenTime);
                     }
                 })
             }
@@ -222,6 +221,8 @@ class GameScene extends Phaser.Scene {
         this.socket.on("disconnect", (playerId) => {
             self.otherPlayers.getChildren().forEach((otherPlayer) => {
                 if (playerId === otherPlayer.playerId) {
+                    otherPlayer.missileCountSprite.destroy();
+                    otherPlayer.missileCountText.destroy();
                     otherPlayer.destroy();
                 }
             });
@@ -230,9 +231,6 @@ class GameScene extends Phaser.Scene {
                     otherTankbody.destroy();
                 }
             })
-            if (playerId in this.missileCounterUIs) { //make sure to delete players UIs when they leave...
-                delete this.missileCounterUIs[playerId];
-            }
         })
         this.socket.on('gameOver', data => {
             this.scene.start('endScene', data);
@@ -391,6 +389,12 @@ class GameScene extends Phaser.Scene {
             .sprite(playerInfo.x, playerInfo.y - 10, "tankbody")
             .setScale(1.25).setDepth(10);
     }
+    
+    addMissileCounter(self, somePlayer, playerInfo) {
+        somePlayer.missileCountSprite = self.add.sprite(playerInfo.x - 45, 575, 'missile').setDisplaySize(20,30).setDepth(100);
+        somePlayer.missileCountText = self.add.text(playerInfo.x - 15, 575, '' + playerInfo.missiles + '/' + playerInfo.maxMissiles, { fontSize: '24px' })
+                                    .setTint(0xffffff).setDepth(100);
+    }
 
     addPlayer(self, playerInfo) {
         self.addTankBody(self, playerInfo);
@@ -399,6 +403,7 @@ class GameScene extends Phaser.Scene {
         self.ship.setAngularDrag(100);
         self.ship.setMaxVelocity(200); 
         self.playerId = playerInfo.playerId;
+        self.addMissileCounter(self, self, playerInfo);
     }
 
     addOtherPlayers(self, playerInfo) {
@@ -408,9 +413,12 @@ class GameScene extends Phaser.Scene {
             .setScale(1.25).setDepth(20);
         otherPlayer.playerId = playerInfo.playerId;
         otherPlayer.rotation = playerInfo.rotation;
+        self.addMissileCounter(self, otherPlayer, playerInfo);
+
         otherTankbody.playerId = playerInfo.playerId;
         self.otherPlayers.add(otherPlayer);
         self.otherTankbodys.add(otherTankbody);
+        
     }
 
     addMissile(self, missileInfo) {
@@ -470,34 +478,8 @@ class GameScene extends Phaser.Scene {
 
     }
 
-    displayMissileCount(self, id, positionX, newAmount, maxAmount, regenTime) {
-        const positionY = 575;
-        const maxDisplayTimeMs = 5000;
-        let myGroup = this.add.group();
-        const missileSprite = self.add.sprite(positionX - 45, positionY, 'missile').setDisplaySize(20,30).setDepth(100);
-        const amountText = self.add.text(positionX - 15, positionY, '' + newAmount + '/' + maxAmount, { fontSize: '24px' }).setTint(0xffffff).setDepth(100);
-        myGroup.add(missileSprite);
-        myGroup.add(amountText);
-        self.missileCounterUIs[id] = myGroup;
-
-        //wait until either display time is up or the next one appears.
-        let timer = 0;
-        let cleanLoop = setInterval(() => {
-            if (!(id in self.missileCounterUIs) || !Object.is(self.missileCounterUIs[id],myGroup)) {
-                missileSprite.destroy();
-                amountText.destroy();
-                myGroup.destroy();
-                clearInterval(cleanLoop);
-            }
-            else if (timer >= maxDisplayTimeMs) {
-                missileSprite.destroy();
-                amountText.destroy();
-                myGroup.destroy();
-                delete self.missileCounterUIs[id];
-                clearInterval(cleanLoop);
-            }
-            timer += 16;
-        }, 16);
+    displayMissileCount(self, somePlayer, newAmount, maxAmount, regenTime) {
+        somePlayer.missileCountText.setText('' + newAmount + '/' + maxAmount);
     }
 
     makeUI(self) {
