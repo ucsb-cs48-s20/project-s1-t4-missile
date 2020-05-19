@@ -6,7 +6,7 @@ const next = require('next');
 const dev = process.env.NODE_ENV
 const nextApp = next({ dev });
 const nextHandler = nextApp.getRequestHandler();
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 5000;
 
 nextApp.prepare().then(() => {
     app.get('*', (req, res) => {
@@ -15,7 +15,7 @@ nextApp.prepare().then(() => {
 
     server.listen(PORT, (err) => {
         if (err) throw err
-        console.log(`> Ready on port ${PORT}`)
+        console.log(`> Ready on port ${PORT}`);
     })
 })
 
@@ -61,7 +61,7 @@ io.on('connect', socket => {
     //Room capacity check
     let nextSlot = getNextSlot();
     if (nextSlot == -1) {
-        console.log('Game full')
+        console.log('Game full');
         spectate = true;
         io.to(socket.id).emit('spectate')
     }
@@ -90,14 +90,17 @@ io.on('connect', socket => {
             regenSpeed: 0.4,
         };
     }
+
     socket.emit('initComets', comets);
     socket.emit('initHealth', baseHealth);
     socket.emit('initTimer', timer);
     socket.emit('initScore', score);
     socket.emit('initRound', round);
+
     if (!spectate) {
         io.to(socket.id).emit('initCredits', 0);
     }
+
     socket.emit('currentPlayers', players);
     socket.broadcast.emit('newPlayer', players[socket.id]);
 

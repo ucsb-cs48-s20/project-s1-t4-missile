@@ -1,3 +1,5 @@
+// import io from 'socket.io-client';
+
 class GameScene extends Phaser.Scene {
     constructor() {
         super({ key: "gameScene" });
@@ -45,8 +47,8 @@ class GameScene extends Phaser.Scene {
         });
 
         //Load socket
-        this.socket = io();
-
+        this.socket = io('localhost:5000', {query: "purpose=game"});
+        
         //Groups
         this.missiles = this.physics.add.group();
         this.comets = this.physics.add.group();

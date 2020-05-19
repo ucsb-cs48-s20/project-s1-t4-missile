@@ -18,7 +18,8 @@
     "devgame": "node server.js",
     "devsite": "next build && node server.js",
     "build": "next build",
-    "start": "NODE_ENV=production node server.js"
+    "start": "NODE_ENV=production node server.js",
+    "dev": "next start"
   },
   "repository": {
     "type": "git",
