@@ -1,11 +1,7 @@
 import { Component } from 'react'
-import io from 'socket.io-client'
-import { render } from 'react-dom'
 import Favicon from 'react-favicon'
 import dynamic from 'next/dynamic'
 import styles from '../components/styles'
-
-import Chat from '../components/ChatLayout'
 
 const DynamicGameWindow = dynamic(
     () => import("../components/gameWindow"),
@@ -48,12 +44,9 @@ class Test extends Component {
                 <script src='/static/parentGameWindow.js'></script>
                 <script src="/socket.io/socket.io.js"></script>
                 <script src="//cdn.jsdelivr.net/npm/phaser@3.22.0/dist/phaser.js"></script>
-                <Chat />
             </div>
         )
     }
 }
 
 export default Test
-
-//                 
