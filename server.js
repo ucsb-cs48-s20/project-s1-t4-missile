@@ -28,6 +28,8 @@ let timer = 60;
 let gameRunning = true;
 let roundOver = false;
 let score = 0;
+let reloadSpeed = 0.5;
+let numMissiles = 2;
 
 //Variables that change with rounds
 let cometLimit = 10;
@@ -77,13 +79,13 @@ io.on('connect', socket => {
             kills: 0,
 
             speed: 10,
-            reloadTimeInSeconds: 0.5,
+            reloadTimeInSeconds: reloadSpeed,
             reloading: false,
             damage: 1,
             radius: 60,
 
-            missiles: 2,
-            maxMissiles: 2,
+            missiles: numMissiles,
+            maxMissiles: numMissiles,
             rechargingMissiles: false,
             regenSpeed: 0.4,
         };
@@ -336,8 +338,9 @@ function explosionDamage() {
                 if (comets[cometId] != undefined && explosions[explosionId] != undefined) {
                     let dist = Math.sqrt(Math.pow(comets[cometId].x - explosions[explosionId].x, 2) + Math.pow(comets[cometId].y - explosions[explosionId].y, 2));
                     // TODO: make explosion animation sprite reflect its radius
-                    if (dist < explosions[explosionId].currentRadius) {
+                    if (dist < explosions[explosionId].currentRadius && !(explosionId in comets[cometId])) {
                         comets[cometId].hp -= explosions[explosionId].dmg;
+                        comets[cometId][explosionId] = true;
                         if (comets[cometId].hp <= 0 || comets[cometId].x < -10 || comets[cometId].x > 1290 || comets[cometId].y < -10 || comets[cometId].y > 730) {
                             if (players[explosions[explosionId].playerId] != undefined) {
                                 players[explosions[explosionId].playerId].credits += comets[cometId].credits;
