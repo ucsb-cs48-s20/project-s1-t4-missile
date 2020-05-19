@@ -47,9 +47,9 @@ class GameScene extends Phaser.Scene {
         });
 
         //Load socket
-        this.socket = io('localhost:5000', {query: "purpose=game"});
+        this.socket = io('localhost:3000', {query: "purpose=game"});
         
-        //Groups
+        //GroupsY
         this.missiles = this.physics.add.group();
         this.comets = this.physics.add.group();
         this.otherPlayers = this.physics.add.group();
