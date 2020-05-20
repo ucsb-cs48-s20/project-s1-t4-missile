@@ -7,7 +7,7 @@ function Make() {
     return (
         <div className="main" style={styles.gameWindow}>
             <div id="gameWindow" className="game"/>
-            <Chat className="chat"/>
+            <Chat/>
         </div>
     )
 }

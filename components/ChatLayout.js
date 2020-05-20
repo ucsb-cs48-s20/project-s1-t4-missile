@@ -57,7 +57,7 @@ const Chat = () => {
     };
 
     return (
-        <div className="outerContainer">
+        <div className="outerContainer" className="chat">
             <div className="container">
                 <Messages messages={messages} name={name} />
                 <Input message={message} setMessage={setMessage} sendMessage={sendMessage} />
