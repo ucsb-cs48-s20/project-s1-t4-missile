@@ -386,7 +386,7 @@ function detectCollisions() {
     }
 }
 
-// TODO: each explosion can only damage one comet once
+
 function explosionDamage() {
     if (gameRunning) {
         Object.keys(explosions).forEach(explosionId => {
