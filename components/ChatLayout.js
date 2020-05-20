@@ -13,7 +13,10 @@ const Chat = () => {
     const [name, setName] = useState("");
     const [message, setMessage] = useState("");
     const [messages, setMessages] = useState([]);
-    const ENDPOINT = "localhost:3000";
+    const dev = process.env.NODE_ENV
+    console.log('Environment: ' + dev)
+    const ENDPOINT = dev == 'production' ? window.location.hostname : "localhost:3000";
+    // const ENDPOINT = "localhost:3000";
 
     useEffect(() => {
         socket = io(ENDPOINT, {query: "purpose=chat"}); // set connection
