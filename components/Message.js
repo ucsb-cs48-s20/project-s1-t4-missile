@@ -7,7 +7,7 @@ import ReactEmoji from "react-emoji";
 // event object contains info about details of the event
 const Message = (props) => {
     let isSentByCurrentUser = false;
-    const trimmedName = props.name.trim().toLowerCase();
+    const trimmedName = props.name.trim();
 
     if (props.message.user === trimmedName) {
         isSentByCurrentUser = true;
