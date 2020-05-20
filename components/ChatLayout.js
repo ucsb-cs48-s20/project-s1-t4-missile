@@ -15,7 +15,8 @@ const Chat = () => {
     const [messages, setMessages] = useState([]);
     const dev = process.env.NODE_ENV
     console.log('Environment: ' + dev)
-    const ENDPOINT = dev == 'production' ? window.location.hostname : "localhost:3000";
+    const ENDPOINT = dev == 'production' ? window.location.host : "localhost:3000";
+    console.log('Endpoint: ' + ENDPOINT)
     // const ENDPOINT = "localhost:3000";
 
     useEffect(() => {
