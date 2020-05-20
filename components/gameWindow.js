@@ -5,9 +5,9 @@ import './GameWindow.scss';
 
 function Make() {
     return (
-        <div class="main" style={styles.gameWindow}>
-            <div id="gameWindow" class="game"/>
-            <Chat class="chat"/>
+        <div className="main" style={styles.gameWindow}>
+            <div id="gameWindow" className="game"/>
+            <Chat className="chat"/>
         </div>
     )
 }
