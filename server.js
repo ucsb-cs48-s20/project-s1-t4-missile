@@ -22,6 +22,8 @@ nextApp.prepare().then(() => {
     })
 })
 
+app.use(cors())
+
 //Game variables
 let round = 1;
 let numComets = 0;
