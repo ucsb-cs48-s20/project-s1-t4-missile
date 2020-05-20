@@ -8,3 +8,5 @@
 | Thu 05/07 | Brian Qiu         | Demo MVP                                               |
 | Mon 05/11 | Jeffrey Sun       | Will lead second Retro                                 |
 | Tue 05/12 | Parth Atre        | Spring Goal Discussion                                 |
+| Thu 05/19 | Xinyi Zhang       | Demo Second Iteration                                  | 
+
