@@ -15,7 +15,10 @@ const Chat = () => {
     const [messages, setMessages] = useState([]);
     const dev = process.env.NODE_ENV
     console.log('Environment: ' + dev)
-    const ENDPOINT = dev == 'production' ? window.location.host : "localhost:3000";
+    console.log('Host: ' + window.location.host)
+    console.log('Origin: ' + window.location.origin)
+    console.log('Location: ' + window.location)
+    const ENDPOINT = dev == 'production' ? window.location.origin : "localhost:3000";
     console.log('Endpoint: ' + ENDPOINT)
     // const ENDPOINT = "localhost:3000";
 
