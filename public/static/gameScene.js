@@ -312,7 +312,15 @@ class GameScene extends Phaser.Scene {
         });
         this.socket.on("updateRound", (round) => {
             this.roundText.setText(`${round}`);
+<<<<<<< HEAD
         });
+=======
+        })
+        this.socket.on('debug', data => {
+            this.debug = true;
+            this.debugText = this.add.text(this.ship.x - 30, this.ship.y, 'Debug', {fontSize: '24px'}).setDepth(100);
+        })
+>>>>>>> bq - implemented entering into debug mode
     }
 
     update() {
@@ -362,6 +370,12 @@ class GameScene extends Phaser.Scene {
             if (!pointer.isDown) {
                 this.shot = false;
             }
+
+            this.input.keyboard.on('keyup', event => {
+                if(event.keyCode === 192) {
+                    this.socket.emit("enterDebug");
+                }
+            })
         }
     }
 
