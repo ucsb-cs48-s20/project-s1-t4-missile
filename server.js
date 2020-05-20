@@ -268,6 +268,7 @@ function updateMissiles() {
                         explosionLocation[1] = missiles[id].mouseY
                     }
                 }
+
                 explosions[id] = {
                     x: explosionLocation[0],
                     y: explosionLocation[1],
@@ -276,12 +277,15 @@ function updateMissiles() {
                     radius: missiles[id].radius,
                     currentRadius: 0,
                     playerId: missiles[id].playerId,
-                    durationLimit: 25,
+                    durationLimit: 40,
                     startTick: 0
                 }
 
+                let time = explosions[id].durationLimit + 5;
+                let size = missiles[id].radius;
+
                 delete missiles[id];
-                io.emit('missileDestroyed', id);
+                io.emit('missileDestroyed', id, size, time);
                 io.emit('crosshairDestroyed', id);
             } else if (missiles[id].x < -10 || missiles[id].x > 1290 || missiles[id].y < -10 || missiles[id].y > 730) {
                 // deletes missiles if they happen to fly off screen
@@ -360,12 +364,15 @@ function explosionDamage() {
                                 radius: comets[cometId].radius,
                                 currentRadius: 0,
                                 playerId: explosions[explosionId].playerId,
-                                durationLimit: 25,
+                                durationLimit: comets[cometId].durationLimit,
                                 startTick: 0
                             }
+                            
+                            let size = comets[cometId].radius;
+                            let time = comets[cometId].durationLimit + 5;
 
                             comets[cometId] = undefined;
-                            io.emit('cometDestroyed', cometId);
+                            io.emit('cometDestroyed', cometId, size, time);
                         }
                     }
                 }
@@ -451,6 +458,7 @@ function clearGame() {
                         credits: 100 * cometHealth,
                         dmg: 1,
                         radius: 40,
+                        durationLimit: 40
                     }
                     io.emit('newComet', comets[i]);
                     break;
