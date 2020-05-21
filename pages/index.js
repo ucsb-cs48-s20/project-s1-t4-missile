@@ -11,7 +11,7 @@ const DynamicGameWindow = dynamic(
 class Test extends Component {
     constructor(props) {
         super(props)
-        
+
         this.state = {
             pageTitle: 'Missile Defense Game'
         }
@@ -23,7 +23,7 @@ class Test extends Component {
         var oldBodyStyle = document.body.style;
 
         for (var i in styles.body) {
-            if (styles.body.hasOwnProperty(i)) {           
+            if (styles.body.hasOwnProperty(i)) {
                 document.body.style[i] = styles.body[i];
             }
         }

@@ -16,8 +16,8 @@ const Chat = () => {
     const ENDPOINT = window.location.protocol + '//' + window.location.hostname + ':' + window.location.port
 
     useEffect(() => {
-        socket = io(ENDPOINT, {query: "purpose=chat"}); // set connection
-        
+        socket = io(ENDPOINT, { query: "purpose=chat" }); // set connection
+
         socket.emit("join", { name: "Player" }, (str) => {
             // if str isn't null, error has occured
             if (str) {

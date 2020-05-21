@@ -76,7 +76,7 @@ io.on('connect', socket => {
         if (!spectate) {
             playerSlots[nextSlot] = socket.id;
         }
-        
+
         //Initializes clients w/ server objects
         if (Object.keys(players).length < 4) {
             players[socket.id] = {
@@ -86,13 +86,13 @@ io.on('connect', socket => {
                 playerId: socket.id,
                 credits: 0,
                 kills: 0,
-    
+
                 speed: 10,
                 reloadTimeInSeconds: reloadSpeed,
                 reloading: false,
                 damage: 1,
                 radius: 60,
-    
+
                 missiles: numMissiles,
                 maxMissiles: numMissiles,
                 rechargingMissiles: false,
@@ -124,7 +124,7 @@ io.on('connect', socket => {
                 missiles[missileId].dmg = players[socket.id].damage;
                 missiles[missileId].radius = players[socket.id].radius;
                 missiles[missileId].playerId = socket.id;
-    
+
                 if (missileId > 1000) {
                     missileId = 0;
                 } else {
@@ -133,14 +133,14 @@ io.on('connect', socket => {
                 io.emit('newMissile', missiles[missileId - 1]);
                 io.emit('newCrosshair', missiles[missileId - 1]);
                 socket.broadcast.emit('missileFired', socket.id);
-    
+
                 //unconditional reload between shots
                 io.emit('missileReload', socket.id, thisPlayer.reloadTimeInSeconds * 1000);
                 setTimeout(() => { thisPlayer.reloading = false; }, thisPlayer.reloadTimeInSeconds * 1000);
-    
+
                 //change number of missiles
                 thisPlayer.missiles--;
-                let regenMs = (1.0/thisPlayer.regenSpeed) * 1000;
+                let regenMs = (1.0 / thisPlayer.regenSpeed) * 1000;
                 io.emit('missileCountChange', socket.id, thisPlayer.missiles, thisPlayer.maxMissiles, regenMs);
                 giveBulletsUntilMax(socket.id, thisPlayer, regenMs);
             }
@@ -168,7 +168,7 @@ io.on('connect', socket => {
                 let cost = 400 * players[socket.id].maxMissiles;
                 let upgradeDone = attemptUpgrade(socket.id, upgrade, 1, cost, 400); // doing extra display/reload stuff when succeed
                 if (upgradeDone) {
-                    let regenMs = (1.0/players[socket.id].regenSpeed) * 1000;
+                    let regenMs = (1.0 / players[socket.id].regenSpeed) * 1000;
                     io.emit('missileCountChange', socket.id, players[socket.id].missiles, players[socket.id].maxMissiles, regenMs);
                     players[socket.id].rechargingMissiles = false;
                     giveBulletsUntilMax(socket.id, players[socket.id], regenMs);
@@ -271,8 +271,7 @@ function attemptUpgrade(socketID, upgradeName, upgradeIncrement, cost, costIncre
 // give the player missiles until they have their max amount. 
 function giveBulletsUntilMax(socketId, player, regenMs) {
     let oldMissilesMax = player.maxMissiles;
-    if (!player.rechargingMissiles)
-    {
+    if (!player.rechargingMissiles) {
         player.rechargingMissiles = true;
         setTimeout(() => {
             //giveBulletsUntilMax is called again when missile number is upgraded. this is why i'm checking it after the timeout
@@ -280,14 +279,14 @@ function giveBulletsUntilMax(socketId, player, regenMs) {
 
             player.missiles++;
             io.emit('missileCountChange', socketId, player.missiles, player.maxMissiles, regenMs);
-            if (player.missiles >= player.maxMissiles){
+            if (player.missiles >= player.maxMissiles) {
                 player.missiles = player.maxMissiles;
                 player.rechargingMissiles = false;
             }
             else //why is this part weird? because we want the player to see the decrease immediately, when upgrading regen speed.
             {
                 player.rechargingMissiles = false;
-                giveBulletsUntilMax(socketId, player, (1.0/player.regenSpeed) * 1000);
+                giveBulletsUntilMax(socketId, player, (1.0 / player.regenSpeed) * 1000);
             }
         }, regenMs);
     }
