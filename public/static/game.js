@@ -5,15 +5,15 @@ let gameScene = new GameScene();
 let endScene = new EndScene();
 
 let config = {
-    type: Phaser.AUTO, 
+    type: Phaser.AUTO,
     //parent: 'gameWindow',  doesnt work with dynamic game window. see parentGameWindow.js
     width: 1280,
     height: 720,
     physics: {
-        default: 'arcade', 
+        default: 'arcade',
         arcade: {
             debug: false,
-            gravity: { y: 0 } 
+            gravity: { y: 0 }
         }
     },
 };
