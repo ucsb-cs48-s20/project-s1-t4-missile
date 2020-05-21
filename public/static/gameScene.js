@@ -6,18 +6,24 @@ class GameScene extends Phaser.Scene {
     }
 
     preload() {
-        this.load.image('background', '/assets/background.png');
-        this.load.image('stars', '/assets/background-stars.png');
-        this.load.image('tankbody', '/assets/tankbody.png')
-        this.load.spritesheet('tankbarrel', '/assets/tankbarrel.png', { frameWidth: 128, frameHeight: 128 })
-        this.load.image('missile', '/assets/missile.png')
-        this.load.image('comet', '/assets/comet.png')
-        this.load.spritesheet('explosion', '/assets/explosion.png', { frameWidth: 16, frameHeight: 16 })
-        this.load.image('base', '/assets/base.png')
-        this.load.image('button', '/assets/button.png')
-        this.load.image('reloadmeter', '/assets/reload-meter-tex.png')
-        this.load.image('crosshair', '/assets/crosshairs.png')
-        this.load.image('shopbg', '/assets/shop-ui-main.png')
+        this.load.image("background", "/assets/background.png");
+        this.load.image("stars", "/assets/background-stars.png");
+        this.load.image("tankbody", "/assets/tankbody.png");
+        this.load.spritesheet("tankbarrel", "/assets/tankbarrel.png", {
+            frameWidth: 128,
+            frameHeight: 128,
+        });
+        this.load.image("missile", "/assets/missile.png");
+        this.load.image("comet", "/assets/comet.png");
+        this.load.spritesheet("explosion", "/assets/explosion.png", {
+            frameWidth: 16,
+            frameHeight: 16,
+        });
+        this.load.image("base", "/assets/base.png");
+        this.load.image("button", "/assets/button.png");
+        this.load.image("reloadmeter", "/assets/reload-meter-tex.png");
+        this.load.image("crosshair", "/assets/crosshairs.png");
+        this.load.image("shopbg", "/assets/shop-ui-main.png");
     }
 
     create() {
@@ -32,12 +38,13 @@ class GameScene extends Phaser.Scene {
         //Create animations
         this.anims.create({
             key: "explode",
-            frameRate: 10,
+            duration: 16,
             frames: this.anims.generateFrameNames("explosion", {
                 start: 0,
                 end: 4,
             }),
         });
+
         this.anims.create({
             key: "fire",
             frameRate: 15,
@@ -60,7 +67,7 @@ class GameScene extends Phaser.Scene {
 
         this.spectate = false;
 
-        this.socket.on('spectate', () => {
+        this.socket.on("spectate", () => {
             this.spectate = true;
             this.spectateText = this.add.text(50, 200, 'Spectating', { fontSize: '24px' });
         })
@@ -101,9 +108,9 @@ class GameScene extends Phaser.Scene {
             this.roundText = this.add.text(70, UITextY, `${round}`, { fontSize: '32px' })
                 .setTint(0x303030).setDepth(101);
             this.shopUI.add(this.roundText);
-        })
-        this.socket.on('currentPlayers', players => {
-            Object.keys(players).forEach(id => {
+        });
+        this.socket.on("currentPlayers", (players) => {
+            Object.keys(players).forEach((id) => {
                 if (players[id].playerId === self.socket.id) {
                     self.addPlayer(self, players[id]);
                 } else {
@@ -146,7 +153,7 @@ class GameScene extends Phaser.Scene {
                 this.reloading = true;
                 setTimeout(() => { this.reloading = false; }, reloadTime);
             }
-        })
+        });
 
         //missile count display; reload bar display
         this.socket.on('missileCountChange', (id, newAmount, maxAmount, regenTime, displayBar) => {
@@ -161,21 +168,26 @@ class GameScene extends Phaser.Scene {
                         self.displayMissileCount(self, otherPlayer, newAmount, maxAmount, regenTime);
                         if (displayBar) { self.displayReloadBar(self, otherPlayer, otherPlayer.x, regenTime, this.maxMissilesClientCopy); }
                     }
-                })
+                    self.displayMissileCount(
+                        self,
+                        self,
+                        newAmount,
+                        maxAmount,
+                        regenTime
+                    );
+                });
             }
-        })
+        });
 
         //Events where objects are destroyed
-        this.socket.on("missileDestroyed", (missileId) => {
+        this.socket.on("missileDestroyed", (missileId, size, time) => {
             self.missiles.getChildren().forEach((missile) => {
                 if (missile.id == missileId) {
                     const explosion = this.add
                         .sprite(missile.x, missile.y, "explosion", 0)
-                        .setScale(5);
+                        .setScale(size/16);
                     explosion.play("explode");
-                    // TODO: make explosion length animation reflect its duration
-                    // TODO: make explosion size reflect its size
-                    //explosion.anims.msPerFrame = 500;
+                    explosion.anims.setTimeScale(1 / time);
                     explosion.once(
                         Phaser.Animations.Events.SPRITE_ANIMATION_COMPLETE,
                         () => {
@@ -192,19 +204,17 @@ class GameScene extends Phaser.Scene {
                 if (crosshair.id == crosshairId) {
                     crosshair.destroy();
                 }
-            })
+            });
         });
 
-        this.socket.on("cometDestroyed", (cometId) => {
+        this.socket.on("cometDestroyed", (cometId, size, time) => {
             self.comets.getChildren().forEach((comet) => {
                 if (comet.id == cometId) {
                     const explosion = this.add
                         .sprite(comet.x, comet.y, "explosion", 0)
-                        .setScale(5);
+                        .setScale(size/16);
                     explosion.play("explode");
-                    // TODO: make explosion length animation reflect its duration
-                    // TODO: make explosion size reflect its size
-                    //explosion.anims.msPerFrame = 500;
+                    explosion.anims.setTimeScale(1 / time);
                     explosion.once(
                         Phaser.Animations.Events.SPRITE_ANIMATION_COMPLETE,
                         () => {
@@ -228,11 +238,11 @@ class GameScene extends Phaser.Scene {
                 if (playerId === otherTankbody.playerId) {
                     otherTankbody.destroy();
                 }
-            })
-        })
-        this.socket.on('gameOver', data => {
-            this.scene.start('endScene', data);
-        })
+            });
+        });
+        this.socket.on("gameOver", (data) => {
+            this.scene.start("endScene", data);
+        });
 
         //Events where object states are updated
         this.socket.on("baseDamaged", (info) => {
@@ -241,7 +251,7 @@ class GameScene extends Phaser.Scene {
                     this.healthText.setText(`${info[1]}`);
                     const explosion = this.add
                         .sprite(comet.x, comet.y, "explosion", 0)
-                        .setScale(5);
+                        .setScale(4.5);
                     explosion.play("explode");
                     explosion.once(
                         Phaser.Animations.Events.SPRITE_ANIMATION_COMPLETE,
@@ -299,10 +309,10 @@ class GameScene extends Phaser.Scene {
             } else if (info[0] == "maxMissiles") {
                 this.missileCountUpgradeText.setText(`Ammo\nCapacity\n\n${info[1]}`);
             }
-        })
-        this.socket.on('updateRound', round => {
+        });
+        this.socket.on("updateRound", (round) => {
             this.roundText.setText(`${round}`);
-        })
+        });
     }
 
     update() {
@@ -331,7 +341,13 @@ class GameScene extends Phaser.Scene {
             this.moveUI(pointer, UICutoffY);
 
             //Shot handling
-            if (!this.shot && pointer.isDown && pointer.y >= UICutoffY && !this.reloading && !this.noMissilesLeft) {
+            if (
+                !this.shot &&
+                pointer.isDown &&
+                pointer.y >= UICutoffY &&
+                !this.reloading &&
+                !this.noMissilesLeft
+            ) {
                 this.shot = true;
                 this.ship.play("fire");
                 this.socket.emit("missileShot", {
@@ -351,8 +367,6 @@ class GameScene extends Phaser.Scene {
 
     //Function for UI tray movement
     moveUI(pointer, UICutoffY) {
-
-
         if (!this.UITweening) {
             if (pointer.y >= UICutoffY) {
                 if (this.UIOut) {
@@ -365,8 +379,7 @@ class GameScene extends Phaser.Scene {
                     setTimeout(() => (this.UITweening = false), 150);
                     this.UIOut = false;
                 }
-            }
-            else {
+            } else {
                 if (!this.UIOut) {
                     this.tweens.add({
                         targets: this.shopUI.getChildren(),
@@ -385,7 +398,8 @@ class GameScene extends Phaser.Scene {
     addTankBody(self, playerInfo) {
         return self.add
             .sprite(playerInfo.x, playerInfo.y - 10, "tankbody")
-            .setScale(1.25).setDepth(10);
+            .setScale(1.25)
+            .setDepth(10);
     }
 
     addMissileCounter(self, somePlayer, playerInfo) {
@@ -409,7 +423,8 @@ class GameScene extends Phaser.Scene {
         const otherTankbody = self.addTankBody(self, playerInfo);
         const otherPlayer = self.add
             .sprite(playerInfo.x, playerInfo.y - 10, "tankbarrel")
-            .setScale(1.25).setDepth(20);
+            .setScale(1.25)
+            .setDepth(20);
         otherPlayer.playerId = playerInfo.playerId;
         otherPlayer.rotation = playerInfo.rotation;
         self.addMissileCounter(self, otherPlayer, playerInfo);
@@ -417,20 +432,16 @@ class GameScene extends Phaser.Scene {
         otherTankbody.playerId = playerInfo.playerId;
         self.otherPlayers.add(otherPlayer);
         self.otherTankbodys.add(otherTankbody);
-
     }
 
     addMissile(self, missileInfo) {
-        const missile = self.add.sprite(
-            missileInfo.x,
-            missileInfo.y,
-            "missile"
-        ).setDepth(15);
+        const missile = self.add
+            .sprite(missileInfo.x, missileInfo.y, "missile")
+            .setDepth(15);
         missile.rotation = missileInfo.rotation;
         missile.id = missileInfo.id;
         self.missiles.add(missile);
     }
-
 
     addCrosshair(self, crosshairInfo) {
         const crosshair = self.add
@@ -476,7 +487,6 @@ class GameScene extends Phaser.Scene {
                 timer += 16;
             }
         }, 16);
-
     }
 
     displayMissileCount(self, somePlayer, newAmount, maxAmount, regenTime) {
@@ -491,7 +501,6 @@ class GameScene extends Phaser.Scene {
         if (!self.spectate) {
             self.makeUIButtons(self);
         }
-
     }
 
     //this helper makes a button
@@ -509,15 +518,45 @@ class GameScene extends Phaser.Scene {
                 self.socket.emit('attemptUpgrade', upgradeType);
             })
         self.shopUI.add(self[name]);
-        self.shopUI.add(self[name + 'Text']);
+        self.shopUI.add(self[name + "Text"]);
     }
 
     makeUIButtons(self) {
-        this.makeUIButtonHelper(self, 'speedUpgrade', 80, 'Missile\nSpeed\n\n1000', 'speed');
-        this.makeUIButtonHelper(self, 'damageUpgrade', 240, 'Missile\nDamage\n\n1000', 'damage');
-        this.makeUIButtonHelper(self, 'radiusUpgrade', 400, 'Explosion\nRadius\n\n500', 'radius');
-        this.makeUIButtonHelper(self, 'regenUpgrade', 560, 'Ammo Regen\nSpeed\n\n500', 'regenSpeed');
-        this.makeUIButtonHelper(self, 'missileCountUpgrade', 720, 'Ammo\nCapacity\n\n800', 'maxMissiles');
+        this.makeUIButtonHelper(
+            self,
+            "speedUpgrade",
+            80,
+            "Missile\nSpeed\n\n1000",
+            "speed"
+        );
+        this.makeUIButtonHelper(
+            self,
+            "damageUpgrade",
+            240,
+            "Missile\nDamage\n\n1000",
+            "damage"
+        );
+        this.makeUIButtonHelper(
+            self,
+            "radiusUpgrade",
+            400,
+            "Explosion\nRadius\n\n500",
+            "radius"
+        );
+        this.makeUIButtonHelper(
+            self,
+            "regenUpgrade",
+            560,
+            "Ammo Regen\nSpeed\n\n500",
+            "regenSpeed"
+        );
+        this.makeUIButtonHelper(
+            self,
+            "missileCountUpgrade",
+            720,
+            "Ammo\nCapacity\n\n800",
+            "maxMissiles"
+        );
     }
 }
 
