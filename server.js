@@ -76,7 +76,6 @@ io.on('connect', socket => {
         if (!spectate) {
             playerSlots[nextSlot] = socket.id;
         }
-
         //Initializes clients w/ server objects
         if (Object.keys(players).length < 4) {
             players[socket.id] = {
@@ -88,7 +87,9 @@ io.on('connect', socket => {
                 kills: 0,
 
                 speed: 10,
+
                 reloadTimeInSeconds: reloadSpeed,
+
                 reloading: false,
                 damage: 1,
                 radius: 60,
@@ -139,9 +140,11 @@ io.on('connect', socket => {
                 setTimeout(() => { thisPlayer.reloading = false; }, thisPlayer.reloadTimeInSeconds * 1000);
 
                 //change number of missiles
+                let displayBar = false;
+                if (thisPlayer.missiles == thisPlayer.maxMissiles){ displayBar = true; }
                 thisPlayer.missiles--;
-                let regenMs = (1.0 / thisPlayer.regenSpeed) * 1000;
-                io.emit('missileCountChange', socket.id, thisPlayer.missiles, thisPlayer.maxMissiles, regenMs);
+                let regenMs = (1.0/thisPlayer.regenSpeed) * 1000;
+                io.emit('missileCountChange', socket.id, thisPlayer.missiles, thisPlayer.maxMissiles, regenMs, displayBar);
                 giveBulletsUntilMax(socket.id, thisPlayer, regenMs);
             }
         })
@@ -168,14 +171,13 @@ io.on('connect', socket => {
                 let cost = 400 * players[socket.id].maxMissiles;
                 let upgradeDone = attemptUpgrade(socket.id, upgrade, 1, cost, 400); // doing extra display/reload stuff when succeed
                 if (upgradeDone) {
-                    let regenMs = (1.0 / players[socket.id].regenSpeed) * 1000;
-                    io.emit('missileCountChange', socket.id, players[socket.id].missiles, players[socket.id].maxMissiles, regenMs);
+                    let regenMs = (1.0/players[socket.id].regenSpeed) * 1000;
+                    io.emit('missileCountChange', socket.id, players[socket.id].missiles, players[socket.id].maxMissiles, regenMs, true);
                     players[socket.id].rechargingMissiles = false;
                     giveBulletsUntilMax(socket.id, players[socket.id], regenMs);
                 }
             }
-        })
-
+        });
         //Destroys objects on server & clients
         socket.on('disconnect', () => {
             console.log(`${socket.id} disconnected`)
@@ -278,8 +280,10 @@ function giveBulletsUntilMax(socketId, player, regenMs) {
             if (oldMissilesMax != player.maxMissiles) { return; }
 
             player.missiles++;
-            io.emit('missileCountChange', socketId, player.missiles, player.maxMissiles, regenMs);
-            if (player.missiles >= player.maxMissiles) {
+            let displayBar = false;
+            if (player.missiles < player.maxMissiles) { displayBar = true; }
+            io.emit('missileCountChange', socketId, player.missiles, player.maxMissiles, regenMs, displayBar);
+            if (player.missiles >= player.maxMissiles){
                 player.missiles = player.maxMissiles;
                 player.rechargingMissiles = false;
             }
