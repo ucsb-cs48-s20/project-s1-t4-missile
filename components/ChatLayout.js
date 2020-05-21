@@ -13,12 +13,13 @@ const Chat = () => {
     const [name, setName] = useState("");
     const [message, setMessage] = useState("");
     const [messages, setMessages] = useState([]);
-    const dev = process.env.NODE_ENV
-    console.log('Environment: ' + dev)
+    // const dev = process.env.NODE_ENV
+    // console.log('Environment: ' + dev)
     console.log('Host: ' + window.location.host)
     console.log('Origin: ' + window.location.origin)
     console.log('Location: ' + window.location)
-    const ENDPOINT = dev == 'production' ? window.location.origin : "localhost:3000";
+    const ENDPOINT = window.location.protocol + '//' + window.location.hostname + ':' + window.location.port
+    // const ENDPOINT = dev == 'production' ? window.location.origin : "localhost:3000";
     console.log('Endpoint: ' + ENDPOINT)
     // const ENDPOINT = "localhost:3000";
 
