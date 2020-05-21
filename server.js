@@ -8,8 +8,6 @@ const dev = process.env.NODE_ENV
 const nextApp = next({ dev });
 const nextHandler = nextApp.getRequestHandler();
 const PORT = process.env.PORT || 3000;
-console.log('serverjs process.env.port: ' + process.env.PORT)
-console.log('serverjs port: ' + PORT)
 
 const { addUser, removeUser, getUser } = require('./utils/chatUsers.js');
 
@@ -24,7 +22,7 @@ nextApp.prepare().then(() => {
     })
 })
 
-// app.use(cors())
+app.use(cors())
 
 //Game variables
 let round = 1;

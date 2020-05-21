@@ -22,6 +22,8 @@ class GameScene extends Phaser.Scene {
 
     create() {
         let self = this;
+        const ENDPOINT = window.location.protocol + '//' + window.location.hostname + ':' + window.location.port
+        console.log('Endpoint: ' + ENDPOINT)
 
         //Load background
         this.add.image(640, 360, "background").setScale(5);
@@ -47,7 +49,7 @@ class GameScene extends Phaser.Scene {
         });
 
         //Load socket
-        this.socket = io('localhost:3000', {query: "purpose=game"});
+        this.socket = io(ENDPOINT, {query: "purpose=game"});
         
         //GroupsY
         this.missiles = this.physics.add.group();
