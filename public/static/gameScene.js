@@ -73,6 +73,7 @@ class GameScene extends Phaser.Scene {
         this.UIOut = false;
         this.UITweening = false;
         this.noMissilesLeft = false;
+        this.maxMissilesClientCopy = -1;
 
         //Initializing server-handled objects
         let UITextY = 15;
@@ -139,32 +140,26 @@ class GameScene extends Phaser.Scene {
             self.addComet(self, cometInfo);
         });
 
-        //reload bar display. this event is recieved by all players including who shot it
+        //very short delay between any two shots
         this.socket.on('missileReload', (id, reloadTime) => {
             if (id == self.playerId) {
                 this.reloading = true;
                 setTimeout(() => { this.reloading = false; }, reloadTime);
-                self.displayReloadBar(self, this.ship.x, reloadTime);
-            }
-            else {
-                self.otherPlayers.getChildren().forEach(otherPlayer => {
-                    if (id == otherPlayer.playerId) {
-                        self.displayReloadBar(self, otherPlayer.x, reloadTime);
-                    }
-                })
             }
         })
 
-        //missile count display. somewhat similar to the missile reload.
-        this.socket.on('missileCountChange', (id, newAmount, maxAmount, regenTime) => {
+        //missile count display; reload bar display
+        this.socket.on('missileCountChange', (id, newAmount, maxAmount, regenTime, displayBar) => {
             if (id == self.playerId) {
                 if (newAmount == 0) { this.noMissilesLeft = true; } else { this.noMissilesLeft = false; }
                 self.displayMissileCount(self, self, newAmount, maxAmount, regenTime);
+                if (displayBar) { this.displayReloadBar(self, self, this.ship.x, regenTime, this.maxMissilesClientCopy); }
             }
             else {
                 self.otherPlayers.getChildren().forEach(otherPlayer => {
                     if (id == otherPlayer.playerId) {
                         self.displayMissileCount(self, otherPlayer, newAmount, maxAmount, regenTime);
+                        if (displayBar) { self.displayReloadBar(self, otherPlayer, otherPlayer.x, regenTime, this.maxMissilesClientCopy); }
                     }
                 })
             }
@@ -407,6 +402,7 @@ class GameScene extends Phaser.Scene {
         self.ship.setMaxVelocity(200);
         self.playerId = playerInfo.playerId;
         self.addMissileCounter(self, self, playerInfo);
+        self.maxMissilesClientCopy = playerInfo.maxMissiles;
     }
 
     addOtherPlayers(self, playerInfo) {
@@ -417,7 +413,7 @@ class GameScene extends Phaser.Scene {
         otherPlayer.playerId = playerInfo.playerId;
         otherPlayer.rotation = playerInfo.rotation;
         self.addMissileCounter(self, otherPlayer, playerInfo);
-
+        self.maxMissilesClientCopy = playerInfo.maxMissiles;
         otherTankbody.playerId = playerInfo.playerId;
         self.otherPlayers.add(otherPlayer);
         self.otherTankbodys.add(otherTankbody);
@@ -454,18 +450,21 @@ class GameScene extends Phaser.Scene {
         self.comets.add(comet);
     }
 
-    displayReloadBar(self, positionX, reloadTime) {
+    displayReloadBar(self, shipThatHasThisBar, positionX, reloadTime, newMaxMissiles) {
         const width = 120;
         const height = 16;
         const positionY = 708;
+        
+        shipThatHasThisBar.maxMissilesClientCopy = newMaxMissiles;
 
         //show the empty bar
         const reloadBarBase = self.add.sprite(positionX, positionY, 'reloadmeter').setDisplaySize(width, height).setTint(0xbb0000).setDepth(100);
-        const reloadBarFront = self.add.sprite(positionX - (width * 0.5), positionY, 'reloadmeter').setDisplaySize(0, height).setTint(0x00ff00).setDepth(101);
-        //update every frame until it's full
+        const reloadBarFront = self.add.sprite(positionX - (width*0.5), positionY, 'reloadmeter').setDisplaySize(0, height).setTint(0x00ff00).setDepth(101);
+        //update every frame until max missiles
         let timer = 0;
+        let oldMaxMissiles = newMaxMissiles;
         var drawLoop = setInterval(() => {
-            if (timer >= reloadTime) {
+            if (timer >= reloadTime || shipThatHasThisBar.maxMissilesClientCopy != oldMaxMissiles) {
                 reloadBarBase.destroy();
                 reloadBarFront.destroy();
                 clearInterval(drawLoop);
@@ -481,6 +480,7 @@ class GameScene extends Phaser.Scene {
     }
 
     displayMissileCount(self, somePlayer, newAmount, maxAmount, regenTime) {
+        somePlayer.maxMissilesClientCopy = maxAmount;
         somePlayer.missileCountText.setText('' + newAmount + '/' + maxAmount);
     }
 
