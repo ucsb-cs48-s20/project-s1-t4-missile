@@ -24,7 +24,7 @@ nextApp.prepare().then(() => {
     })
 })
 
-app.use(cors())
+// app.use(cors())
 
 //Game variables
 let round = 1;
