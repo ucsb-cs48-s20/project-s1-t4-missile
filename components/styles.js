@@ -1,4 +1,3 @@
-
 const styles = {
     body: {
         backgroundColor: '#444444',

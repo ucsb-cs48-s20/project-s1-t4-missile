@@ -1,3 +1,5 @@
+// import io from 'socket.io-client';
+
 class GameScene extends Phaser.Scene {
     constructor() {
         super({ key: "gameScene" });
@@ -26,6 +28,7 @@ class GameScene extends Phaser.Scene {
 
     create() {
         let self = this;
+        const ENDPOINT = window.location.protocol + '//' + window.location.hostname + ':' + window.location.port
 
         //Load background
         this.add.image(640, 360, "background").setScale(5);
@@ -52,9 +55,9 @@ class GameScene extends Phaser.Scene {
         });
 
         //Load socket
-        this.socket = io();
+        this.socket = io(ENDPOINT, { query: "purpose=game" });
 
-        //Groups
+        //GroupsY
         this.missiles = this.physics.add.group();
         this.comets = this.physics.add.group();
         this.otherPlayers = this.physics.add.group();
@@ -66,10 +69,8 @@ class GameScene extends Phaser.Scene {
 
         this.socket.on("spectate", () => {
             this.spectate = true;
-            this.spectateText = this.add.text(50, 200, "Spectating", {
-                fontSize: "24px",
-            });
-        });
+            this.spectateText = this.add.text(50, 200, 'Spectating', { fontSize: '24px' });
+        })
 
         this.makeUI(this);
 
@@ -79,42 +80,33 @@ class GameScene extends Phaser.Scene {
         this.UIOut = false;
         this.UITweening = false;
         this.noMissilesLeft = false;
+        this.maxMissilesClientCopy = -1;
 
         //Initializing server-handled objects
         let UITextY = 15;
-        this.socket.on("initHealth", (baseHealth) => {
-            this.healthText = this.add
-                .text(315, UITextY, `${baseHealth}`, { fontSize: "32px" })
-                .setTint(0x303030)
-                .setDepth(101);
+        this.socket.on('initHealth', baseHealth => {
+            this.healthText = this.add.text(315, UITextY, `${baseHealth}`, { fontSize: '32px' })
+                .setTint(0x303030).setDepth(101);
             this.shopUI.add(this.healthText);
-        });
-        this.socket.on("initTimer", (timer) => {
-            this.timerText = this.add
-                .text(190, UITextY, `${timer}`, { fontSize: "32px" })
-                .setTint(0x303030)
-                .setDepth(101);
+        })
+        this.socket.on('initTimer', timer => {
+            this.timerText = this.add.text(190, UITextY, `${timer}`, { fontSize: '32px' })
+                .setTint(0x303030).setDepth(101);
             this.shopUI.add(this.timerText);
-        });
-        this.socket.on("initCredits", (cred) => {
-            this.creditText = this.add
-                .text(700, UITextY, `${cred}`, { fontSize: "32px" })
-                .setTint(0x303030)
-                .setDepth(101);
+        })
+        this.socket.on('initCredits', cred => {
+            this.creditText = this.add.text(700, UITextY, `${cred}`, { fontSize: '32px' })
+                .setTint(0x303030).setDepth(101);
             this.shopUI.add(this.creditText);
-        });
-        this.socket.on("initScore", (score) => {
-            this.scoreText = this.add
-                .text(440, UITextY, `${score}`, { fontSize: "32px" })
-                .setTint(0x303030)
-                .setDepth(101);
+        })
+        this.socket.on('initScore', score => {
+            this.scoreText = this.add.text(440, UITextY, `${score}`, { fontSize: '32px' })
+                .setTint(0x303030).setDepth(101);
             this.shopUI.add(this.scoreText);
-        });
-        this.socket.on("initRound", (round) => {
-            this.roundText = this.add
-                .text(70, UITextY, `${round}`, { fontSize: "32px" })
-                .setTint(0x303030)
-                .setDepth(101);
+        })
+        this.socket.on('initRound', round => {
+            this.roundText = this.add.text(70, UITextY, `${round}`, { fontSize: '32px' })
+                .setTint(0x303030).setDepth(101);
             this.shopUI.add(this.roundText);
         });
         this.socket.on("currentPlayers", (players) => {
@@ -155,32 +147,26 @@ class GameScene extends Phaser.Scene {
             self.addComet(self, cometInfo);
         });
 
-        //reload bar display. this event is recieved by all players including who shot it
-        this.socket.on("missileReload", (id, reloadTime) => {
+        //very short delay between any two shots
+        this.socket.on('missileReload', (id, reloadTime) => {
             if (id == self.playerId) {
                 this.reloading = true;
-                setTimeout(() => {
-                    this.reloading = false;
-                }, reloadTime);
-                self.displayReloadBar(self, this.ship.x, reloadTime);
-            } else {
-                self.otherPlayers.getChildren().forEach((otherPlayer) => {
-                    if (id == otherPlayer.playerId) {
-                        self.displayReloadBar(self, otherPlayer.x, reloadTime);
-                    }
-                });
+                setTimeout(() => { this.reloading = false; }, reloadTime);
             }
         });
 
-        //missile count display. somewhat similar to the missile reload.
-        this.socket.on(
-            "missileCountChange",
-            (id, newAmount, maxAmount, regenTime) => {
-                if (id == self.playerId) {
-                    if (newAmount == 0) {
-                        this.noMissilesLeft = true;
-                    } else {
-                        this.noMissilesLeft = false;
+        //missile count display; reload bar display
+        this.socket.on('missileCountChange', (id, newAmount, maxAmount, regenTime, displayBar) => {
+            if (id == self.playerId) {
+                if (newAmount == 0) { this.noMissilesLeft = true; } else { this.noMissilesLeft = false; }
+                self.displayMissileCount(self, self, newAmount, maxAmount, regenTime);
+                if (displayBar) { this.displayReloadBar(self, self, this.ship.x, regenTime, this.maxMissilesClientCopy); }
+            }
+            else {
+                self.otherPlayers.getChildren().forEach(otherPlayer => {
+                    if (id == otherPlayer.playerId) {
+                        self.displayMissileCount(self, otherPlayer, newAmount, maxAmount, regenTime);
+                        if (displayBar) { self.displayReloadBar(self, otherPlayer, otherPlayer.x, regenTime, this.maxMissilesClientCopy); }
                     }
                     self.displayMissileCount(
                         self,
@@ -189,21 +175,9 @@ class GameScene extends Phaser.Scene {
                         maxAmount,
                         regenTime
                     );
-                } else {
-                    self.otherPlayers.getChildren().forEach((otherPlayer) => {
-                        if (id == otherPlayer.playerId) {
-                            self.displayMissileCount(
-                                self,
-                                otherPlayer,
-                                newAmount,
-                                maxAmount,
-                                regenTime
-                            );
-                        }
-                    });
-                }
+                });
             }
-        );
+        });
 
         //Events where objects are destroyed
         this.socket.on("missileDestroyed", (missileId, size, time) => {
@@ -329,17 +303,11 @@ class GameScene extends Phaser.Scene {
             } else if (info[0] == "damage") {
                 this.damageUpgradeText.setText(`Missile\nDamage\n\n${info[1]}`);
             } else if (info[0] == "radius") {
-                this.radiusUpgradeText.setText(
-                    `Explosion\nRadius\n\n${info[1]}`
-                );
+                this.radiusUpgradeText.setText(`Explosion\nRadius\n\n${info[1]}`);
             } else if (info[0] == "regenSpeed") {
-                this.regenUpgradeText.setText(
-                    `Ammo Regen\nSpeed\n\n${info[1]}`
-                );
+                this.regenUpgradeText.setText(`Ammo Regen\nSpeed\n\n${info[1]}`);
             } else if (info[0] == "maxMissiles") {
-                this.missileCountUpgradeText.setText(
-                    `Ammo\nCapacity\n\n${info[1]}`
-                );
+                this.missileCountUpgradeText.setText(`Ammo\nCapacity\n\n${info[1]}`);
             }
         });
         this.socket.on("updateRound", (round) => {
@@ -435,32 +403,20 @@ class GameScene extends Phaser.Scene {
     }
 
     addMissileCounter(self, somePlayer, playerInfo) {
-        somePlayer.missileCountSprite = self.add
-            .sprite(playerInfo.x - 45, 575, "missile")
-            .setDisplaySize(20, 30)
-            .setDepth(100);
-        somePlayer.missileCountText = self.add
-            .text(
-                playerInfo.x - 15,
-                575,
-                "" + playerInfo.missiles + "/" + playerInfo.maxMissiles,
-                { fontSize: "24px" }
-            )
-            .setTint(0xffffff)
-            .setDepth(100);
+        somePlayer.missileCountSprite = self.add.sprite(playerInfo.x - 45, 575, 'missile').setDisplaySize(20, 30).setDepth(100);
+        somePlayer.missileCountText = self.add.text(playerInfo.x - 15, 575, '' + playerInfo.missiles + '/' + playerInfo.maxMissiles, { fontSize: '24px' })
+            .setTint(0xffffff).setDepth(100);
     }
 
     addPlayer(self, playerInfo) {
         self.addTankBody(self, playerInfo);
-        self.ship = self.physics.add
-            .sprite(playerInfo.x, playerInfo.y - 10, "tankbarrel")
-            .setScale(1.25)
-            .setDepth(20);
+        self.ship = self.physics.add.sprite(playerInfo.x, playerInfo.y - 10, 'tankbarrel').setScale(1.25).setDepth(20);
         self.ship.setDrag(100);
         self.ship.setAngularDrag(100);
         self.ship.setMaxVelocity(200);
         self.playerId = playerInfo.playerId;
         self.addMissileCounter(self, self, playerInfo);
+        self.maxMissilesClientCopy = playerInfo.maxMissiles;
     }
 
     addOtherPlayers(self, playerInfo) {
@@ -472,7 +428,7 @@ class GameScene extends Phaser.Scene {
         otherPlayer.playerId = playerInfo.playerId;
         otherPlayer.rotation = playerInfo.rotation;
         self.addMissileCounter(self, otherPlayer, playerInfo);
-
+        self.maxMissilesClientCopy = playerInfo.maxMissiles;
         otherTankbody.playerId = playerInfo.playerId;
         self.otherPlayers.add(otherPlayer);
         self.otherTankbodys.add(otherTankbody);
@@ -505,35 +461,28 @@ class GameScene extends Phaser.Scene {
         self.comets.add(comet);
     }
 
-    displayReloadBar(self, positionX, reloadTime) {
+    displayReloadBar(self, shipThatHasThisBar, positionX, reloadTime, newMaxMissiles) {
         const width = 120;
         const height = 16;
         const positionY = 708;
+        
+        shipThatHasThisBar.maxMissilesClientCopy = newMaxMissiles;
 
         //show the empty bar
-        const reloadBarBase = self.add
-            .sprite(positionX, positionY, "reloadmeter")
-            .setDisplaySize(width, height)
-            .setTint(0xbb0000)
-            .setDepth(100);
-        const reloadBarFront = self.add
-            .sprite(positionX - width * 0.5, positionY, "reloadmeter")
-            .setDisplaySize(0, height)
-            .setTint(0x00ff00)
-            .setDepth(101);
-        //update every frame until it's full
+        const reloadBarBase = self.add.sprite(positionX, positionY, 'reloadmeter').setDisplaySize(width, height).setTint(0xbb0000).setDepth(100);
+        const reloadBarFront = self.add.sprite(positionX - (width*0.5), positionY, 'reloadmeter').setDisplaySize(0, height).setTint(0x00ff00).setDepth(101);
+        //update every frame until max missiles
         let timer = 0;
+        let oldMaxMissiles = newMaxMissiles;
         var drawLoop = setInterval(() => {
-            if (timer >= reloadTime) {
+            if (timer >= reloadTime || shipThatHasThisBar.maxMissilesClientCopy != oldMaxMissiles) {
                 reloadBarBase.destroy();
                 reloadBarFront.destroy();
                 clearInterval(drawLoop);
-            } else {
+            }
+            else {
                 let progress = timer / reloadTime;
-                reloadBarFront.setPosition(
-                    positionX - width * 0.5 + progress * width * 0.5,
-                    positionY
-                );
+                reloadBarFront.setPosition(positionX - (width * 0.5) + (progress * width * 0.5), positionY);
                 reloadBarFront.setDisplaySize(progress * width, height);
                 timer += 16;
             }
@@ -541,15 +490,12 @@ class GameScene extends Phaser.Scene {
     }
 
     displayMissileCount(self, somePlayer, newAmount, maxAmount, regenTime) {
-        somePlayer.missileCountText.setText("" + newAmount + "/" + maxAmount);
+        somePlayer.maxMissilesClientCopy = maxAmount;
+        somePlayer.missileCountText.setText('' + newAmount + '/' + maxAmount);
     }
 
     makeUI(self) {
-        const shopUIBackground = self.add
-            .sprite(640, -40, "shopbg")
-            .setDisplaySize(1280, 200)
-            .setTint(0xffffff)
-            .setDepth(100);
+        const shopUIBackground = self.add.sprite(640, -40, 'shopbg').setDisplaySize(1280, 200).setTint(0xffffff).setDepth(100);
         self.shopUI.add(shopUIBackground);
 
         if (!self.spectate) {
@@ -559,25 +505,18 @@ class GameScene extends Phaser.Scene {
 
     //this helper makes a button
     makeUIButtonHelper(self, name, xpos, text, upgradeType) {
-        self[name + "Text"] = self.add
-            .text(xpos - 40, -110, text, { fontSize: "18px" })
-            .setDepth(102);
-        self[name] = self.add
-            .image(xpos, -85, "button")
-            .setDepth(101)
-            .setScale(1.5)
-            .setTint(0xcfcfcf)
+        self[name + 'Text'] = self.add.text(xpos - 40, -110, text, { fontSize: '18px' }).setDepth(102);
+        self[name] = self.add.image(xpos, -85, 'button').setDepth(101).setScale(1.5).setTint(0xcfcfcf)
             .setInteractive();
-        self[name]
-            .on("pointerover", () => {
-                self[name].setTint(0xfcfcfc);
-            })
-            .on("pointerout", () => {
+        self[name].on('pointerover', () => {
+            self[name].setTint(0xfcfcfc);
+        })
+            .on('pointerout', () => {
                 self[name].setTint(0xcfcfcf);
             })
-            .on("pointerdown", () => {
-                self.socket.emit("attemptUpgrade", upgradeType);
-            });
+            .on('pointerdown', () => {
+                self.socket.emit('attemptUpgrade', upgradeType);
+            })
         self.shopUI.add(self[name]);
         self.shopUI.add(self[name + "Text"]);
     }
