@@ -13,11 +13,7 @@ const Chat = () => {
     const [name, setName] = useState("");
     const [message, setMessage] = useState("");
     const [messages, setMessages] = useState([]);
-    console.log('location.port: ' + window.location.port)
     const ENDPOINT = window.location.protocol + '//' + window.location.hostname + ':' + window.location.port
-    // const ENDPOINT = dev == 'production' ? window.location.origin : "localhost:3000";
-    console.log('Endpoint: ' + ENDPOINT)
-    // const ENDPOINT = "localhost:3000";
 
     useEffect(() => {
         socket = io(ENDPOINT, {query: "purpose=chat"}); // set connection
@@ -61,7 +57,7 @@ const Chat = () => {
     };
 
     return (
-        <div className="outerContainer" className="chat">
+        <div className="outerContainer">
             <div className="container">
                 <Messages messages={messages} name={name} />
                 <Input message={message} setMessage={setMessage} sendMessage={sendMessage} />
