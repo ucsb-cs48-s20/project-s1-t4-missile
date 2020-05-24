@@ -1,4 +1,6 @@
+// import io from "socket.io-client";
 import React, { useState, useEffect } from "react";
+import { useRouter } from "next/router";
 
 // Styling
 import "./ChatLayout.scss";
@@ -15,10 +17,16 @@ const Chat = () => {
     const [messages, setMessages] = useState([]);
     const ENDPOINT = window.location.protocol + '//' + window.location.hostname + ':' + window.location.port
 
+    const Router = useRouter();
+
     useEffect(() => {
         socket = io(ENDPOINT, { query: "purpose=chat" }); // set connection
 
-        socket.emit("join", { name: "Player" }, (str) => {
+        const { name } = Router.query;
+
+        setName(name);
+
+        socket.emit("join", { name: name }, (str) => {
             // if str isn't null, error has occured
             if (str) {
                 alert(str);
@@ -31,7 +39,7 @@ const Chat = () => {
         return () => {
             socket.disconnect();
         };
-    }, [ENDPOINT]);
+    }, [Router, ENDPOINT]);
 
     useEffect(() => {
         // receive message event from server

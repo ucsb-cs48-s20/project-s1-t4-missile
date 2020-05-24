@@ -1,5 +1,3 @@
-// import io from 'socket.io-client';
-
 class GameScene extends Phaser.Scene {
     constructor() {
         super({ key: "gameScene" });
@@ -239,6 +237,10 @@ class GameScene extends Phaser.Scene {
                     otherTankbody.destroy();
                 }
             });
+
+            if (playerId == self.playerId) {
+                this.socket.disconnect();
+            }
         });
         this.socket.on("gameOver", (data) => {
             this.scene.start("endScene", data);

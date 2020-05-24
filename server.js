@@ -58,7 +58,6 @@ for (let i = 0; i < cometLimit; i++) {
     comets[i] = undefined;
 }
 
-let socketCount = 0;
 io.on('connect', socket => {
     console.log(socket.handshake.query.purpose);
     if (socket.handshake.query.purpose === "game") {
@@ -69,9 +68,9 @@ io.on('connect', socket => {
         //Room capacity check
         let nextSlot = getNextSlot();
         if (nextSlot == -1) {
-            console.log('Game full')
+            console.log('Game full');
             spectate = true;
-            io.to(socket.id).emit('spectate')
+            io.to(socket.id).emit('spectate');
         }
         if (!spectate) {
             playerSlots[nextSlot] = socket.id;
@@ -180,28 +179,32 @@ io.on('connect', socket => {
         });
         //Destroys objects on server & clients
         socket.on('disconnect', () => {
-            console.log(`${socket.id} disconnected`)
+            console.log(`Game socket ${socket.id} disconnected`);
             if (!spectate) {
                 delete players[socket.id];
             }
+
             removeFromSlot(socket.id);
             io.emit('disconnect', socket.id);
-        })
+            socket.disconnect();
+        });
     } else {
-        let nextSlot = getNextSlot()
+
+        let nextSlot = getNextSlot();
+        /*
         console.log(nextSlot)
         if (nextSlot == -1) {
             console.log('Game full')
             return
-        }
+        }*/
 
-        console.log(`Chat socket ${socket.id} connected`)
+        console.log(`Chat socket ${socket.id} connected`);
 
-        let defaultName = `Player ${nextSlot + 1}`
+        // let defaultName = `Player ${nextSlot + 1}`;
 
         //Handles the chat stuff
         socket.on('disconnect', () => {
-            console.log('User has left!');
+            console.log(`Chat socket ${socket.id} has left!`);
             const user = removeUser(socket.id);
 
             if (user) {
@@ -212,7 +215,7 @@ io.on('connect', socket => {
         })
 
         socket.on('join', (obj, callback) => {
-            const { error, user } = addUser({ id: socket.id, name: defaultName, room: 'Room' });
+            const { error, user } = addUser({ id: socket.id, name: obj.name, room: 'Room' });
             console.log(`Adding ${obj.name} to room ${user.room}`);
 
             if (error) {
@@ -220,7 +223,7 @@ io.on('connect', socket => {
             }
 
             socket.emit('message', { user: 'admin', text: `${user.name}, welcome to the room!` });
-            socket.emit('defaultName', { name: `${defaultName}` });
+            // socket.emit('defaultName', { name: `${defaultName}` });
             socket.broadcast.to(user.room).emit('message', { user: 'admin', text: `${user.name} has joined the room.` });
             socket.join(user.room);
 
@@ -235,7 +238,6 @@ io.on('connect', socket => {
         });
 
     }
-    socketCount++
 })
 
 //Helper functions
