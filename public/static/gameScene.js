@@ -239,7 +239,7 @@ class GameScene extends Phaser.Scene {
             });
 
             if (playerId == self.playerId) {
-                this.socket.disconnect();
+                this.socket.close();
             }
         });
         this.socket.on("gameOver", (data) => {
