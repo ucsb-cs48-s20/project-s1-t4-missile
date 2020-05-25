@@ -31,7 +31,7 @@ const Chat = () => {
         return () => {
             socket.disconnect();
         };
-    }, [ENDPOINT]);
+    }, [ENDPOINT, io]);
 
     useEffect(() => {
         // receive message event from server
