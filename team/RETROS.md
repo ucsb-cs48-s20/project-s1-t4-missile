@@ -66,6 +66,11 @@ We used the Start-Stop-Continue outline for this week's retro. To implement the 
 * Present:  Alex Lancaster, Brian Qiu, Jeffrey Sun, Xinyi Zhang, Parth Atre
 * Absent: None
 
-## Action Item: TO-DO
+## Action Item: Assign people to review PRs
+* a goal: make sure that pull requests get reviewed quickly and that others in the team are kept updated.
+* a change: ask/request others when creating a pull request and make sure that someone can review it.
+* a measurement: the time in which PRs are reviewed and merged is faster than before.
 
 ## Brief description of how retro went
+
+We again used the Start-Stop-Continue outline for this week's retro. We used google-sheets as a simple template, and team-members added their discussion topics to each column. Then we went through and discussed each issue in order. As we are winding down the quarter and almost at our final iteration, there was not a whole lot to discuss. The action item for the issue that stood out was managing pull-requests. I think that this retro was our shortest one yet because our team flow is working well and our final iteration has already been planned out. We also left most of the technical discussion and kanban board re-organization for our sprint planning meeting. I think that at this point, our sprint discussions are more relevant to our workflow than our retros.
