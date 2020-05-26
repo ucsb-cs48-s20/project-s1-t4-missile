@@ -5,6 +5,7 @@
   "main": "server.js",
   "dependencies": {
     "@zeit/next-sass": "^1.0.1",
+    "bootstrap": "^4.4.1",
     "cors": "^2.8.5",
     "express": "^4.17.1",
     "next": "^9.3.5",
@@ -12,6 +13,8 @@
     "node-sass": "^4.14.0",
     "phaser": "^3.22.0",
     "react": "^16.13.1",
+    "react-bootstrap": "^1.0.1",
+    "react-bootstrap-table-next": "^4.0.1",
     "react-dom": "^16.13.1",
     "react-emoji": "^0.5.0",
     "react-favicon": "^0.0.18",
@@ -19,13 +22,29 @@
     "socket.io": "^2.3.0",
     "socket.io-client": "^2.3.0"
   },
-  "devDependencies": {},
+  "devDependencies": {
+    "@babel/core": "^7.9.6",
+    "@storybook/addon-a11y": "^5.3.18",
+    "@storybook/addon-actions": "^5.3.18",
+    "@storybook/addon-knobs": "^5.3.18",
+    "@storybook/addon-links": "^5.3.18",
+    "@storybook/addon-storysource": "^5.3.18",
+    "@storybook/addon-viewport": "^5.3.18",
+    "@storybook/addons": "^5.3.18",
+    "@storybook/react": "^5.3.18",
+    "babel-loader": "^8.1.0",
+    "start-server-and-test": "^1.10.11",
+    "terser-webpack-plugin": "^2.3.5",
+    "terser": "^4.7.0"
+  },
   "scripts": {
     "devgame": "node server.js",
     "devsite": "next build && node server.js",
     "build": "next build",
     "start": "NODE_ENV=production node server.js",
-    "dev": "next start"
+    "dev": "next start",
+    "storybook": "start-storybook -p 6006",
+    "build-storybook": "build-storybook -c .storybook -o ../project-s1-t4-missile-storybook/docs"
   },
   "repository": {
     "type": "git",
