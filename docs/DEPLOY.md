@@ -38,3 +38,15 @@ Scroll down, and you can manually deploy the app by clicking 'deploy branch'.
 After the app has finished deploying, you should be able to view the current iteration of the missile game.    
 If you need help finding your link, go to the settings tab on heroku and look for the domains section.  
 Then, click that link and try it out!
+
+# Deployment Testing
+    
+Our team: s1-t4-missile
+
+Other Teams:
+  
+| Team                     | Who is reviewing | Issue Number |
+|--------------------------|------------------|--------------|
+| s1-t1-music-queue        | Henry, Jeffery   |   94         |
+| s1-t2-music-queue        | Alexander, Parth |   95         |
+| s1-t3-expense            | Brian            |   96         |
