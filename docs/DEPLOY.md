@@ -19,7 +19,7 @@ Instructions are here: https://devcenter.heroku.com/articles/heroku-cli
 
 # Step 3: Create Heroku App
 
-Login to the Heroku Dashboard: https://dashboard.heroku.com
+Login to the Heroku Dashboard: https://dashboard.heroku.com  
 Create a new Heroku app and name it whatever you want.
 
 # Step 6: Deploy App
@@ -33,7 +33,7 @@ Click connect link the repo to the app
 If you want to automatically deploy the app, scroll down to “Automatic Deploys” and set up your repo to deploy the master branch automatically.  
 Scroll down, and you can manually deploy the app by clicking 'deploy branch'.  
 
-#Step 7: Try it out
+# Step 7: Try it out
 
 After the app has finished deploying, you should be able to view the current iteration of the missile game.    
 If you need help finding your link, go to the settings tab on heroku and look for the domains section.  
