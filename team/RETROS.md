@@ -59,3 +59,13 @@ For the next retro leader, I would say it's important to know how to synthesize 
 ## Brief description of how retro went
 
 We used the Start-Stop-Continue outline for this week's retro. To implement the outline, we used an online post-it board divided into 3 regions for start, stop, and continue, and added post-it notes to each section. Then, we voted on notes to talk about and came up with action items based on the different notes. I thought it went okay, but I think I could have done a better job facilitating to keep the retro moving smoothly. It also seems like the stop and continue sections weren't really relevant to our discussion in the end. For the next leader, I think it would be good to have a rough idea about how long each part of the retro should take.
+
+# Retro 5/26/20
+
+* Led by: Parth Atre
+* Present:  Alex Lancaster, Brian Qiu, Jeffrey Sun, Xinyi Zhang, Parth Atre
+* Absent: None
+
+## Action Item: TO-DO
+
+## Brief description of how retro went
