@@ -9,4 +9,5 @@
 | Mon 05/11 | Jeffrey Sun       | Will lead second Retro                                 |
 | Tue 05/12 | Parth Atre        | Spring Goal Discussion                                 |
 | Thu 05/19 | Xinyi Zhang       | Demo Second Iteration                                  | 
+| Tue 05/26 | Parth Atre        | Will lead third Retro                                  |
 
