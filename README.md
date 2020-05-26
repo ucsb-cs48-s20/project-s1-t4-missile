@@ -34,6 +34,12 @@ There are no restrictions on who can play the game.
 
 2. a) If this is your first time running/you've made changes to the html (stuff unrelated to the game), run `npm run devsite`. This automatically rebuilds the code with next and then starts up the server on localhost:3000.<br/><br/> b) If you've made changes to server.js but not the html, run `npm run devgame` to just restart the server.<br/><br/> c) If you've only made changes to game.js, a simple refresh should let you see the changes you've made without restarting the server.
 
+# Storybook setup
+
+1. Use `npm run storybook` to open React Storybook locally on localhost:6006.
+
+2. Use `npm run build-storybook` to create a static storybook for Github Pages.
+
 # [Deployment Instructions](./docs/DEPLOY.md)
 
 
