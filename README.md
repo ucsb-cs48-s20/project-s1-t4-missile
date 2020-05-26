@@ -34,6 +34,7 @@ There are no restrictions on who can play the game.
 
 2. a) If this is your first time running/you've made changes to the html (stuff unrelated to the game), run `npm run devsite`. This automatically rebuilds the code with next and then starts up the server on localhost:3000.<br/><br/> b) If you've made changes to server.js but not the html, run `npm run devgame` to just restart the server.<br/><br/> c) If you've only made changes to game.js, a simple refresh should let you see the changes you've made without restarting the server.
 
-* [Deployment Instructions](./docs/DEPLOY.md)
+# [Deployment Instructions]
+(./docs/DEPLOY.md)
 
 
