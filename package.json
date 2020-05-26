@@ -34,7 +34,8 @@
     "@storybook/react": "^5.3.18",
     "babel-loader": "^8.1.0",
     "start-server-and-test": "^1.10.11",
-    "terser-webpack-plugin": "^2.3.5"
+    "terser-webpack-plugin": "^2.3.5",
+    "terser": "^4.7.0"
   },
   "scripts": {
     "devgame": "node server.js",
