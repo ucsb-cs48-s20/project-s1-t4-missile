@@ -40,8 +40,7 @@
     "build": "next build",
     "start": "NODE_ENV=production node server.js",
     "dev": "next start",
-    "storybook": "start-storybook -p 6006",
-    "build-storybook": "build-storybook -c .storybook -o ../project-s1-t4-missile-storybook/docs"
+    "storybook": "start-storybook -p 6006"
   },
   "repository": {
     "type": "git",
