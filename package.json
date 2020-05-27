@@ -39,8 +39,7 @@
     "devsite": "next build && node server.js",
     "build": "next build",
     "start": "NODE_ENV=production node server.js",
-    "dev": "next start",
-    "storybook": "start-storybook -p 6006"
+    "dev": "next start"
   },
   "repository": {
     "type": "git",
