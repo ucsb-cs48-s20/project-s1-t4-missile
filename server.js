@@ -98,6 +98,8 @@ io.on('connect', socket => {
                 maxMissiles: numMissiles,
                 rechargingMissiles: false,
                 regenSpeed: 0.4,
+
+                debugging: false,
             };
         }
         socket.emit('initComets', comets);
@@ -165,8 +167,10 @@ io.on('connect', socket => {
                 let cost = 500 + ((players[socket.id].radius - 60) / 10) * 100;
                 attemptUpgrade(socket.id, upgrade, 10, cost, 100);
             } else if (upgrade == 'regenSpeed') {
-                let cost = 100 + Math.round(1000 * players[socket.id].regenSpeed); // starts at 500 i swear
-                attemptUpgrade(socket.id, upgrade, 0.1, cost, 100);
+                let cost = 100 + Math.round(1000 * players[socket.id].regenSpeed); 
+                if(attemptUpgrade(socket.id, upgrade, 0.1, cost, 100)) {
+                    io.to(socket.id).emit('regenSpeedChange', players[socket.id].regenSpeed);
+                }
             } else if (upgrade == 'maxMissiles') {
                 let cost = 400 * players[socket.id].maxMissiles;
                 let upgradeDone = attemptUpgrade(socket.id, upgrade, 1, cost, 400); // doing extra display/reload stuff when succeed
@@ -178,6 +182,66 @@ io.on('connect', socket => {
                 }
             }
         });
+
+        socket.on('enterDebug', () => {
+            if (!players[socket.id].debugging) {
+                console.log(`${socket.id} entered debug mode`);
+                players[socket.id].debugging = true;
+                socket.emit('debug', {
+                    'regenSpeed': players[socket.id].regenSpeed,
+                    'maxMissiles': players[socket.id].maxMissiles,
+                    'cometLimit': cometLimit,
+                    'cometRate': cometRate,
+                    'cometHealth': cometHealth,
+                    'cometSpeed': cometSpeed,
+                    'credits': players[socket.id].credits
+                });
+            }
+        })
+        socket.on('changeCometSpeed', increment => {
+            cometSpeed += increment;
+            io.to(socket.id).emit('cometSpeedChange', cometSpeed);
+        })
+        socket.on('changeRound', () => {
+            io.emit('updateRound', round);
+            increaseDifficulty();
+        })
+        socket.on('changeBaseHealth', increment => {
+            baseHealth += increment;
+            io.emit('baseHealthChange', baseHealth);
+        })
+        socket.on('changeTimer', increment => {
+            timer += increment;
+            io.emit('timerUpdate', timer);
+        })
+        socket.on('changeCredits', increment => {
+            players[socket.id].credits += increment;
+            io.to(socket.id).emit('updateCredits', players[socket.id].credits);
+        })
+        socket.on('changeMaxMissiles', increment => {
+            players[socket.id].maxMissiles += increment;
+            let regenMs = (1.0/players[socket.id].regenSpeed) * 1000;
+            io.emit('missileCountChange', socket.id, players[socket.id].missiles, players[socket.id].maxMissiles, regenMs, true);
+            players[socket.id].rechargingMissiles = false;
+            giveBulletsUntilMax(socket.id, players[socket.id], regenMs);
+        })
+        socket.on('changeRegenSpeed', increment => {
+            players[socket.id].regenSpeed += increment;
+            io.to(socket.id).emit('regenSpeedChange', players[socket.id].regenSpeed);
+        })
+        socket.on('changeCometLimit', increment => {
+            cometLimit += increment;
+            io.to(socket.id).emit('cometLimitChange', cometLimit);
+        })
+        socket.on('changeCometRate', increment => {
+            cometRate += increment;
+            io.to(socket.id).emit('cometRateChange', cometRate);
+        })
+        socket.on('changeCometHealth', increment => {
+            cometHealth += increment;
+            io.to(socket.id).emit('cometHealthChange', cometHealth);
+        })
+        
         //Destroys objects on server & clients
         socket.on('disconnect', () => {
             console.log(`${socket.id} disconnected`)
@@ -467,6 +531,10 @@ function increaseDifficulty() {
     if (round % 2 == 0) {
         cometSpeed += 0.5;
     }
+    io.emit('cometLimitChange', cometLimit);
+    io.emit('cometRateChange', cometRate);
+    io.emit('cometHealthChange', cometHealth);
+    io.emit('cometSpeedChange', cometSpeed);
 }
 
 function clearGame() {

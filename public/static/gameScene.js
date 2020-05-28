@@ -76,6 +76,7 @@ class GameScene extends Phaser.Scene {
 
         //Game variables
         this.shot = false;
+        this.keypressed = false;
         this.reloading = false;
         this.UIOut = false;
         this.UITweening = false;
@@ -158,6 +159,9 @@ class GameScene extends Phaser.Scene {
         //missile count display; reload bar display
         this.socket.on('missileCountChange', (id, newAmount, maxAmount, regenTime, displayBar) => {
             if (id == self.playerId) {
+                if (this.debug) {
+                    this.missileCountText.setText(`5 - Maximum missile capacity = ${newAmount}`);
+                }
                 if (newAmount == 0) { this.noMissilesLeft = true; } else { this.noMissilesLeft = false; }
                 self.displayMissileCount(self, self, newAmount, maxAmount, regenTime);
                 if (displayBar) { this.displayReloadBar(self, self, this.ship.x, regenTime, this.maxMissilesClientCopy); }
@@ -185,7 +189,7 @@ class GameScene extends Phaser.Scene {
                 if (missile.id == missileId) {
                     const explosion = this.add
                         .sprite(missile.x, missile.y, "explosion", 0)
-                        .setScale(size/16);
+                        .setScale(size / 16);
                     explosion.play("explode");
                     explosion.anims.setTimeScale(1 / time);
                     explosion.once(
@@ -212,7 +216,7 @@ class GameScene extends Phaser.Scene {
                 if (comet.id == cometId) {
                     const explosion = this.add
                         .sprite(comet.x, comet.y, "explosion", 0)
-                        .setScale(size/16);
+                        .setScale(size / 16);
                     explosion.play("explode");
                     explosion.anims.setTimeScale(1 / time);
                     explosion.once(
@@ -312,7 +316,52 @@ class GameScene extends Phaser.Scene {
         });
         this.socket.on("updateRound", (round) => {
             this.roundText.setText(`${round}`);
-        });
+        })
+        this.socket.on("regenSpeedChange", newRegen => {
+            if (this.debug) {
+                this.regenSpeedText.setText(`6 - Regen speed = ${newRegen}s`);
+            }
+        })
+        this.socket.on("cometLimitChange", cometLimit => {
+            if (this.debug) {
+                this.cometLimitText.setText(`7 - Maximum number of comets = ${cometLimit}`);
+            }
+        })
+        this.socket.on('cometRateChange', cometRate => {
+            if (this.debug) {
+                this.cometRateText.setText(`8 - Comet spawn rate = ${cometRate}`);
+            }
+        })
+        this.socket.on('cometHealthChange', cometHealth => {
+            if (this.debug) {
+                this.cometHealthText.setText(`9 - Comet health = ${cometHealth}`);
+            }
+        })
+        this.socket.on('cometSpeedChange', cometSpeed => {
+            if (this.debug) {
+                this.cometSpeedText.setText(`0 - Comet speed = ${cometSpeed}`);
+            }
+        })
+        this.socket.on('baseHealthChange', health => {
+            if (this.debug) {
+                this.healthText.setText(`${health}`);
+            }
+        })
+        this.socket.on('debug', data => {
+            this.debug = true;
+            this.debugMode = -1;
+            this.debugText = this.add.text(this.ship.x - 20, this.ship.y, 'Debug', { fontSize: '24px' }).setDepth(100);
+            this.debugRoundText = this.add.text(900, 120, `1 - Round`).setDepth(150);
+            this.debugBaseHealthText = this.add.text(900, 140, `2 - Base Health`).setDepth(150);
+            this.debugTimerText = this.add.text(900, 160, `3 - Timer`).setDepth(150);
+            this.debugCreditText = this.add.text(900, 180, `4 - Credits`).setDepth(150);
+            this.maxMissilesText = this.add.text(900, 200, `5 - Maximum missile capacity`).setDepth(150);
+            this.regenSpeedText = this.add.text(900, 220, `6 - Regen speed = ${data.regenSpeed}s`).setDepth(150);
+            this.cometLimitText = this.add.text(900, 240, `7 - Maximum number of comets = ${data.cometLimit}`).setDepth(150);
+            this.cometRateText = this.add.text(900, 260, `8 - Comet spawn rate = ${data.cometRate}`).setDepth(150);
+            this.cometHealthText = this.add.text(900, 280, `9 - Comet health = ${data.cometHealth}`).setDepth(150);
+            this.cometSpeedText = this.add.text(900, 300, `0 - Comet speed = ${data.cometSpeed}`).setDepth(150);
+        })
     }
 
     update() {
@@ -362,6 +411,105 @@ class GameScene extends Phaser.Scene {
             if (!pointer.isDown) {
                 this.shot = false;
             }
+
+            let keyb = this.input.keyboard;
+
+            keyb.addListener('keydown', event => {
+                if (event.keyCode === 192) {
+                    this.socket.emit("enterDebug");
+                }
+                if (this.debug) {
+                    if (event.keyCode === 48) {
+                        this.debugMode = event.keyCode - 48;
+                        this.debugText.setText('cometSpeed');
+                    }
+                    if (event.keyCode === 49) {
+                        this.debugMode = event.keyCode - 48;
+                        this.debugText.setText('round');
+                    }
+                    if (event.keyCode === 50) {
+                        this.debugMode = event.keyCode - 48;
+                        this.debugText.setText('baseHealth');
+                    }
+                    if (event.keyCode === 51) {
+                        this.debugMode = event.keyCode - 48;
+                        this.debugText.setText('timer');
+                    }
+                    if (event.keyCode === 52) {
+                        this.debugMode = event.keyCode - 48;
+                        this.debugText.setText('credits');
+                    }
+                    if (event.keyCode === 53) {
+                        this.debugMode = event.keyCode - 48;
+                        this.debugText.setText('maxMissiles');
+                    }
+                    if (event.keyCode === 54) {
+                        this.debugMode = event.keyCode - 48;
+                        this.debugText.setText('regenSpeed');
+                    }
+                    if (event.keyCode === 55) {
+                        this.debugMode = event.keyCode - 48;
+                        this.debugText.setText('cometLimit');
+                    }
+                    if (event.keyCode === 56) {
+                        this.debugMode = event.keyCode - 48;
+                        this.debugText.setText('cometRate');
+                    }
+                    if (event.keyCode === 57) {
+                        this.debugMode = event.keyCode - 48;
+                        this.debugText.setText('cometHealth');
+                    }
+
+                    let negative = 1;
+                    if (event.keyCode === 189) {
+                        negative = -1;
+                    }
+                    if (!this.keypressed && (event.keyCode === 189 || event.keyCode === 187)) {
+                        this.key = new Phaser.Input.Keyboard.Key(keyb, event.keyCode);
+                        this.keypressed = true;
+                        switch (this.debugMode) {
+                            case 0:
+                                this.socket.emit('changeCometSpeed', 1 * negative);
+                                break;
+                            case 1:
+                                this.socket.emit('changeRound');
+                                break;
+                            case 2:
+                                this.socket.emit('changeBaseHealth', 10 * negative);
+                                break;
+                            case 3:
+                                this.socket.emit('changeTimer', 5 * negative);
+                                break;
+                            case 4:
+                                this.socket.emit('changeCredits', 100 * negative);
+                                break;
+                            case 5:
+                                this.socket.emit('changeMaxMissiles', 1 * negative);
+                                break;
+                            case 6:
+                                this.socket.emit('changeRegenSpeed', 1 * negative);
+                                break;
+                            case 7:
+                                this.socket.emit('changeCometLimit', 1 * negative);
+                                break;
+                            case 8:
+                                this.socket.emit('changeCometRate', -500 * negative);
+                                break;
+                            case 9:
+                                this.socket.emit('changeCometHealth', 1 * negative);
+                                break;
+                        }
+                    }
+                }
+            })
+
+            console.log(this.key);
+            if(this.key && !this.key.isDown) {
+                console.log('entered');
+                this.keypressed = false;
+            }
+
+
         }
     }
 
@@ -465,12 +613,12 @@ class GameScene extends Phaser.Scene {
         const width = 120;
         const height = 16;
         const positionY = 708;
-        
+
         shipThatHasThisBar.maxMissilesClientCopy = newMaxMissiles;
 
         //show the empty bar
         const reloadBarBase = self.add.sprite(positionX, positionY, 'reloadmeter').setDisplaySize(width, height).setTint(0xbb0000).setDepth(100);
-        const reloadBarFront = self.add.sprite(positionX - (width*0.5), positionY, 'reloadmeter').setDisplaySize(0, height).setTint(0x00ff00).setDepth(101);
+        const reloadBarFront = self.add.sprite(positionX - (width * 0.5), positionY, 'reloadmeter').setDisplaySize(0, height).setTint(0x00ff00).setDepth(101);
         //update every frame until max missiles
         let timer = 0;
         let oldMaxMissiles = newMaxMissiles;
