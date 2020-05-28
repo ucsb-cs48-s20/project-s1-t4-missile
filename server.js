@@ -10,6 +10,7 @@ const nextHandler = nextApp.getRequestHandler();
 const PORT = process.env.PORT || 3000;
 
 const { addUser, removeUser, getUser } = require('./utils/chatUsers.js');
+const { distance } = require('./utils/serverCalculations.js');
 
 nextApp.prepare().then(() => {
     app.get('*', (req, res) => {
@@ -315,8 +316,8 @@ function updateMissiles() {
             missiles[id].x = missiles[id].x + missiles[id].speedX;
             missiles[id].y = missiles[id].y + missiles[id].speedY;
 
-            let travelDist = Math.sqrt(Math.pow(missiles[id].x - missiles[id].startX, 2) + Math.pow(missiles[id].y - missiles[id].startY, 2))
-            let targetDist = Math.sqrt(Math.pow(missiles[id].mouseX - missiles[id].startX, 2) + Math.pow(missiles[id].mouseY - missiles[id].startY, 2))
+            let travelDist = distance(missiles[id].x, missiles[id].y, missiles[id].startX, missiles[id].startY);
+            let targetDist = distance(missiles[id].mouseX, missiles[id].mouseY, missiles[id].startX, missiles[id].startY);
             let isAtTarget = missiles[id].x >= missiles[id].mouseX - 10 && missiles[id].x <= missiles[id].mouseX + 10 && missiles[id].y >= missiles[id].mouseY - 10 && missiles[id].y <= missiles[id].mouseY + 10
             if (isAtTarget || travelDist >= targetDist) {
                 // create explosion on missile destroy
