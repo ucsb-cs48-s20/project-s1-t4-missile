@@ -1,12 +1,11 @@
 import React from 'react';
-import Chat from '../components/ChatLayout';
-import styles from './styles';
+import Chat from './ChatLayout.js';
 import './GameWindow.scss';
 
 function Make() {
     return (
-        <div className="main" style={styles.gameWindow}>
-            <div id="gameWindow" className="game" />
+        <div className="main gameWindow">
+            <div id="gameWindow" className="game"/>
             <Chat className="chat"/>
         </div>
     )

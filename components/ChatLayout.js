@@ -15,12 +15,12 @@ const Chat = () => {
     const [name, setName] = useState("");
     const [message, setMessage] = useState("");
     const [messages, setMessages] = useState([]);
-    const ENDPOINT = window.location.protocol + '//' + window.location.hostname + ':' + window.location.port
+    // const ENDPOINT = window.location.protocol + '//' + window.location.hostname + ':' + window.location.port;
 
     const Router = useRouter();
 
     useEffect(() => {
-        socket = io(ENDPOINT, { query: "purpose=chat" }); // set connection
+        socket = io("localhost:3000", { query: "purpose=chat" }); // set connection
 
         const { name } = Router.query;
 
@@ -39,7 +39,7 @@ const Chat = () => {
         return () => {
             socket.disconnect();
         };
-    }, [Router, ENDPOINT]);
+    }, [Router]); // add ENDPOINT
 
     useEffect(() => {
         // receive message event from server

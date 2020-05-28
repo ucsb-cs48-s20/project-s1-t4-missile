@@ -2,10 +2,9 @@ import { Component } from 'react'
 import Favicon from 'react-favicon'
 import dynamic from 'next/dynamic'
 import styles from '../components/styles'
-import Head from 'next/head'
 
 const DynamicGameWindow = dynamic(
-    () => import("../components/gameWindow"),
+    () => import("../components/GameWindow"),
     { ssr: false }
 )
 
