@@ -186,8 +186,7 @@ io.on('connect', socket => {
                 console.log(`${socket.id} entered debug mode`);
                 players[socket.id].debugging = true;
                 socket.emit('debug', {
-                    'numComets': numComets,
-                    'regenTime': players[socket.id].regenSpeed,
+                    'regenSpeed': players[socket.id].regenSpeed,
                     'maxMissiles': players[socket.id].maxMissiles,
                     'cometLimit': cometLimit,
                     'cometRate': cometRate,

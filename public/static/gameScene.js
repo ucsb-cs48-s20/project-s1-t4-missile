@@ -316,6 +316,16 @@ class GameScene extends Phaser.Scene {
         this.socket.on('debug', data => {
             this.debug = true;
             this.debugText = this.add.text(this.ship.x - 30, this.ship.y, 'Debug', {fontSize: '24px'}).setDepth(100);
+            this.debugRoundText = this.add.text(900, 120, `1 - Round`).setDepth(150);
+            this.debugBaseHealthText = this.add.text(900, 140, `2 - Base Health`).setDepth(150);
+            this.debugTimerText = this.add.text(900, 160, `3 - Timer`).setDepth(150);
+            this.debugCreditText = this.add.text(900, 180, `4 - Credits`).setDepth(150);
+            this.maxMissilesText = this.add.text(900, 200, `5 - Maximum missile capacity = ${data.maxMissiles}`).setDepth(150);
+            this.regenSpeedText = this.add.text(900, 220, `6 - Regen speed = ${data.regenSpeed}s`).setDepth(150);
+            this.cometLimitText = this.add.text(900, 240, `7 - Maximum number of comets = ${data.cometLimit}`).setDepth(150);
+            this.cometRateText = this.add.text(900, 260, `8 - Comet spawn rate = ${data.cometRate}`).setDepth(150);
+            this.cometHealthText = this.add.text(900, 280, `9 - Comet health = ${data.cometHealth}`).setDepth(150);
+            this.cometSpeedText = this.add.text(900, 300, `0 - Comet speed = ${data.cometSpeed}`).setDepth(150);
         })
     }
 
