@@ -11,4 +11,4 @@
 | Thu 05/19 | Xinyi Zhang       | Demo Second Iteration                                  | 
 | Tue 05/26 | Parth Atre        | Will lead third Retro                                  |
 | Tue 05/26 | Jeffrey Sun       | Sprint Planning                                        |
-| Mon 04/20 | Alex Lancaster    | Final presentation demo                                |
+| Thu 06/11 | Alex Lancaster    | Final presentation demo                                |
