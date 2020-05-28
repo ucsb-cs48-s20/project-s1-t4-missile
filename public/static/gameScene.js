@@ -1,4 +1,4 @@
-// import io from 'socket.io-client';
+import { angle } from '/static/gameCalculations.js' 
 
 class GameScene extends Phaser.Scene {
     constructor() {
@@ -368,20 +368,9 @@ class GameScene extends Phaser.Scene {
         if (!this.spectate && this.ship) {
             //Mouse handling
             let pointer = this.input.activePointer;
-            let mvtAngle = Math.atan2(
-                pointer.y - this.ship.y,
-                pointer.x - this.ship.x
-            );
-            if (mvtAngle > 0.0) {
-                if (mvtAngle < Math.PI * 0.5) {
-                    mvtAngle = 0.0;
-                } else {
-                    mvtAngle = Math.PI;
-                }
-            }
 
             //instant rotation change
-            this.ship.rotation = mvtAngle + Math.PI * 0.5;
+            this.ship.rotation = angle(pointer.x, pointer.y, this.ship.x, this.ship.y);
             this.socket.emit("rotationChange", this.ship.rotation);
 
             let UICutoffY = 120;
