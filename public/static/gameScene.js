@@ -370,7 +370,10 @@ class GameScene extends Phaser.Scene {
             let pointer = this.input.activePointer;
 
             //instant rotation change
+            console.log("pointer: " + pointer.x + "," + pointer.y);
+            console.log("ship: " + this.ship.x + "," + this.ship.y);
             this.ship.rotation = angle(pointer.x, pointer.y, this.ship.x, this.ship.y);
+            console.log(this.ship.rotation);
             this.socket.emit("rotationChange", this.ship.rotation);
 
             let UICutoffY = 120;
