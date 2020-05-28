@@ -28,7 +28,7 @@ You can fork our repo to your personal account and continue from there.
 Click the fork button on the top right on our repo page, project-s1-t4-missile.
 Then, click your account, and the repo should be forked. 
 
-# Step 4: Deploy App
+# Step 5: Deploy App
 
 Navigate to https://dashboard.heroku.com  
 Bring up the app you just created  
@@ -39,7 +39,7 @@ Click connect link the repo to the app
 If you want to automatically deploy the app, scroll down to “Automatic Deploys” and set up your repo to deploy the master branch automatically.  
 Scroll down, and you can manually deploy the app by clicking 'deploy branch'.  
 
-# Step 5: Try it out
+# Step 6: Try it out
 
 After the app has finished deploying, you should be able to view the current iteration of the missile game.    
 If you need help finding your link, go to the settings tab on heroku and look for the domains section.  
