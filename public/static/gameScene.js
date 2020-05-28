@@ -493,7 +493,7 @@ class GameScene extends Phaser.Scene {
                                 this.socket.emit('changeCometLimit', 1 * negative);
                                 break;
                             case 8:
-                                this.socket.emit('changeCometRate', 500 * negative);
+                                this.socket.emit('changeCometRate', -500 * negative);
                                 break;
                             case 9:
                                 this.socket.emit('changeCometHealth', 1 * negative);
