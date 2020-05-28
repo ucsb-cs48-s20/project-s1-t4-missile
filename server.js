@@ -98,6 +98,8 @@ io.on('connect', socket => {
                 maxMissiles: numMissiles,
                 rechargingMissiles: false,
                 regenSpeed: 0.4,
+
+                debugging: false,
             };
         }
         socket.emit('initComets', comets);
@@ -178,6 +180,24 @@ io.on('connect', socket => {
                 }
             }
         });
+
+        socket.on('enterDebug', () => {
+            if (!players[socket.id].debugging) {
+                console.log(`${socket.id} entered debug mode`);
+                players[socket.id].debugging = true;
+                socket.emit('debug', {
+                    'numComets': numComets,
+                    'regenTime': players[socket.id].regenSpeed,
+                    'maxMissiles': players[socket.id].maxMissiles,
+                    'cometLimit': cometLimit,
+                    'cometRate': cometRate,
+                    'cometHealth': cometHealth,
+                    'cometSpeed': cometSpeed,
+                    'credits': players[socket.id].credits
+                });
+            }
+        })
+        
         //Destroys objects on server & clients
         socket.on('disconnect', () => {
             console.log(`${socket.id} disconnected`)
