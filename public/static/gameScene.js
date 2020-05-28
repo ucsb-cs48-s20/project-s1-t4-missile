@@ -343,7 +343,8 @@ class GameScene extends Phaser.Scene {
         })
         this.socket.on('debug', data => {
             this.debug = true;
-            this.debugText = this.add.text(this.ship.x - 30, this.ship.y, 'Debug', { fontSize: '24px' }).setDepth(100);
+            this.debugMode = -1;
+            this.debugText = this.add.text(this.ship.x - 20, this.ship.y, 'Debug', { fontSize: '24px' }).setDepth(100);
             this.debugRoundText = this.add.text(900, 120, `1 - Round`).setDepth(150);
             this.debugBaseHealthText = this.add.text(900, 140, `2 - Base Health`).setDepth(150);
             this.debugTimerText = this.add.text(900, 160, `3 - Timer`).setDepth(150);
@@ -407,8 +408,43 @@ class GameScene extends Phaser.Scene {
 
             this.input.keyboard.on('keyup', event => {
                 if (event.keyCode === 192) {
-                    console.log('hey')
                     this.socket.emit("enterDebug");
+                }
+                if(this.debug) {
+                    this.debugMode = event.keyCode - 48;
+                    if(event.keyCode === 48) {
+                        this.debugText.setText('cometSpeed');
+                    }
+                    if(event.keyCode === 49) {
+                        this.debugText.setText('round');
+                    }
+                    if(event.keyCode === 50) {
+                        this.debugText.setText('baseHealth');
+                    }
+                    if(event.keyCode === 51) {
+                        this.debugText.setText('timer');
+                    }
+                    if(event.keyCode === 52) {
+                        this.debugText.setText('credits');
+                    }
+                    if(event.keyCode === 53) {
+                        this.debugText.setText('maxMissiles');
+                    }
+                    if(event.keyCode === 54) {
+                        this.debugText.setText('regenSpeed');
+                    }
+                    if(event.keyCode === 55) {
+                        this.debugText.setText('cometLimit');
+                    }
+                    if(event.keyCode === 56) {
+                        this.debugText.setText('cometRate');
+                    }
+                    if(event.keyCode === 57) {
+                        this.debugText.setText('cometHealth');
+                    }
+                    if(event.keyCode === 58) {
+                        this.debugText.setText('cometSpeed');
+                    }
                 }
             })
         }
