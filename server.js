@@ -167,8 +167,10 @@ io.on('connect', socket => {
                 let cost = 500 + ((players[socket.id].radius - 60) / 10) * 100;
                 attemptUpgrade(socket.id, upgrade, 10, cost, 100);
             } else if (upgrade == 'regenSpeed') {
-                let cost = 100 + Math.round(1000 * players[socket.id].regenSpeed); // starts at 500 i swear
-                attemptUpgrade(socket.id, upgrade, 0.1, cost, 100);
+                let cost = 100 + Math.round(1000 * players[socket.id].regenSpeed); 
+                if(attemptUpgrade(socket.id, upgrade, 0.1, cost, 100)) {
+                    io.to(socket.id).emit('regenSpeedChange', players[socket.id].regenSpeed);
+                }
             } else if (upgrade == 'maxMissiles') {
                 let cost = 400 * players[socket.id].maxMissiles;
                 let upgradeDone = attemptUpgrade(socket.id, upgrade, 1, cost, 400); // doing extra display/reload stuff when succeed
@@ -486,6 +488,10 @@ function increaseDifficulty() {
     if (round % 2 == 0) {
         cometSpeed += 0.5;
     }
+    io.emit('cometLimitChange', cometLimit);
+    io.emit('cometRateChange', cometRate);
+    io.emit('cometHealthChange', cometHealth);
+    io.emit('cometSpeedChange', cometSpeed);
 }
 
 function clearGame() {

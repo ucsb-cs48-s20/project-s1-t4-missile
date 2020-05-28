@@ -158,6 +158,9 @@ class GameScene extends Phaser.Scene {
         //missile count display; reload bar display
         this.socket.on('missileCountChange', (id, newAmount, maxAmount, regenTime, displayBar) => {
             if (id == self.playerId) {
+                if (this.debug) {
+                    this.missileCountText.setText(`5 - Maximum missile capacity = ${newAmount}`);
+                }
                 if (newAmount == 0) { this.noMissilesLeft = true; } else { this.noMissilesLeft = false; }
                 self.displayMissileCount(self, self, newAmount, maxAmount, regenTime);
                 if (displayBar) { this.displayReloadBar(self, self, this.ship.x, regenTime, this.maxMissilesClientCopy); }
@@ -185,7 +188,7 @@ class GameScene extends Phaser.Scene {
                 if (missile.id == missileId) {
                     const explosion = this.add
                         .sprite(missile.x, missile.y, "explosion", 0)
-                        .setScale(size/16);
+                        .setScale(size / 16);
                     explosion.play("explode");
                     explosion.anims.setTimeScale(1 / time);
                     explosion.once(
@@ -212,7 +215,7 @@ class GameScene extends Phaser.Scene {
                 if (comet.id == cometId) {
                     const explosion = this.add
                         .sprite(comet.x, comet.y, "explosion", 0)
-                        .setScale(size/16);
+                        .setScale(size / 16);
                     explosion.play("explode");
                     explosion.anims.setTimeScale(1 / time);
                     explosion.once(
@@ -313,9 +316,34 @@ class GameScene extends Phaser.Scene {
         this.socket.on("updateRound", (round) => {
             this.roundText.setText(`${round}`);
         })
+        this.socket.on("regenSpeedChange", newRegen => {
+            if (this.debug) {
+                this.regenSpeedText.setText(`6 - Regen speed = ${newRegen}s`);
+            }
+        })
+        this.socket.on("cometLimitChange", cometLimit => {
+            if (this.debug) {
+                this.cometLimitText.setText(`7 - Maximum number of comets = ${cometLimit}`);
+            }
+        })
+        this.socket.on('cometRateChange', cometRate => {
+            if(this.debug) {
+                this.cometRateText.setText(`8 - Comet spawn rate = ${cometRate}`);
+            }
+        })
+        this.socket.on('cometHealthChange', cometHealth => {
+            if(this.debug) {
+                this.cometHealthText.setText(`9 - Comet health = ${cometHealth}`);
+            }
+        })
+        this.socket.on('cometSpeedChange', cometSpeed => {
+            if(this.debug) {
+                this.cometSpeedText.setText(`0 - Comet speed = ${cometSpeed}`);
+            }
+        })
         this.socket.on('debug', data => {
             this.debug = true;
-            this.debugText = this.add.text(this.ship.x - 30, this.ship.y, 'Debug', {fontSize: '24px'}).setDepth(100);
+            this.debugText = this.add.text(this.ship.x - 30, this.ship.y, 'Debug', { fontSize: '24px' }).setDepth(100);
             this.debugRoundText = this.add.text(900, 120, `1 - Round`).setDepth(150);
             this.debugBaseHealthText = this.add.text(900, 140, `2 - Base Health`).setDepth(150);
             this.debugTimerText = this.add.text(900, 160, `3 - Timer`).setDepth(150);
@@ -378,7 +406,7 @@ class GameScene extends Phaser.Scene {
             }
 
             this.input.keyboard.on('keyup', event => {
-                if(event.keyCode === 192) {
+                if (event.keyCode === 192) {
                     console.log('hey')
                     this.socket.emit("enterDebug");
                 }
@@ -486,12 +514,12 @@ class GameScene extends Phaser.Scene {
         const width = 120;
         const height = 16;
         const positionY = 708;
-        
+
         shipThatHasThisBar.maxMissilesClientCopy = newMaxMissiles;
 
         //show the empty bar
         const reloadBarBase = self.add.sprite(positionX, positionY, 'reloadmeter').setDisplaySize(width, height).setTint(0xbb0000).setDepth(100);
-        const reloadBarFront = self.add.sprite(positionX - (width*0.5), positionY, 'reloadmeter').setDisplaySize(0, height).setTint(0x00ff00).setDepth(101);
+        const reloadBarFront = self.add.sprite(positionX - (width * 0.5), positionY, 'reloadmeter').setDisplaySize(0, height).setTint(0x00ff00).setDepth(101);
         //update every frame until max missiles
         let timer = 0;
         let oldMaxMissiles = newMaxMissiles;
