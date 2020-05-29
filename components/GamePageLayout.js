@@ -1,7 +1,6 @@
 import io from "socket.io-client";
 import React, { useState, useEffect } from "react";
 import Favicon from "react-favicon";
-
 // components
 import GameWindow from "./GameWindow.js";
 import "./GamePageLayout.scss";

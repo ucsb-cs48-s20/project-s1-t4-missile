@@ -59,7 +59,7 @@ for (let i = 0; i < cometLimit; i++) {
 }
 
 io.on('connect', socket => {
-    console.log(socket.handshake.query.purpose);
+    // console.log(socket.handshake.query.purpose);
     if (socket.handshake.query.purpose === "game") {
         gameRunning = true;
         let spectate = false;
