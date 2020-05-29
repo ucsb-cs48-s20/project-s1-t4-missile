@@ -11,13 +11,25 @@ class LobbyScene extends Phaser.Scene {
     create() {
         this.add.image(640, 360, 'background').setScale(5);
         this.add.image(640, 360, 'stars').setScale(4);
-        this.add.text(460, 260, 'Game Over', {fontSize: '64px'});
-        this.add.text(460, 360, `Round: ${this.round}`, {fontSize: '32px' });
-        this.add.text(460, 410, `Score: ${this.score}`, {fontSize: '32px' })
-        this.kills.forEach((kill, i) => {
-            this.add.text(460, 460 + (50 * i), `Player ${i + 1} destroyed ${kill} comets`, {fontSize: '32px'})
+        
+        const ENDPOINT = window.location.protocol + '//' + window.location.hostname + ':' + window.location.port;
+        this.socket = io(ENDPOINT, { query: "purpose=game" });
+
+        this.socket.on('initUsers', users => {
+            this.userTexts = {};
+            Object.keys(users).forEach((user, index) => {
+                this.userTexts[user] = this.add.text(460, 200 + (50 * index), `User ${user} is a ${users[user]}`, {fontSize: '32px'});
+            })
+        })
+
+        this.socket.on('newUser', data => {
+            this.userTexts[data[0]] = this.add.text(460, 200 + (50 * Object.keys(this.userTexts).length - 1), `User ${data[0]} is a ${data[1]}`, {fontSize: '32px'});
+        })
+
+        this.socket.on('disconnect', userId => {
+            delete userTexts[userId];
         })
     }
 }
 
-export default EndScene;
+export default LobbyScene;

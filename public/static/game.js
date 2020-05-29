@@ -1,6 +1,8 @@
+import LobbyScene from '/static/lobbyScene.js'
 import GameScene from '/static/gameScene.js'
 import EndScene from '/static/endScene.js'
 
+let lobbyScene = new LobbyScene();
 let gameScene = new GameScene();
 let endScene = new EndScene();
 
@@ -20,7 +22,8 @@ let config = {
 
 let game = new Phaser.Game(config);
 
+game.scene.add('lobbyScene', lobbyScene);
 game.scene.add('gameScene', gameScene);
 game.scene.add('endScene', endScene);
-game.scene.start('gameScene');
+game.scene.start('lobbyScene');
 

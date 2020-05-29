@@ -92,7 +92,8 @@ io.on('connect', socket => {
         }
 
         if (gameState == 'lobby') {
-
+            socket.emit('initUsers', users);
+            socket.broadcast.emit('newUser', [socket.id, users[socket.id]]);
         } else if (gameState == 'game') {
             socket.emit('initComets', comets);
             socket.emit('initHealth', baseHealth);
