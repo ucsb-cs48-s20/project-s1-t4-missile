@@ -6,11 +6,26 @@ class LobbyScene extends Phaser.Scene {
     preload() {
         this.load.image('background', '/assets/background.png');
         this.load.image('stars', '/assets/background-stars.png');
+        this.load.image("start", "/assets/start.png");
     }
 
     create() {
         this.add.image(640, 360, 'background').setScale(5);
         this.add.image(640, 360, 'stars').setScale(4);
+        this.startButton = this.add.image(640, 500, 'start').setTint(0xcfcfcf)
+            .setScale(0.5)
+            .setInteractive()
+        this.startButton
+            .on('pointerover', () => {
+                this.startButton.setTint(0xfcfcfc);
+            })
+            .on('pointerout', () => {
+                this.startButton.setTint(0xcfcfcf);
+            })
+            .on('pointerdown', () => {
+                console.log('start');
+            })
+        
         
         const ENDPOINT = window.location.protocol + '//' + window.location.hostname + ':' + window.location.port;
         this.socket = io(ENDPOINT, { query: "purpose=game" });
