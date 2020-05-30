@@ -5,6 +5,10 @@ class GameScene extends Phaser.Scene {
         super({ key: "gameScene" });
     }
 
+    init(socket) {
+        this.socket = socket;
+    }
+
     preload() {
         this.load.image("background", "/assets/background.png");
         this.load.image("stars", "/assets/background-stars.png");
@@ -28,7 +32,6 @@ class GameScene extends Phaser.Scene {
 
     create() {
         let self = this;
-        const ENDPOINT = window.location.protocol + '//' + window.location.hostname + ':' + window.location.port
 
         //Load background
         this.add.image(640, 360, "background").setScale(5);
@@ -54,9 +57,6 @@ class GameScene extends Phaser.Scene {
             }),
         });
 
-        //Load socket
-        this.socket = io(ENDPOINT, { query: "purpose=game" });
-
         //GroupsY
         this.missiles = this.physics.add.group();
         this.comets = this.physics.add.group();
@@ -71,6 +71,8 @@ class GameScene extends Phaser.Scene {
             this.spectate = true;
             this.spectateText = this.add.text(50, 200, 'Spectating', { fontSize: '24px' });
         })
+
+        this.socket.emit('requestInitialize');
 
         this.makeUI(this);
 
@@ -369,11 +371,7 @@ class GameScene extends Phaser.Scene {
             //Mouse handling
             let pointer = this.input.activePointer;
 
-            //instant rotation change
-            console.log("pointer: " + pointer.x + "," + pointer.y);
-            console.log("ship: " + this.ship.x + "," + this.ship.y);
             this.ship.rotation = angle(pointer.x, pointer.y, this.ship.x, this.ship.y);
-            console.log(this.ship.rotation);
             this.socket.emit("rotationChange", this.ship.rotation);
 
             let UICutoffY = 120;

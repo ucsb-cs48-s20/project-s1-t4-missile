@@ -23,7 +23,7 @@ class LobbyScene extends Phaser.Scene {
                 this.startButton.setTint(0xcfcfcf);
             })
             .on('pointerdown', () => {
-                console.log('start');
+                this.socket.emit('startGame');
             })
         
         
@@ -42,8 +42,15 @@ class LobbyScene extends Phaser.Scene {
         })
 
         this.socket.on('disconnect', userId => {
-            this.userTexts[userId].destroy();
+            if(this.userTexts[userId] != undefined) {
+                this.userTexts[userId].destroy();
+            }
             delete this.userTexts[userId];
+        })
+
+        this.socket.on('switchStart', () => {
+            this.socket.emit('requestInitialize');
+            this.scene.start('gameScene', this.socket);
         })
     }
 }
