@@ -19,10 +19,9 @@ function useScript(src) {
             // If cachedScripts array already includes src that means another instance ...
 
             // ... of this hook already loaded this script, so no need to load again.
-            if (src !== "//cdn.jsdelivr.net/npm/phaser@3.22.0/dist/phaser.js" && cachedScripts.includes(src)) {
+            if (cachedScripts.includes(src)) {
                 setStateScript({
                     loaded: true,
-
                     error: false
                 });
             } else {
@@ -153,17 +152,12 @@ const Test = () => {
         };
     }, [oldBodyStyle]);
 
-    useEffect(() => {
-        window.location.reload(false);
-    }, []); 
-
     return (
         <div style={styles.container}>
             <Favicon url="/static/images/favicon.ico"></Favicon>
             <h1>{`${pageTitle}`}</h1>
             
             <DynamicGameWindow />
-            <script src="//cdn.jsdelivr.net/npm/phaser@3.22.0/dist/phaser.js"></script>
         </div>
     );
 };
