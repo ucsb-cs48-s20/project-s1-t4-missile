@@ -1,26 +1,110 @@
-import Favicon from 'react-favicon'
-import dynamic from 'next/dynamic'
-import styles from '../components/styles'
-import React, { useState, useEffect } from "react"
+import Favicon from "react-favicon";
+import dynamic from "next/dynamic";
+import styles from "../components/styles";
+import React, { useState, useEffect } from "react";
 import { useRouter } from "next/router";
 
-const DynamicGameWindow = dynamic(
-    () => import("../components/GameWindow"),
-    { ssr: false }
-)
+// Hook
+let cachedScripts = [];
+
+function useScript(src) {
+    // Keeping track of script loaded and error state
+    const [stateScript, setStateScript] = useState({
+        loaded: false,
+        error: false
+    });
+
+    useEffect(
+        () => {
+            // If cachedScripts array already includes src that means another instance ...
+
+            // ... of this hook already loaded this script, so no need to load again.
+            if (src !== "//cdn.jsdelivr.net/npm/phaser@3.22.0/dist/phaser.js" && cachedScripts.includes(src)) {
+                setStateScript({
+                    loaded: true,
+
+                    error: false
+                });
+            } else {
+                cachedScripts.push(src);
+
+                // Create script
+                let script = document.createElement("script");
+                script.src = src;
+                script.async = true;
+
+                if (src === "/static/game.js") {
+                    script.type = "module";
+                }
+
+                // Script event listener callbacks for load and error
+                const onScriptLoad = () => {
+                    setStateScript({
+                        loaded: true,
+                        error: false
+                    });
+                };
+
+                const onScriptError = () => {
+                    // Remove from cachedScripts we can try loading again
+                    const index = cachedScripts.indexOf(src);
+                    if (index >= 0) cachedScripts.splice(index, 1);
+                    script.remove();
+
+                    setStateScript({
+                        loaded: true,
+                        error: true
+                    });
+                };
+
+                script.addEventListener("load", onScriptLoad);
+                script.addEventListener("error", onScriptError);
+
+                // Add script to document body
+                document.body.appendChild(script);
+                // Remove event listeners on cleanup
+
+                return () => {
+                    script.removeEventListener("load", onScriptLoad);
+                    script.removeEventListener("error", onScriptError);
+                };
+            }
+        },
+
+        [src] // Only re-run effect if script src changes
+    );
+    return [stateScript.loaded, stateScript.error];
+}
+
+const DynamicGameWindow = dynamic(() => import("../components/GameWindow"), {
+    ssr: false
+});
 
 const Test = () => {
     const [pageTitle, setPageTitle] = useState("Missile Defense Game");
     const [oldBodyStyle, setOldStyle] = useState("");
 
     const Router = useRouter();
+    const [socketSrc, serror] = useScript(
+        "/socket.io/socket.io.js"
+    );
+    const [phaserSrc, perror] = useScript(
+        "//cdn.jsdelivr.net/npm/phaser@3.22.0/dist/phaser.js"
+    );
+    const [gameSrc, gerror] = useScript(
+        "/static/game.js"
+    );
+    const [windowSrc, werror] = useScript(
+        "/static/parentGameWindow.js"
+    );
 
+    /*
     // load scripts
     useEffect(() => {
-        const socketSrc = document.createElement('script');
-        const phaserSrc = document.createElement('script');
-        const gameSrc = document.createElement('script');
-        const windowSrc = document.createElement('script');
+        const socketSrc = document.createElement("script");
+        const phaserSrc = document.createElement("script");
+        const gameSrc = document.createElement("script");
+        const windowSrc = document.createElement("script");
 
         socketSrc.src = "/socket.io/socket.io.js";
         socketSrc.async = true;
@@ -39,19 +123,20 @@ const Test = () => {
         <script type='module' src='/static/game.js'></script>
         <script src='/static/parentGameWindow.js'></script>
         */
-      
+
+        /*
         document.body.appendChild(socketSrc);
         document.body.appendChild(phaserSrc);
         document.body.appendChild(windowSrc);
         document.body.appendChild(gameSrc);
-        
+
         return () => {
             document.body.removeChild(gameSrc);
             document.body.removeChild(windowSrc);
             document.body.removeChild(socketSrc);
             document.body.removeChild(phaserSrc);
-        }
-    }, [Router]);
+        };
+    }, [Router]); */
 
     useEffect(() => {
         setOldStyle(document.body.style);
@@ -65,19 +150,23 @@ const Test = () => {
 
         return () => {
             document.body.style = oldBodyStyle;
-        }
+        };
     }, [oldBodyStyle]);
+
+    useEffect(() => {
+        window.location.reload(false);
+    }, []); 
 
     return (
         <div style={styles.container}>
             <Favicon url="/static/images/favicon.ico"></Favicon>
             <h1>{`${pageTitle}`}</h1>
-
+            
             <DynamicGameWindow />
             <script src="//cdn.jsdelivr.net/npm/phaser@3.22.0/dist/phaser.js"></script>
         </div>
     );
-}
+};
 /*
 
         setSocket(document.createElement('script'));
@@ -111,4 +200,3 @@ const Test = () => {
         });*/
 
 export default Test;
-               
