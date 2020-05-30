@@ -100,10 +100,7 @@ io.on('connect', socket => {
 
         socket.on('startGame', initiatorId => {
             gameState = 'game';
-            socket.emit('switchStart');
-            if(socket.id == initiatorId) {
-                socket.broadcast.emit('startGame');
-            }
+            io.emit('switchStart');
         })
 
         socket.on('requestInitialize', socketId => {
