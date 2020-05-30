@@ -27,7 +27,8 @@ class LobbyScene extends Phaser.Scene {
         })
 
         this.socket.on('disconnect', userId => {
-            delete userTexts[userId];
+            this.userTexts[userId].destroy();
+            delete this.userTexts[userId];
         })
     }
 }
