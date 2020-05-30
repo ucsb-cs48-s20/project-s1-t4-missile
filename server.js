@@ -93,7 +93,8 @@ io.on('connect', socket => {
         if (gameState == 'lobby') {
             io.emit('initUsers', users);
         } else if (gameState == 'game') {
-            socket.emit('switchStart');
+            io.to(socket.id).emit('switchStart');
+            socket.broadcast.emit('newPlayer', players[socket.id]);
         } else {
             kills = [];
             Object.keys(players).forEach(playerId => {
