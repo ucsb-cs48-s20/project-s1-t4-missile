@@ -96,6 +96,13 @@ io.on('connect', socket => {
         } else if (gameState == 'game') {
             socket.emit('switchStart');
         } else {
+            kills = [];
+            Object.keys(players).forEach(playerId => {
+                if(socket.id != playerId) {
+                    kills.push(players[playerId].kills)
+                }
+            })
+            io.emit('gameOver', { 'round': round, 'score': score, 'kills': kills });
         }
 
         socket.on('startGame', initiatorId => {
@@ -542,10 +549,7 @@ function increaseDifficulty() {
 }
 
 function clearGame() {
-    gameState == 'end'
-    Object.keys(players).forEach(playerId => {
-        delete players[playerId];
-    })
+    gameState = 'end';
     Object.keys(missiles).forEach(missileId => {
         delete missiles[missileId];
     })

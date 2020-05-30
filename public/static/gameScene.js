@@ -239,6 +239,7 @@ class GameScene extends Phaser.Scene {
             });
         });
         this.socket.on("gameOver", (data) => {
+            data['socket'] = this.socket;
             this.scene.start("endScene", data);
         });
 

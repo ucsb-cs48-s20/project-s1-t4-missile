@@ -51,6 +51,11 @@ class LobbyScene extends Phaser.Scene {
         this.socket.on('switchStart', () => {
             this.scene.start('gameScene', this.socket);
         })
+
+        this.socket.on('gameOver', data => {
+            data['socket'] = this.socket;
+            this.scene.start("endScene", data);
+        })
     }
 }
 
