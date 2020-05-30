@@ -49,7 +49,6 @@ class LobbyScene extends Phaser.Scene {
         })
 
         this.socket.on('switchStart', () => {
-            this.socket.emit('requestInitialize');
             this.scene.start('gameScene', this.socket);
         })
     }

@@ -33,6 +33,8 @@ class GameScene extends Phaser.Scene {
     create() {
         let self = this;
 
+        this.socket.emit('requestInitialize');
+
         //Load background
         this.add.image(640, 360, "background").setScale(5);
         this.add.image(640, 360, "stars").setScale(4);
@@ -71,8 +73,6 @@ class GameScene extends Phaser.Scene {
             this.spectate = true;
             this.spectateText = this.add.text(50, 200, 'Spectating', { fontSize: '24px' });
         })
-
-        this.socket.emit('requestInitialize');
 
         this.makeUI(this);
 
@@ -148,14 +148,6 @@ class GameScene extends Phaser.Scene {
         });
         this.socket.on("newComet", (cometInfo) => {
             self.addComet(self, cometInfo);
-        });
-
-        //very short delay between any two shots
-        this.socket.on('missileReload', (id, reloadTime) => {
-            if (id == self.playerId) {
-                this.reloading = true;
-                setTimeout(() => { this.reloading = false; }, reloadTime);
-            }
         });
 
         //missile count display; reload bar display
@@ -271,10 +263,12 @@ class GameScene extends Phaser.Scene {
         });
         this.socket.on("missileUpdate", (serverMissiles) => {
             self.missiles.getChildren().forEach((missile) => {
+                //console.log(serverMissiles[missile.id].x + "," + serverMissiles[missile.id].y)
                 missile.setPosition(
                     serverMissiles[missile.id].x,
                     serverMissiles[missile.id].y
                 );
+                //console.log(serverMissiles[missile.id].x + "," + serverMissiles[missile.id].y)
             });
         });
         this.socket.on("cometUpdate", (serverComets) => {
@@ -493,9 +487,7 @@ class GameScene extends Phaser.Scene {
                 }
             })
 
-            console.log(this.key);
             if(this.key && !this.key.isDown) {
-                console.log('entered');
                 this.keypressed = false;
             }
 
@@ -573,6 +565,7 @@ class GameScene extends Phaser.Scene {
     }
 
     addMissile(self, missileInfo) {
+        console.log(missileInfo);
         const missile = self.add
             .sprite(missileInfo.x, missileInfo.y, "missile")
             .setDepth(15);
