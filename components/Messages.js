@@ -6,13 +6,13 @@ import "./Messages.scss";
 // messages is the box containing message components
 // draws message components from the messages array in ChatLayout.js
 const Messages = (props) => {
-    return(
+    return (
         <ScrollToBottom className="messages">
             {props.messages.map((message, i) => {
-                    return (
-                        <div key={i}><Message message={message} name={props.name} /></div>
-                    );
-                })        
+                return (
+                    <div key={i}><Message message={message} name={props.name} /></div>
+                );
+            })
             }
         </ScrollToBottom>
     );

@@ -1,8 +1,6 @@
+import LobbyScene from '/static/lobbyScene.js'
 import GameScene from '/static/gameScene.js'
 import EndScene from '/static/endScene.js'
-
-let gameScene = new GameScene();
-let endScene = new EndScene();
 
 let config = {
     type: Phaser.AUTO,
@@ -20,7 +18,16 @@ let config = {
 
 let game = new Phaser.Game(config);
 
-game.scene.add('gameScene', gameScene);
-game.scene.add('endScene', endScene);
-game.scene.start('gameScene');
+const ENDPOINT = window.location.protocol + '//' + window.location.hostname + ':' + window.location.port;
+let socket = io(ENDPOINT, { query: "purpose=game" });
+
+game.scene.add('lobbyScene', new LobbyScene());
+game.scene.add('gameScene', new GameScene());
+game.scene.add('endScene', new EndScene());
+game.scene.start('lobbyScene', socket);
+
+
+
+
+
 
