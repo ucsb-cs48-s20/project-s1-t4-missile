@@ -1,6 +1,11 @@
 class LobbyScene extends Phaser.Scene {
     constructor() {
-        super({key: "lobbyScene"});
+        super({ key: "lobbyScene" });
+    }
+
+    init(socket) {
+        this.socket = socket;
+        console.log(this.socket);
     }
 
     preload() {
@@ -12,6 +17,12 @@ class LobbyScene extends Phaser.Scene {
     create() {
         this.add.image(640, 360, 'background').setScale(5);
         this.add.image(640, 360, 'stars').setScale(4);
+
+        if (this.socket == undefined) {
+            const ENDPOINT = window.location.protocol + '//' + window.location.hostname + ':' + window.location.port;
+            this.socket = io(ENDPOINT, { query: "purpose=game" });
+        }
+
         this.startButton = this.add.image(640, 500, 'start').setTint(0xcfcfcf)
             .setScale(0.5)
             .setInteractive()
@@ -25,38 +36,45 @@ class LobbyScene extends Phaser.Scene {
             .on('pointerdown', () => {
                 this.socket.emit('startGame');
             })
-        
-        
-        const ENDPOINT = window.location.protocol + '//' + window.location.hostname + ':' + window.location.port;
-        this.socket = io(ENDPOINT, { query: "purpose=game" });
+
+        this.socket.emit('requestUsers');
+        this.userTexts = {};
 
         this.socket.on('initUsers', users => {
-            this.userTexts = {};
+            if (Object.keys(this.userTexts).length != 0) {
+                Object.keys(this.userTexts).forEach(user => {
+                    this.userTexts[user].destroy();
+                })
+            }
             Object.keys(users).forEach((user, index) => {
-                this.userTexts[user] = this.add.text(100, 50 + (50 * index), `${user} - ${users[user]}`, {fontSize: '24px'});
+                this.userTexts[user] = this.add.text(100, 50 + (50 * index), `${user} - ${users[user]}`, { fontSize: '24px' });
             })
         })
 
-        this.socket.on('newUser', data => {
-            this.userTexts[data[0]] = this.add.text(100, 50 + (50 * Object.keys(this.userTexts).length - 1), `${data[0]} - ${data[1]}`, {fontSize: '24px'});
-        })
-
         this.socket.on('disconnect', userId => {
-            if(this.userTexts[userId] != undefined) {
+            console.log(this.userTexts)
+            if (this.userTexts[userId] != undefined) {
                 this.userTexts[userId].destroy();
             }
             delete this.userTexts[userId];
         })
 
         this.socket.on('switchStart', () => {
+            console.log("lobby -> game");
             this.scene.start('gameScene', this.socket);
+            this.socket = undefined;
+            console.log(this.socket);
         })
 
-        this.socket.on('gameOver', data => {
+        this.socket.on('lobbyToEnd', data => {
+            console.log("lobby -> end");
             data['socket'] = this.socket;
             this.scene.start("endScene", data);
+            this.socket = undefined;
+            console.log(this.socket);
         })
     }
+
 }
 
 export default LobbyScene;

@@ -7,6 +7,7 @@ class GameScene extends Phaser.Scene {
 
     init(socket) {
         this.socket = socket;
+        console.log(socket);
     }
 
     preload() {
@@ -84,6 +85,7 @@ class GameScene extends Phaser.Scene {
         this.UITweening = false;
         this.noMissilesLeft = false;
         this.maxMissilesClientCopy = -1;
+        this.created = true;
 
         //Initializing server-handled objects
         let UITextY = 15;
@@ -240,7 +242,10 @@ class GameScene extends Phaser.Scene {
         });
         this.socket.on("gameOver", (data) => {
             data['socket'] = this.socket;
+            console.log('game -> end')
             this.scene.start("endScene", data);
+            this.socket = undefined;
+            console.log(this.socket);
         });
 
         //Events where object states are updated
@@ -359,10 +364,12 @@ class GameScene extends Phaser.Scene {
             this.cometHealthText = this.add.text(900, 280, `9 - Comet health = ${data.cometHealth}`).setDepth(150);
             this.cometSpeedText = this.add.text(900, 300, `0 - Comet speed = ${data.cometSpeed}`).setDepth(150);
         })
+
+        console.log()
     }
 
     update() {
-        if (!this.spectate && this.ship) {
+        if (this.created && !this.spectate && this.ship) {
             //Mouse handling
             let pointer = this.input.activePointer;
 

@@ -91,8 +91,7 @@ io.on('connect', socket => {
         }
 
         if (gameState == 'lobby') {
-            socket.emit('initUsers', users);
-            socket.broadcast.emit('newUser', [socket.id, users[socket.id]]);
+            io.emit('initUsers', users);
         } else if (gameState == 'game') {
             socket.emit('switchStart');
         } else {
@@ -102,16 +101,26 @@ io.on('connect', socket => {
                     kills.push(players[playerId].kills)
                 }
             })
-            io.emit('gameOver', { 'round': round, 'score': score, 'kills': kills });
+            io.emit('lobbyToEnd', { 'round': round, 'score': score, 'kills': kills });
         }
 
-        socket.on('startGame', initiatorId => {
+        socket.on('startGame', () => {
             gameState = 'game';
             io.emit('switchStart');
         })
 
-        socket.on('requestInitialize', socketId => {
+        socket.on('requestInitialize', () => {
             initializeGame(socket.id);
+        })
+
+        socket.on('returnToLobby', () => {
+            gameState = 'lobby';
+            io.emit('switchLobby');
+            io.emit('restart');
+        })
+
+        socket.on('requestUsers', () => {
+            socket.emit('initUsers', users);
         })
 
         //Handles client inputs
@@ -258,7 +267,7 @@ io.on('connect', socket => {
 
         console.log(`Chat socket ${socket.id} connected`)
 
-        let defaultName = `Player ${nextSlot + 1}`
+        let defaultName = `Player ${nextSlot}`
 
         //Handles the chat stuff
         socket.on('disconnect', () => {
