@@ -26,6 +26,12 @@ describe('Chat Window', () => {
         cy.get('div[class="messageBox backgroundBlue"]:last').should('have.text', 'This is my second message.');
     })
 
+    it ('will not submit blank message', () => {
+        cy.get('div[class="main"] input:first').focus();
+        cy.get('div[class="main"] button:first').click();
+        cy.get('div[class="messageBox backgroundBlue"]').should('not.exist');
+    })
+
     it ('can see other messages', () => {
         //cypress can't seem to open multiple tabs.
         //so this just looks for the welcome player message from the server
