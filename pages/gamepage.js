@@ -3,6 +3,7 @@ import dynamic from "next/dynamic";
 import styles from "../components/styles";
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/router";
+import Head from 'next/head'
 
 // Hook
 let cachedScripts = [];
@@ -75,7 +76,7 @@ function useScript(src) {
     return [stateScript.loaded, stateScript.error];
 }
 
-const DynamicGameWindow = dynamic(() => import("../components/GameWindow"), {
+const DynamicGameWindow = dynamic(() => import("../components/gameWindow"), {
     ssr: false
 });
 
@@ -87,9 +88,10 @@ const Test = () => {
     const [socketSrc, serror] = useScript(
         "/socket.io/socket.io.js"
     );
+    /*
     const [phaserSrc, perror] = useScript(
-        "//cdn.jsdelivr.net/npm/phaser@3.22.0/dist/phaser.js"
-    );
+       "//cdn.jsdelivr.net/npm/phaser@3.22.0/dist/phaser.js"
+    );*/
     const [gameSrc, gerror] = useScript(
         "/static/game.js"
     );
@@ -154,6 +156,9 @@ const Test = () => {
 
     return (
         <div style={styles.container}>
+            <Head>
+                <script src="//cdn.jsdelivr.net/npm/phaser@3.22.0/dist/phaser.js"></script>
+            </Head>
             <Favicon url="/static/images/favicon.ico"></Favicon>
             <h1>{`${pageTitle}`}</h1>
             

@@ -24,7 +24,8 @@ let socket = io(ENDPOINT, { query: "purpose=game" });
 game.scene.add('lobbyScene', new LobbyScene());
 game.scene.add('gameScene', new GameScene());
 game.scene.add('endScene', new EndScene());
-game.scene.start('lobbyScene', socket);
+
+window.setTimeout(game.scene.start('lobbyScene', socket), 1000);
 
 
 
