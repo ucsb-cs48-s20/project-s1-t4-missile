@@ -18,12 +18,12 @@ class LobbyScene extends Phaser.Scene {
         this.socket.on('initUsers', users => {
             this.userTexts = {};
             Object.keys(users).forEach((user, index) => {
-                this.userTexts[user] = this.add.text(460, 200 + (50 * index), `User ${user} is a ${users[user]}`, {fontSize: '32px'});
+                this.userTexts[user] = this.add.text(100, 50 + (50 * index), `${user} - ${users[user]}`, {fontSize: '24px'});
             })
         })
 
         this.socket.on('newUser', data => {
-            this.userTexts[data[0]] = this.add.text(460, 200 + (50 * Object.keys(this.userTexts).length - 1), `User ${data[0]} is a ${data[1]}`, {fontSize: '32px'});
+            this.userTexts[data[0]] = this.add.text(100, 50 + (50 * Object.keys(this.userTexts).length - 1), `${data[0]} - ${data[1]}`, {fontSize: '24px'});
         })
 
         this.socket.on('disconnect', userId => {
