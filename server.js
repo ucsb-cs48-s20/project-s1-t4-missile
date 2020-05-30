@@ -94,7 +94,7 @@ io.on('connect', socket => {
             socket.emit('initUsers', users);
             socket.broadcast.emit('newUser', [socket.id, users[socket.id]]);
         } else if (gameState == 'game') {
-            initializeGame(socket.id);
+            socket.emit('switchStart');
         } else {
         }
 
