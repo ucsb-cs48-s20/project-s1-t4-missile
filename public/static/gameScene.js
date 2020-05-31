@@ -19,8 +19,8 @@ class GameScene extends Phaser.Scene {
             frameHeight: 128,
         });
         this.load.spritesheet("explosion", "/assets/explosion.png", {
-            frameWidth: 16,
-            frameHeight: 16,
+            frameWidth: 128,
+            frameHeight: 128,
         });
         this.load.image("base", "/assets/base.png");
         this.load.image("button", "/assets/button.png");
@@ -41,10 +41,10 @@ class GameScene extends Phaser.Scene {
         //Create animations
         this.anims.create({
             key: "explode",
-            duration: 16,
+            frameRate: 20,
             frames: this.anims.generateFrameNames("explosion", {
                 start: 0,
-                end: 4,
+                end: 15,
             }),
         });
 
@@ -202,9 +202,9 @@ class GameScene extends Phaser.Scene {
                 if (missile.id == missileId) {
                     const explosion = this.add
                         .sprite(missile.x, missile.y, "explosion", 0)
-                        .setScale(size / 16);
+                        .setScale(size / 128);
                     explosion.play("explode");
-                    explosion.anims.setTimeScale(1 / time);
+                    explosion.anims.setTimeScale(40 / time);
                     explosion.once(
                         Phaser.Animations.Events.SPRITE_ANIMATION_COMPLETE,
                         () => {
@@ -229,9 +229,9 @@ class GameScene extends Phaser.Scene {
                 if (comet.id == cometId) {
                     const explosion = this.add
                         .sprite(comet.x, comet.y, "explosion", 0)
-                        .setScale(size / 16);
+                        .setScale(size / 96);
                     explosion.play("explode");
-                    explosion.anims.setTimeScale(1 / time);
+                    explosion.anims.setTimeScale(40 / time);
                     explosion.once(
                         Phaser.Animations.Events.SPRITE_ANIMATION_COMPLETE,
                         () => {
@@ -268,7 +268,7 @@ class GameScene extends Phaser.Scene {
                     this.healthText.setText(`${info[1]}`);
                     const explosion = this.add
                         .sprite(comet.x, comet.y, "explosion", 0)
-                        .setScale(4.5);
+                        .setScale(1);
                     explosion.play("explode");
                     explosion.once(
                         Phaser.Animations.Events.SPRITE_ANIMATION_COMPLETE,
