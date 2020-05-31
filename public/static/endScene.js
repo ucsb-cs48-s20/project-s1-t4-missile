@@ -15,8 +15,8 @@ class EndScene extends Phaser.Scene {
     }
 
     create() {
-        this.add.image(640, 360, 'background').setScale(5);
-        this.add.image(640, 360, 'stars').setScale(4);
+        this.add.image(640, 360, 'background').setScale(1);
+        //this.add.image(640, 360, 'stars').setScale(4);
         this.add.text(460, 260, 'Game Over', {fontSize: '64px'});
         this.add.text(460, 360, `Round: ${this.round}`, {fontSize: '32px' });
         this.add.text(460, 410, `Score: ${this.score}`, {fontSize: '32px' })

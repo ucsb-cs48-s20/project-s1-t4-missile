@@ -31,8 +31,8 @@ class GameScene extends Phaser.Scene {
         const ENDPOINT = window.location.protocol + '//' + window.location.hostname + ':' + window.location.port
 
         //Load background
-        this.add.image(640, 360, "background").setScale(5);
-        this.add.image(640, 360, "stars").setScale(4);
+        this.add.image(640, 360, "background").setScale(1);
+        //this.add.image(640, 360, "stars").setScale(4);
         this.add.image(640, 820, "base").setScale(15);
 
         //Create animations
