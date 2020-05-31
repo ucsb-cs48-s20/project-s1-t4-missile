@@ -14,7 +14,10 @@ class GameScene extends Phaser.Scene {
             frameHeight: 128,
         });
         this.load.image("missile", "/assets/missile.png");
-        this.load.image("comet", "/assets/comet.png");
+        this.load.spritesheet("comet", "/assets/comet.png", {
+            frameWidth: 64,
+            frameHeight: 128,
+        });
         this.load.spritesheet("explosion", "/assets/explosion.png", {
             frameWidth: 16,
             frameHeight: 16,
@@ -44,6 +47,16 @@ class GameScene extends Phaser.Scene {
                 end: 4,
             }),
         });
+
+        this.anims.create({
+            key: "cometMain",
+            frameRate: 20,
+            repeat: -1,
+            frames: this.anims.generateFrameNames("comet", {
+                start: 0,
+                end: 15,
+            }),
+        })
 
         this.anims.create({
             key: "fire",
@@ -595,9 +608,10 @@ class GameScene extends Phaser.Scene {
     addComet(self, cometInfo) {
         const comet = self.add
             .sprite(cometInfo.x, cometInfo.y, "comet")
-            .setDisplaySize(23, 60);
+            .setDisplaySize(32, 64);
         comet.rotation = cometInfo.rotation;
         comet.id = cometInfo.id;
+        comet.play("cometMain");
         self.comets.add(comet);
     }
 
