@@ -595,7 +595,8 @@ class GameScene extends Phaser.Scene {
     addMissile(self, missileInfo) {
         const missile = self.add
             .sprite(missileInfo.x, missileInfo.y, "missile")
-            .setDepth(15);
+            .setDepth(15)
+            .setScale(0.1875);
         missile.rotation = missileInfo.rotation;
         missile.id = missileInfo.id;
         self.missiles.add(missile);
