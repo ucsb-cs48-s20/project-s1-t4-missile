@@ -18,7 +18,6 @@ function useScript(src) {
     useEffect(
         () => {
             // If cachedScripts array already includes src that means another instance ...
-
             // ... of this hook already loaded this script, so no need to load again.
             if (cachedScripts.includes(src)) {
                 setStateScript({
