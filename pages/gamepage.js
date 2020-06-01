@@ -87,10 +87,11 @@ const Test = () => {
     const [socketSrc, serror] = useScript(
         "/socket.io/socket.io.js"
     );
-    /*
+    
     const [phaserSrc, perror] = useScript(
        "//cdn.jsdelivr.net/npm/phaser@3.22.0/dist/phaser.js"
-    );*/
+    );
+
     const [gameSrc, gerror] = useScript(
         "/static/game.js"
     );
@@ -165,36 +166,5 @@ const Test = () => {
         </div>
     );
 };
-/*
-
-        setSocket(document.createElement('script'));
-        setPhaser(document.createElement('script'));
-        setGame(document.createElement('script'));
-        setWindow(document.createElement('script'));
-
-        setSocket({
-            ...socketSrc,
-            src: "/socket.io/socket.io.js",
-            async: true
-        });
-
-        setPhaser({
-            ...phaserSrc,
-            src: "//cdn.jsdelivr.net/npm/phaser@3.22.0/dist/phaser.js",
-            async: true
-        })
-
-        setGame({
-            ...gameSrc,
-            src: "/static/game.js",
-            async: true,
-            type: "module"
-        })
-
-        setWindow({
-            ...gameWindowSrc,
-            src: "/static/parentGameWindow.js",
-            async: true
-        });*/
 
 export default Test;
