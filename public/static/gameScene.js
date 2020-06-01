@@ -8,7 +8,10 @@ class GameScene extends Phaser.Scene {
     preload() {
         this.load.image("background", "/assets/background.png");
         this.load.image("stars", "/assets/background-stars.png");
-        this.load.image("tankbody", "/assets/tankbody.png");
+        this.load.image("tankbody1", "/assets/tankbody1.png");
+        this.load.image("tankbody2", "/assets/tankbody2.png");
+        this.load.image("tankbody3", "/assets/tankbody3.png");
+        this.load.image("tankbody4", "/assets/tankbody4.png");
         this.load.spritesheet("tankbarrel", "/assets/tankbarrel.png", {
             frameWidth: 128,
             frameHeight: 128,
@@ -550,9 +553,9 @@ class GameScene extends Phaser.Scene {
     //Helper add functions
     addTankBody(self, playerInfo) {
         return self.add
-            .sprite(playerInfo.x, playerInfo.y - 10, "tankbody")
-            .setScale(1.25)
-            .setDepth(10);
+            .sprite(playerInfo.x, playerInfo.y, "tankbody" + (1+Math.round((playerInfo.x-160)/320.0)))
+            .setScale(0.5)
+            .setDepth(25);
     }
 
     addMissileCounter(self, somePlayer, playerInfo) {
