@@ -13,8 +13,8 @@ class GameScene extends Phaser.Scene {
         this.load.image("tankbody3", "/assets/tankbody3.png");
         this.load.image("tankbody4", "/assets/tankbody4.png");
         this.load.spritesheet("tankbarrel", "/assets/tankbarrel.png", {
-            frameWidth: 128,
-            frameHeight: 128,
+            frameWidth: 32,
+            frameHeight: 256,
         });
         this.load.image("missile", "/assets/missile.png");
         this.load.spritesheet("comet", "/assets/comet.png", {
@@ -63,10 +63,10 @@ class GameScene extends Phaser.Scene {
 
         this.anims.create({
             key: "fire",
-            frameRate: 15,
+            frameRate: 20,
             frames: this.anims.generateFrameNames("tankbarrel", {
                 start: 1,
-                end: 7,
+                end: 8,
             }),
         });
 
@@ -566,7 +566,9 @@ class GameScene extends Phaser.Scene {
 
     addPlayer(self, playerInfo) {
         self.addTankBody(self, playerInfo);
-        self.ship = self.physics.add.sprite(playerInfo.x, playerInfo.y - 10, 'tankbarrel').setScale(1.25).setDepth(20);
+        self.ship = self.physics.add.sprite(playerInfo.x, playerInfo.y - 10, 'tankbarrel')
+            .setScale(0.7)
+            .setDepth(20);
         self.ship.setDrag(100);
         self.ship.setAngularDrag(100);
         self.ship.setMaxVelocity(200);
@@ -579,7 +581,7 @@ class GameScene extends Phaser.Scene {
         const otherTankbody = self.addTankBody(self, playerInfo);
         const otherPlayer = self.add
             .sprite(playerInfo.x, playerInfo.y - 10, "tankbarrel")
-            .setScale(1.25)
+            .setScale(0.7)
             .setDepth(20);
         otherPlayer.playerId = playerInfo.playerId;
         otherPlayer.rotation = playerInfo.rotation;
