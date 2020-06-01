@@ -36,7 +36,7 @@ class GameScene extends Phaser.Scene {
         //Load background
         this.add.image(640, 360, "background").setScale(1);
         //this.add.image(640, 360, "stars").setScale(4);
-        this.add.image(640, 820, "base").setScale(15);
+        this.add.image(640, 360, "base").setScale(1);
 
         //Create animations
         this.anims.create({
@@ -599,7 +599,7 @@ class GameScene extends Phaser.Scene {
     addCrosshair(self, crosshairInfo) {
         const crosshair = self.add
             .sprite(crosshairInfo.mouseX, crosshairInfo.mouseY, "crosshair")
-            .setScale(0.05);
+            .setScale(0.3);
 
         crosshair.id = crosshairInfo.id;
         self.crosshairs.add(crosshair);
@@ -659,7 +659,7 @@ class GameScene extends Phaser.Scene {
 
     //this helper makes a button
     makeUIButtonHelper(self, name, xpos, text, upgradeType) {
-        self[name + 'Text'] = self.add.text(xpos - 40, -110, text, { fontSize: '18px' }).setDepth(102);
+        self[name + 'Text'] = self.add.text(xpos - 40, -110, text, { fontSize: '18px' }).setTint(0x202020).setDepth(102);
         self[name] = self.add.image(xpos, -85, 'button').setDepth(101).setScale(1.5).setTint(0xcfcfcf)
             .setInteractive();
         self[name].on('pointerover', () => {
