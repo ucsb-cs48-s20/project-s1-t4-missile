@@ -189,7 +189,7 @@ io.on('connect', socket => {
 
         socket.on('attemptBuyConsumable', consumableName => {
             if (consumableName == 'laser'){
-                let bought = attemptBuyConsumable(socket.id, consumableName, 1);
+                let bought = attemptBuyConsumable(socket.id, consumableName, 1500);
                 if (bought) {
                     players[socket.id].specialAttackAmmo = 3;
                 }
@@ -200,14 +200,14 @@ io.on('connect', socket => {
             let myPlayer = players[socket.id];
             if (myPlayer.specialAttack == "none") { return; }
             else if (myPlayer.specialAttack == "laser") {
-                io.to(socket.id).emit('updateSpecialAttack', socket.id, 'laser', 0x555555 * (myPlayer.specialAttackAmmo - 1));
+                io.emit('updateSpecialAttack', socket.id, 'laser', 0x555555 * (myPlayer.specialAttackAmmo - 1));
                 //todo: fire laser
             }
 
 
             myPlayer.specialAttackAmmo -= 1;
             if (myPlayer.specialAttackAmmo <= 0) {
-                io.to(socket.id).emit('updateSpecialAttack', socket.id, 'none', 0x000000);
+                io.emit('updateSpecialAttack', socket.id, 'none', 0x000000);
             }
         })
 
@@ -366,7 +366,7 @@ function attemptBuyConsumable(socketID, consumableName, cost) {
         players[socketID].credits -= cost;
         players[socketID].specialAttack = consumableName;
         io.to(socketID).emit('updateCredits', players[socketID].credits);
-        io.to(socketID).emit('updateSpecialAttack', socketID, consumableName, 0xffffff);
+        io.emit('updateSpecialAttack', socketID, consumableName, 0xffffff);
         return true;
     }
 
