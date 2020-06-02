@@ -364,8 +364,6 @@ class GameScene extends Phaser.Scene {
             this.cometHealthText = this.add.text(900, 280, `9 - Comet health = ${data.cometHealth}`).setDepth(150);
             this.cometSpeedText = this.add.text(900, 300, `0 - Comet speed = ${data.cometSpeed}`).setDepth(150);
         })
-
-        console.log()
     }
 
     update() {
@@ -498,8 +496,6 @@ class GameScene extends Phaser.Scene {
             if(this.key && !this.key.isDown) {
                 this.keypressed = false;
             }
-
-
         }
     }
 
