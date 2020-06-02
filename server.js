@@ -100,6 +100,9 @@ io.on('connect', socket => {
                 rechargingMissiles: false,
                 regenSpeed: 0.4,
 
+                specialAttack: "none",
+                specialAttackAmmo: 0,
+
                 debugging: false,
             };
         }
@@ -183,6 +186,30 @@ io.on('connect', socket => {
                 }
             }
         });
+
+        socket.on('attemptBuyConsumable', consumableName => {
+            if (consumableName == 'laser'){
+                let bought = attemptBuyConsumable(socket.id, consumableName, 1);
+                if (bought) {
+                    players[socket.id].specialAttackAmmo = 3;
+                }
+            }
+        })
+
+        socket.on('specialShot', () => {
+            let myPlayer = players[socket.id];
+            if (myPlayer.specialAttack == "none") { return; }
+            else if (myPlayer.specialAttack == "laser") {
+                io.to(socket.id).emit('updateSpecialAttack', socket.id, 'laser', 0x555555 * (myPlayer.specialAttackAmmo - 1));
+                //todo: fire laser
+            }
+
+
+            myPlayer.specialAttackAmmo -= 1;
+            if (myPlayer.specialAttackAmmo <= 0) {
+                io.to(socket.id).emit('updateSpecialAttack', socket.id, 'none', 0x000000);
+            }
+        })
 
         socket.on('enterDebug', () => {
             if (!players[socket.id].debugging) {
@@ -334,6 +361,17 @@ function attemptUpgrade(socketID, upgradeName, upgradeIncrement, cost, costIncre
     return false;
 }
 
+function attemptBuyConsumable(socketID, consumableName, cost) {
+    if (players[socketID].credits >= cost){
+        players[socketID].credits -= cost;
+        players[socketID].specialAttack = consumableName;
+        io.to(socketID).emit('updateCredits', players[socketID].credits);
+        io.to(socketID).emit('updateSpecialAttack', socketID, consumableName, 0xffffff);
+        return true;
+    }
+
+    return false;
+}
 
 // give the player missiles until they have their max amount. 
 function giveBulletsUntilMax(socketId, player, regenMs) {

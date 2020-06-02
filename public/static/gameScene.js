@@ -21,9 +21,15 @@ class GameScene extends Phaser.Scene {
         });
         this.load.image("base", "/assets/base.png");
         this.load.image("button", "/assets/button.png");
+        this.load.image("halfbutton", "/assets/half-button.png");
         this.load.image("reloadmeter", "/assets/reload-meter-tex.png");
         this.load.image("crosshair", "/assets/crosshairs.png");
         this.load.image("shopbg", "/assets/shop-ui-main.png");
+        this.load.image("specialholder", "/assets/special-attack-holder.png");
+        this.load.spritesheet("laser", "assets/laser-bar.png", {
+            frameWidth: 64,
+            frameHeight: 64,
+        });
     }
 
     create() {
@@ -64,6 +70,9 @@ class GameScene extends Phaser.Scene {
         this.otherTankbodys = this.physics.add.group();
         this.crosshairs = this.physics.add.group();
         this.shopUI = this.add.group();
+        //special variables for shop button placement
+        this.shopUIButtonPlacerX = 80;
+        this.shopUIButtonPlacerY = -85;
 
         this.spectate = false;
 
@@ -82,6 +91,9 @@ class GameScene extends Phaser.Scene {
         this.UITweening = false;
         this.noMissilesLeft = false;
         this.maxMissilesClientCopy = -1;
+        this.specialAttackClientCopy = "none";
+        this.specialAttackActive = false;
+        this.specialAttackKey = this.input.keyboard.addKey('Q');
 
         //Initializing server-handled objects
         let UITextY = 15;
@@ -235,6 +247,10 @@ class GameScene extends Phaser.Scene {
                 if (playerId === otherPlayer.playerId) {
                     otherPlayer.missileCountSprite.destroy();
                     otherPlayer.missileCountText.destroy();
+                    otherPlayer.specialAttackHolder.destroy();
+                    if (otherPlayer.specialAttackIcon != undefined) {
+                        otherPlayer.specialAttackIcon.destroy();
+                    }
                     otherPlayer.destroy();
                 }
             });
@@ -314,6 +330,22 @@ class GameScene extends Phaser.Scene {
                 this.missileCountUpgradeText.setText(`Ammo\nCapacity\n\n${info[1]}`);
             }
         });
+        this.socket.on("updateSpecialAttack", (id, newAttackName, color) => {
+
+            if (id == self.playerId) {
+                self.specialAttackClientCopy = newAttackName;
+                self.updateSpecialAttackIcon(self, self, newAttackName, color);
+            }
+            else {
+                self.otherPlayers.getChildren().forEach(otherPlayer => {
+                    if (id == otherPlayer.playerId) {
+                        self.updateSpecialAttackIcon(self, otherPlayer, newAttackName, color);
+                    }
+                });
+            }
+            
+            
+        })
         this.socket.on("updateRound", (round) => {
             this.roundText.setText(`${round}`);
         })
@@ -381,23 +413,43 @@ class GameScene extends Phaser.Scene {
             //make the UI tray come out and go back in
             this.moveUI(pointer, UICutoffY);
 
+
+            //Special attack activate
+            if (this.specialAttackKey.isDown && !this.specialAttackActive && this.specialAttackClientCopy != "none") {
+                this.specialAttackActive = true;
+            }
+
             //Shot handling
             if (
                 !this.shot &&
                 pointer.isDown &&
                 pointer.y >= UICutoffY &&
                 !this.reloading &&
-                !this.noMissilesLeft
+                (!this.noMissilesLeft || this.specialAttackActive)
             ) {
-                this.shot = true;
                 this.ship.play("fire");
-                this.socket.emit("missileShot", {
-                    x: this.ship.x,
-                    y: this.ship.y,
-                    mouseX: pointer.x,
-                    mouseY: pointer.y,
-                    rotation: this.ship.rotation,
-                });
+                this.shot = true;
+
+                if (this.specialAttackActive){
+                    switch (this.specialAttackClientCopy) {
+                        case "none":
+                            this.specialAttackActive = false;
+                        default: // attack is not none so assume it's something
+                            this.socket.emit("specialShot");
+                    }
+                }
+
+                if (!this.specialAttackActive)
+                {
+                    this.socket.emit("missileShot", {
+                        x: this.ship.x,
+                        y: this.ship.y,
+                        mouseX: pointer.x,
+                        mouseY: pointer.y,
+                        rotation: this.ship.rotation,
+                    });
+                }
+                
             }
 
             if (!pointer.isDown) {
@@ -548,6 +600,18 @@ class GameScene extends Phaser.Scene {
             .setTint(0xffffff).setDepth(100);
     }
 
+    addSpecialAttackHolder(self, somePlayer, playerInfo) {
+        somePlayer.specialAttackHolder = self.add.sprite(playerInfo.x - 60, 650, 'specialholder').setDisplaySize(32, 32).setDepth(100);
+    }
+
+    updateSpecialAttackIcon(self, somePlayer, newAttackName, color) {
+        if (somePlayer.specialAttackIcon != undefined) { somePlayer.specialAttackIcon.destroy(); }
+        if (newAttackName == "none") { return; }
+
+        somePlayer.specialAttackIcon = self.add.sprite(somePlayer.specialAttackHolder.x, somePlayer.specialAttackHolder.y, newAttackName)
+            .setDisplaySize(24,24).setDepth(101).setTint(color);
+    }
+
     addPlayer(self, playerInfo) {
         self.addTankBody(self, playerInfo);
         self.ship = self.physics.add.sprite(playerInfo.x, playerInfo.y - 10, 'tankbarrel').setScale(1.25).setDepth(20);
@@ -556,6 +620,7 @@ class GameScene extends Phaser.Scene {
         self.ship.setMaxVelocity(200);
         self.playerId = playerInfo.playerId;
         self.addMissileCounter(self, self, playerInfo);
+        self.addSpecialAttackHolder(self, self, playerInfo);
         self.maxMissilesClientCopy = playerInfo.maxMissiles;
     }
 
@@ -568,6 +633,7 @@ class GameScene extends Phaser.Scene {
         otherPlayer.playerId = playerInfo.playerId;
         otherPlayer.rotation = playerInfo.rotation;
         self.addMissileCounter(self, otherPlayer, playerInfo);
+        self.addSpecialAttackHolder(self, otherPlayer, playerInfo);
         self.maxMissilesClientCopy = playerInfo.maxMissiles;
         otherTankbody.playerId = playerInfo.playerId;
         self.otherPlayers.add(otherPlayer);
@@ -643,60 +709,107 @@ class GameScene extends Phaser.Scene {
         }
     }
 
-    //this helper makes a button
-    makeUIButtonHelper(self, name, xpos, text, upgradeType) {
-        self[name + 'Text'] = self.add.text(xpos - 40, -110, text, { fontSize: '18px' }).setDepth(102);
-        self[name] = self.add.image(xpos, -85, 'button').setDepth(101).setScale(1.5).setTint(0xcfcfcf)
-            .setInteractive();
-        self[name].on('pointerover', () => {
-            self[name].setTint(0xfcfcfc);
+    makeButtonClickBehavior(self, button, onClickFunction) {
+        button.on('pointerover', () => {
+            button.setTint(0xfcfcfc);
         })
             .on('pointerout', () => {
-                self[name].setTint(0xcfcfcf);
+                button.setTint(0xcfcfcf);
             })
-            .on('pointerdown', () => {
-                self.socket.emit('attemptUpgrade', upgradeType);
-            })
+            .on('pointerdown', onClickFunction)
+    }
+
+    //this helper makes a button
+    makeUIButtonHelper(self, name, text, upgradeType) {
+        let xpos = self.shopUIButtonPlacerX;
+        let ypos = self.shopUIButtonPlacerY;
+        self.shopUIButtonPlacerX += 160;
+
+        self[name + 'Text'] = self.add.text(xpos - 40, ypos - 25, text, { fontSize: '18px' }).setDepth(102);
+        self[name] = self.add.image(xpos, ypos, 'button').setDepth(101).setScale(1.5).setTint(0xcfcfcf)
+            .setInteractive();
+        self.makeButtonClickBehavior(self, self[name], () => {
+            self.socket.emit('attemptUpgrade', upgradeType);
+        })
         self.shopUI.add(self[name]);
         self.shopUI.add(self[name + "Text"]);
+    }
+
+    makeUIHalfButtonHelper(self, name, text, consumableType) {
+        let xpos = self.shopUIButtonPlacerX;
+        let ypos = self.shopUIButtonPlacerY;
+        if (ypos > -80) { 
+            self.shopUIButtonPlacerY = -85; 
+            self.shopUIButtonPlacerX += 130;
+        }
+        else {
+            self.shopUIButtonPlacerY += 65;
+        }
+
+        self[name + 'Text'] = self.add.text(xpos - 55, ypos - 32, text, {fontSize: '16px'}).setDepth(102).setTint(0x202020);
+        self[name] = self.add.image(xpos, ypos - 19, 'halfbutton').setDepth(101).setScale(1.25).setTint(0xcfcfcf)
+            .setInteractive();
+        self.makeButtonClickBehavior(self, self[name], () => {
+            self.socket.emit('attemptBuyConsumable', consumableType);
+        })
+        self.shopUI.add(self[name]);
+        self.shopUI.add(self[name + 'Text']);
     }
 
     makeUIButtons(self) {
         this.makeUIButtonHelper(
             self,
             "speedUpgrade",
-            80,
             "Missile\nSpeed\n\n1000",
             "speed"
         );
         this.makeUIButtonHelper(
             self,
             "damageUpgrade",
-            240,
             "Missile\nDamage\n\n1000",
             "damage"
         );
         this.makeUIButtonHelper(
             self,
             "radiusUpgrade",
-            400,
             "Explosion\nRadius\n\n500",
             "radius"
         );
         this.makeUIButtonHelper(
             self,
             "regenUpgrade",
-            560,
             "Ammo Regen\nSpeed\n\n500",
             "regenSpeed"
         );
         this.makeUIButtonHelper(
             self,
             "missileCountUpgrade",
-            720,
             "Ammo\nCapacity\n\n800",
             "maxMissiles"
         );
+
+        this.makeUIHalfButtonHelper(
+            self,
+            "laserConsumable",
+            "Laser Shots\n1500",
+            "laser"
+        );
+
+        //To add more half-buttons, just list them as follows, and they will appear in the shop at an appropriate place
+
+        /*this.makeUIHalfButtonHelper(
+            self,
+            "laserConsumable",
+            "Laser Shots\n1500",
+            "laser"
+        );
+
+        this.makeUIHalfButtonHelper(
+            self,
+            "laserConsumable",
+            "Laser Shots\n1500",
+            "laser"
+        );*/
     }
 }
 
