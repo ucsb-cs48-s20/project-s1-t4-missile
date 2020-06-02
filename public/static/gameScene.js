@@ -76,11 +76,6 @@ class GameScene extends Phaser.Scene {
             }),
         });
 
-
-
-        //Load socket
-        this.socket = io(ENDPOINT, { query: "purpose=game" });
-
         //GroupsY
         this.missiles = this.physics.add.group();
         this.comets = this.physics.add.group();
