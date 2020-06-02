@@ -9,7 +9,7 @@ const nextApp = next({ dev });
 const nextHandler = nextApp.getRequestHandler();
 const PORT = process.env.PORT || 3000;
 
-const { addUser, removeUser, getUser } = require('./utils/chatUsers.js');
+const { addUser, removeUser, getUser, getAllUsers } = require('./utils/chatUsers.js');
 const { distance } = require('./utils/serverCalculations.js');
 
 nextApp.prepare().then(() => {
@@ -49,6 +49,7 @@ let playerSlots = {
     p3: undefined,
     p4: undefined
 }
+
 let users = {};
 let missiles = {};
 let comets = {};
@@ -62,7 +63,7 @@ io.on('connect', socket => {
     // console.log(socket.handshake.query.purpose);
     if (socket.handshake.query.purpose === "game") {
         console.log(`${socket.id} connected`);
-        console.log(gameState);
+        //console.log(gameState);
 
         let nextSlot = getNextSlot();
         if (nextSlot == -1) {
@@ -276,17 +277,14 @@ io.on('connect', socket => {
 
         console.log(`Chat socket ${socket.id} connected`);
 
-        let defaultName = `Player ${nextSlot}`
-
         //Handles the chat stuff
         socket.on('disconnect', () => {
             console.log(`Chat socket ${socket.id} has left!`);
             const user = removeUser(socket.id);
-
             if (user) {
                 io.to(user.room).emit('message', { user: 'admin', text: `${user.name} has left.` });
+                io.to(user.room).emit('roomData', { room: user.room, users: getAllUsers() });
             }
-
             socket.disconnect();
         })
 
@@ -299,10 +297,10 @@ io.on('connect', socket => {
             }
 
             socket.emit('message', { user: 'admin', text: `${user.name}, welcome to the room!` });
-            // socket.emit('defaultName', { name: `${defaultName}` });
             socket.broadcast.to(user.room).emit('message', { user: 'admin', text: `${user.name} has joined the room.` });
             socket.join(user.room);
 
+            io.to(user.room).emit('roomData', { room: user.room, users: getAllUsers() });
             callback();
         });
 

@@ -8,6 +8,7 @@ import "./ChatLayout.scss";
 // Components
 import Input from "./Input.js";
 import Messages from "./Messages.js";
+import TextContainer from "./TextContainer.js";
 
 let socket;
 
@@ -15,6 +16,7 @@ const Chat = () => {
     const [name, setName] = useState("");
     const [message, setMessage] = useState("");
     const [messages, setMessages] = useState([]);
+    const [users, setUsers] = useState("");
     const ENDPOINT = window.location.protocol + '//' + window.location.hostname + ':' + window.location.port;
 
     const Router = useRouter();
@@ -53,7 +55,11 @@ const Chat = () => {
         socket.on("defaultName", ({ name }) => {
             setName(name);
         });
-    }, []);
+
+        socket.on("roomData", (obj) => {
+            setUsers(obj.users);
+        })
+    }, [Router]);
 
     const sendMessage = (event) => {
         event.preventDefault();
@@ -67,6 +73,7 @@ const Chat = () => {
     return (
         <div className="outerContainer">
             <div className="container">
+                <TextContainer users={users} />
                 <Messages messages={messages} name={name} />
                 <Input message={message} setMessage={setMessage} sendMessage={sendMessage} />
             </div>

@@ -62,7 +62,6 @@ function useScript(src) {
                 // Add script to document body
                 document.body.appendChild(script);
                 // Remove event listeners on cleanup
-
                 return () => {
                     script.removeEventListener("load", onScriptLoad);
                     script.removeEventListener("error", onScriptError);
@@ -85,18 +84,17 @@ const Test = () => {
 
     const Router = useRouter();
 
-    /*
-    const [windowSrc, werror] = useScript("/static/parentGameWindow.js");
+    //const [windowSrc, werror] = useScript("/static/parentGameWindow.js");
     const [socketSrc, serror] = useScript("/socket.io/socket.io.js");
     const [phaserSrc, perror] = useScript("//cdn.jsdelivr.net/npm/phaser@3.22.0/dist/phaser.js");
-    const [gameSrc, gerror] = useScript("/static/game.js"); */
+    const [gameSrc, gerror] = useScript("/static/game.js");
     
+    /*
     // load scripts
     useEffect(() => {
         const socketSrc = document.createElement("script");
         const phaserSrc = document.createElement("script");
         const gameSrc = document.createElement("script");
-        //const windowSrc = document.createElement("script"); // unnecessary
 
         // doesn't matter
         socketSrc.src = "/socket.io/socket.io.js";
@@ -115,6 +113,7 @@ const Test = () => {
         windowSrc.async = true;
         */
 
+        /*
         document.body.appendChild(socketSrc);
         document.body.appendChild(phaserSrc);
         //document.body.appendChild(windowSrc);
@@ -126,7 +125,7 @@ const Test = () => {
             document.body.removeChild(socketSrc);
             document.body.removeChild(phaserSrc);
         };
-    }, [Router]);
+    }, [Router]); */
 
     useEffect(() => {
         console.log("hello from useEffect!");

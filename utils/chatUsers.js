@@ -20,4 +20,8 @@ const removeUser = (id) => {
 
 const getUser = (id) => users.find((user) => user.id === id);
 
-module.exports = { addUser, removeUser, getUser };
+const getAllUsers = () => {
+    return users;
+}
+
+module.exports = { addUser, removeUser, getUser, getAllUsers };
