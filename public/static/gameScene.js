@@ -434,6 +434,7 @@ class GameScene extends Phaser.Scene {
             //Special attack activate
             if (this.specialAttackKey.isDown && !this.specialAttackActive && this.specialAttackClientCopy != "none") {
                 this.specialAttackActive = true;
+                this.specialAttackHolder.setTint(0xff0000);
             }
 
             //Shot handling
@@ -623,7 +624,12 @@ class GameScene extends Phaser.Scene {
 
     updateSpecialAttackIcon(self, somePlayer, newAttackName, color) {
         if (somePlayer.specialAttackIcon != undefined) { somePlayer.specialAttackIcon.destroy(); }
-        if (newAttackName == "none") { return; }
+        if (newAttackName == "none") { 
+            if (self === somePlayer) {
+                self.specialAttackHolder.setTint(0xffffff);
+            }
+            return; 
+        }
 
         somePlayer.specialAttackIcon = self.add.sprite(somePlayer.specialAttackHolder.x, somePlayer.specialAttackHolder.y, newAttackName)
             .setDisplaySize(24,24).setDepth(101).setTint(color);
