@@ -4,7 +4,7 @@ import EndScene from '/static/endScene.js'
 
 let config = {
     type: Phaser.AUTO,
-    //parent: 'gameWindow',  doesnt work with dynamic game window. see parentGameWindow.js
+    parent: 'gameWindow',  // doesnt work with dynamic game window. see parentGameWindow.js
     width: 1280,
     height: 720,
     physics: {
@@ -18,6 +18,8 @@ let config = {
 
 let game = new Phaser.Game(config);
 
+console.log("game!");
+
 const ENDPOINT = window.location.protocol + '//' + window.location.hostname + ':' + window.location.port;
 let socket = io(ENDPOINT, { query: "purpose=game" });
 
@@ -25,7 +27,9 @@ game.scene.add('lobbyScene', new LobbyScene());
 game.scene.add('gameScene', new GameScene());
 game.scene.add('endScene', new EndScene());
 
-window.setTimeout(game.scene.start('lobbyScene', socket), 1000);
+game.scene.start('lobbyScene', socket); // got rid of timer
+
+
 
 
 

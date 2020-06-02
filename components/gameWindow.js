@@ -5,7 +5,8 @@ import Chat from './ChatLayout'
 function Make() {
     return (
         <div className="main gameWindow">
-            <div id="gameWindow" className="game" />
+            <div id="gameWindow" className="game">
+            </div>
             <Chat className="chat" />
         </div>
     )

@@ -23,7 +23,7 @@ const Chat = () => {
         socket = io(ENDPOINT, { query: "purpose=chat" }); // set connection
 
         const { name } = Router.query;
-
+        
         setName(name);
 
         socket.emit("join", { name: name }, (str) => {

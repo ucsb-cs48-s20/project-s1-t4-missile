@@ -3,7 +3,7 @@ import dynamic from "next/dynamic";
 import styles from "../components/styles";
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/router";
-import Head from 'next/head'
+import Head from "next/head";
 
 // Hook
 let cachedScripts = [];
@@ -84,62 +84,52 @@ const Test = () => {
     const [oldBodyStyle, setOldStyle] = useState("");
 
     const Router = useRouter();
-    const [socketSrc, serror] = useScript(
-        "/socket.io/socket.io.js"
-    );
-    
-    const [phaserSrc, perror] = useScript(
-       "//cdn.jsdelivr.net/npm/phaser@3.22.0/dist/phaser.js"
-    );
-
-    const [gameSrc, gerror] = useScript(
-        "/static/game.js"
-    );
-    const [windowSrc, werror] = useScript(
-        "/static/parentGameWindow.js"
-    );
 
     /*
+    const [windowSrc, werror] = useScript("/static/parentGameWindow.js");
+    const [socketSrc, serror] = useScript("/socket.io/socket.io.js");
+    const [phaserSrc, perror] = useScript("//cdn.jsdelivr.net/npm/phaser@3.22.0/dist/phaser.js");
+    const [gameSrc, gerror] = useScript("/static/game.js"); */
+    
     // load scripts
     useEffect(() => {
         const socketSrc = document.createElement("script");
         const phaserSrc = document.createElement("script");
         const gameSrc = document.createElement("script");
-        const windowSrc = document.createElement("script");
+        //const windowSrc = document.createElement("script"); // unnecessary
 
+        // doesn't matter
         socketSrc.src = "/socket.io/socket.io.js";
         socketSrc.async = true;
 
+        // executes and finishes first
         phaserSrc.src = "//cdn.jsdelivr.net/npm/phaser@3.22.0/dist/phaser.js";
         phaserSrc.async = true;
 
         gameSrc.src = "/static/game.js";
-        gameSrc.async = true;
         gameSrc.type = "module";
 
+        // execute before gameSrc loaded
+        /*
         windowSrc.src = "/static/parentGameWindow.js";
         windowSrc.async = true;
-
-        /*
-        <script type='module' src='/static/game.js'></script>
-        <script src='/static/parentGameWindow.js'></script>
         */
 
-        /*
         document.body.appendChild(socketSrc);
         document.body.appendChild(phaserSrc);
-        document.body.appendChild(windowSrc);
+        //document.body.appendChild(windowSrc);
         document.body.appendChild(gameSrc);
 
         return () => {
             document.body.removeChild(gameSrc);
-            document.body.removeChild(windowSrc);
+            //document.body.removeChild(windowSrc);
             document.body.removeChild(socketSrc);
             document.body.removeChild(phaserSrc);
         };
-    }, [Router]); */
+    }, [Router]);
 
     useEffect(() => {
+        console.log("hello from useEffect!");
         setOldStyle(document.body.style);
         document.title = pageTitle;
 
@@ -154,6 +144,7 @@ const Test = () => {
         };
     }, [oldBodyStyle]);
 
+    
     return (
         <div style={styles.container}>
             <Head>
@@ -161,7 +152,6 @@ const Test = () => {
             </Head>
             <Favicon url="/static/images/favicon.ico"></Favicon>
             <h1>{`${pageTitle}`}</h1>
-            
             <DynamicGameWindow />
         </div>
     );

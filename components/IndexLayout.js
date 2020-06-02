@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import Head from "next/head";
+import Router from 'next/router';
 
 import "./IndexLayout.scss";
 
@@ -27,10 +28,8 @@ const Layout = (props) => {
                         onChange={(event) => setName(event.target.value)}
                     />
                 </div>
-                <Link href={`/gamepage?name=${name}`}>
-                    <button className="button mt-20" type="submit"
-                     onClick={(event) => (!name) ? event.preventDefault() : null}>Sign In</button>
-                </Link>
+                <button className="button mt-20" type="submit"
+                    onClick={(event) => (!name) ? event.preventDefault() : Router.push(`/gamepage?name=${name}`)}>Sign In</button>
             </div>
         </div>
     );
