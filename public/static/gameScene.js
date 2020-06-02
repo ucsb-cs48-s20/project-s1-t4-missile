@@ -13,16 +13,22 @@ class GameScene extends Phaser.Scene {
     preload() {
         this.load.image("background", "/assets/background.png");
         this.load.image("stars", "/assets/background-stars.png");
-        this.load.image("tankbody", "/assets/tankbody.png");
+        this.load.image("tankbody1", "/assets/tankbody1.png");
+        this.load.image("tankbody2", "/assets/tankbody2.png");
+        this.load.image("tankbody3", "/assets/tankbody3.png");
+        this.load.image("tankbody4", "/assets/tankbody4.png");
         this.load.spritesheet("tankbarrel", "/assets/tankbarrel.png", {
-            frameWidth: 128,
-            frameHeight: 128,
+            frameWidth: 32,
+            frameHeight: 256,
         });
         this.load.image("missile", "/assets/missile.png");
-        this.load.image("comet", "/assets/comet.png");
+        this.load.spritesheet("comet", "/assets/comet.png", {
+            frameWidth: 64,
+            frameHeight: 128,
+        });
         this.load.spritesheet("explosion", "/assets/explosion.png", {
-            frameWidth: 16,
-            frameHeight: 16,
+            frameWidth: 128,
+            frameHeight: 128,
         });
         this.load.image("base", "/assets/base.png");
         this.load.image("button", "/assets/button.png");
@@ -43,26 +49,36 @@ class GameScene extends Phaser.Scene {
         this.socket.emit('requestInitialize');
 
         //Load background
-        this.add.image(640, 360, "background").setScale(5);
-        this.add.image(640, 360, "stars").setScale(4);
-        this.add.image(640, 820, "base").setScale(15);
+        this.add.image(640, 360, "background").setScale(1);
+        //this.add.image(640, 360, "stars").setScale(4);
+        this.add.image(640, 360, "base").setScale(1);
 
         //Create animations
         this.anims.create({
             key: "explode",
-            duration: 16,
+            frameRate: 20,
             frames: this.anims.generateFrameNames("explosion", {
                 start: 0,
-                end: 4,
+                end: 15,
             }),
         });
 
         this.anims.create({
+            key: "cometMain",
+            frameRate: 20,
+            repeat: -1,
+            frames: this.anims.generateFrameNames("comet", {
+                start: 0,
+                end: 15,
+            }),
+        })
+
+        this.anims.create({
             key: "fire",
-            frameRate: 15,
+            frameRate: 20,
             frames: this.anims.generateFrameNames("tankbarrel", {
                 start: 1,
-                end: 7,
+                end: 8,
             }),
         });
 
@@ -214,9 +230,9 @@ class GameScene extends Phaser.Scene {
                 if (missile.id == missileId) {
                     const explosion = this.add
                         .sprite(missile.x, missile.y, "explosion", 0)
-                        .setScale(size / 16);
+                        .setScale(size / 128);
                     explosion.play("explode");
-                    explosion.anims.setTimeScale(1 / time);
+                    explosion.anims.setTimeScale(40 / time);
                     explosion.once(
                         Phaser.Animations.Events.SPRITE_ANIMATION_COMPLETE,
                         () => {
@@ -241,9 +257,9 @@ class GameScene extends Phaser.Scene {
                 if (comet.id == cometId) {
                     const explosion = this.add
                         .sprite(comet.x, comet.y, "explosion", 0)
-                        .setScale(size / 16);
+                        .setScale(size / 96);
                     explosion.play("explode");
-                    explosion.anims.setTimeScale(1 / time);
+                    explosion.anims.setTimeScale(40 / time);
                     explosion.once(
                         Phaser.Animations.Events.SPRITE_ANIMATION_COMPLETE,
                         () => {
@@ -288,7 +304,7 @@ class GameScene extends Phaser.Scene {
                     this.healthText.setText(`${info[1]}`);
                     const explosion = this.add
                         .sprite(comet.x, comet.y, "explosion", 0)
-                        .setScale(4.5);
+                        .setScale(1);
                     explosion.play("explode");
                     explosion.once(
                         Phaser.Animations.Events.SPRITE_ANIMATION_COMPLETE,
@@ -413,8 +429,6 @@ class GameScene extends Phaser.Scene {
             this.cometHealthText = this.add.text(900, 280, `9 - Comet health = ${data.cometHealth}`).setDepth(150);
             this.cometSpeedText = this.add.text(900, 300, `0 - Comet speed = ${data.cometSpeed}`).setDepth(150);
         })
-
-        console.log()
     }
 
     update() {
@@ -568,8 +582,6 @@ class GameScene extends Phaser.Scene {
             if(this.key && !this.key.isDown) {
                 this.keypressed = false;
             }
-
-
         }
     }
 
@@ -605,9 +617,9 @@ class GameScene extends Phaser.Scene {
     //Helper add functions
     addTankBody(self, playerInfo) {
         return self.add
-            .sprite(playerInfo.x, playerInfo.y - 10, "tankbody")
-            .setScale(1.25)
-            .setDepth(10);
+            .sprite(playerInfo.x, playerInfo.y, "tankbody" + (1+Math.round((playerInfo.x-160)/320.0)))
+            .setScale(0.5)
+            .setDepth(25);
     }
 
     addMissileCounter(self, somePlayer, playerInfo) {
@@ -635,7 +647,9 @@ class GameScene extends Phaser.Scene {
 
     addPlayer(self, playerInfo) {
         self.addTankBody(self, playerInfo);
-        self.ship = self.physics.add.sprite(playerInfo.x, playerInfo.y - 10, 'tankbarrel').setScale(1.25).setDepth(20);
+        self.ship = self.physics.add.sprite(playerInfo.x, playerInfo.y - 10, 'tankbarrel')
+            .setScale(0.7)
+            .setDepth(20);
         self.ship.setDrag(100);
         self.ship.setAngularDrag(100);
         self.ship.setMaxVelocity(200);
@@ -649,7 +663,7 @@ class GameScene extends Phaser.Scene {
         const otherTankbody = self.addTankBody(self, playerInfo);
         const otherPlayer = self.add
             .sprite(playerInfo.x, playerInfo.y - 10, "tankbarrel")
-            .setScale(1.25)
+            .setScale(0.7)
             .setDepth(20);
         otherPlayer.playerId = playerInfo.playerId;
         otherPlayer.rotation = playerInfo.rotation;
@@ -664,7 +678,8 @@ class GameScene extends Phaser.Scene {
     addMissile(self, missileInfo) {
         const missile = self.add
             .sprite(missileInfo.x, missileInfo.y, "missile")
-            .setDepth(15);
+            .setDepth(15)
+            .setScale(0.1875);
         missile.rotation = missileInfo.rotation;
         missile.id = missileInfo.id;
         self.missiles.add(missile);
@@ -673,7 +688,7 @@ class GameScene extends Phaser.Scene {
     addCrosshair(self, crosshairInfo) {
         const crosshair = self.add
             .sprite(crosshairInfo.mouseX, crosshairInfo.mouseY, "crosshair")
-            .setScale(0.05);
+            .setScale(0.3);
 
         crosshair.id = crosshairInfo.id;
         self.crosshairs.add(crosshair);
@@ -682,9 +697,10 @@ class GameScene extends Phaser.Scene {
     addComet(self, cometInfo) {
         const comet = self.add
             .sprite(cometInfo.x, cometInfo.y, "comet")
-            .setDisplaySize(23, 60);
+            .setDisplaySize(32, 64);
         comet.rotation = cometInfo.rotation;
         comet.id = cometInfo.id;
+        comet.play("cometMain");
         self.comets.add(comet);
     }
 

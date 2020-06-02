@@ -63,11 +63,11 @@ for (let i = 0; i < cometLimit; i++) {
     comets[i] = undefined;
 }
 
-let socketCount = 0;
 io.on('connect', socket => {
     console.log(socket.handshake.query.purpose);
     if (socket.handshake.query.purpose === "game") {
         console.log(`${socket.id} connected`);
+        console.log(gameState);
 
         let nextSlot = getNextSlot();
         if (nextSlot == -1) {
@@ -102,7 +102,9 @@ io.on('connect', socket => {
         if (gameState == 'lobby') {
             io.emit('initUsers', users);
         } else if (gameState == 'game') {
-            io.to(socket.id).emit('switchStart');
+            setTimeout(() => {
+                io.to(socket.id).emit('switchStart')
+            }, 1000);
             socket.broadcast.emit('newPlayer', players[socket.id]);
         } else {
             kills = [];
@@ -111,7 +113,10 @@ io.on('connect', socket => {
                     kills.push(players[playerId].kills)
                 }
             })
-            io.emit('lobbyToEnd', { 'round': round, 'score': score, 'kills': kills });
+            console.log('moving ' + socket.id)
+            setTimeout(() => {
+                io.to(socket.id).emit('lobbyToEnd', { 'round': round, 'score': score, 'kills': kills })
+            }, 1000);
         }
 
         socket.on('startGame', () => {
@@ -295,7 +300,7 @@ io.on('connect', socket => {
     } else {
         let nextSlot = getNextSlot()
         console.log(nextSlot)
-        if (nextSlot == -1) {
+        if (nextSlot === -1) {
             console.log('Game full')
             return
         }
@@ -340,7 +345,6 @@ io.on('connect', socket => {
         });
 
     }
-    socketCount++
 })
 
 //Helper functions
