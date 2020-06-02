@@ -36,6 +36,7 @@ let roundOver = false;
 let score = 0;
 let reloadSpeed = 0.5;
 let numMissiles = 2;
+let laserDamage = 4;
 
 //Variables that change with rounds
 let cometLimit = 10;
@@ -201,12 +202,13 @@ io.on('connect', socket => {
             if (myPlayer.specialAttack == "none") { return; }
             else if (myPlayer.specialAttack == "laser") {
                 io.emit('updateSpecialAttack', socket.id, 'laser', 0x555555 * (myPlayer.specialAttackAmmo - 1));
-                //todo: fire laser
+                fireLaser(socket.id);
             }
 
 
             myPlayer.specialAttackAmmo -= 1;
             if (myPlayer.specialAttackAmmo <= 0) {
+                myPlayer.specialAttack = "none";
                 io.emit('updateSpecialAttack', socket.id, 'none', 0x000000);
             }
         })
@@ -498,6 +500,68 @@ function detectCollisions() {
     }
 }
 
+function fireLaser(socketID) {
+    let myPlayer = players[socketID];
+
+    //unit vector of the laser direction
+    let laserDir = { "x": Math.sin(myPlayer.rotation) ,
+                     "y": -Math.cos(myPlayer.rotation)} ;
+
+    io.emit('laserFired', { "x": myPlayer.x, 
+                           "y": myPlayer.y } , 
+            laserDir, myPlayer.rotation);
+
+    Object.keys(comets).forEach(cometId => {
+        if (comets[cometId] == undefined) { return; }
+        let thisComet = comets[cometId];
+        //it's time for some crappy linear algebra. it finds the distance from the line of the laser.
+        let localPos = { "x": thisComet.x - myPlayer.x , 
+                         "y": thisComet.y - myPlayer.y } ;
+        
+        let projectionLength = (localPos.x * laserDir.x) + (localPos.y * laserDir.y);
+        let projection = { "x": projectionLength * laserDir.x ,
+                           "y": projectionLength * laserDir.y} ;
+        let orthogonalPart = { "x": localPos.x - projection.x ,
+                               "y": localPos.y - projection.y} ;
+        let squareDistFromLaser = (orthogonalPart.x*orthogonalPart.x) + (orthogonalPart.y*orthogonalPart.y); // not using square root probably saves time
+        if (squareDistFromLaser < 10000) { // 100 * 100
+            thisComet.hp -= laserDamage;
+            if (thisComet.hp <= 0) {
+                destroyComet(cometId, socketID);
+            }
+        }
+    })
+}
+
+function destroyComet(cometId, awardPlayerSocketID) {
+    if (players[awardPlayerSocketID] != undefined) {
+        players[awardPlayerSocketID].credits += comets[cometId].credits;
+        players[awardPlayerSocketID].kills += 1;
+        io.to(awardPlayerSocketID).emit('updateCredits', players[awardPlayerSocketID].credits);
+    }
+
+    score += comets[cometId].credits;
+    io.emit('updateScore', score);
+    numComets--;
+
+    explosions[cometId + 'comet'] = {
+        x: comets[cometId].x,
+        y: comets[cometId].y,
+        id: cometId + 'comet',
+        dmg: comets[cometId].dmg,
+        radius: comets[cometId].radius,
+        currentRadius: 0,
+        playerId: awardPlayerSocketID,
+        durationLimit: comets[cometId].durationLimit,
+        startTick: 0
+    }
+    
+    let size = comets[cometId].radius;
+    let time = comets[cometId].durationLimit + 5;
+
+    comets[cometId] = undefined;
+    io.emit('cometDestroyed', cometId, size, time);
+}
 
 function explosionDamage() {
     if (gameRunning) {
@@ -510,33 +574,7 @@ function explosionDamage() {
                         comets[cometId].hp -= explosions[explosionId].dmg;
                         comets[cometId][explosionId] = true;
                         if (comets[cometId].hp <= 0 || comets[cometId].x < -10 || comets[cometId].x > 1290 || comets[cometId].y < -10 || comets[cometId].y > 730) {
-                            if (players[explosions[explosionId].playerId] != undefined) {
-                                players[explosions[explosionId].playerId].credits += comets[cometId].credits;
-                                players[explosions[explosionId].playerId].kills += 1;
-                                io.to(explosions[explosionId].playerId).emit('updateCredits', players[explosions[explosionId].playerId].credits);
-                            }
-
-                            score += comets[cometId].credits;
-                            io.emit('updateScore', score);
-                            numComets--;
-
-                            explosions[cometId + 'comet'] = {
-                                x: comets[cometId].x,
-                                y: comets[cometId].y,
-                                id: cometId + 'comet',
-                                dmg: comets[cometId].dmg,
-                                radius: comets[cometId].radius,
-                                currentRadius: 0,
-                                playerId: explosions[explosionId].playerId,
-                                durationLimit: comets[cometId].durationLimit,
-                                startTick: 0
-                            }
-                            
-                            let size = comets[cometId].radius;
-                            let time = comets[cometId].durationLimit + 5;
-
-                            comets[cometId] = undefined;
-                            io.emit('cometDestroyed', cometId, size, time);
+                            destroyComet(cometId, explosions[explosionId].playerId);
                         }
                     }
                 }

@@ -60,6 +60,18 @@ class GameScene extends Phaser.Scene {
             }),
         });
 
+        this.anims.create({
+            key: "laserFlux",
+            frameRate: 8,
+            repeat: -1,
+            frames: this.anims.generateFrameNames("laser", {
+                start: 0,
+                end: 2,
+            }),
+        });
+
+
+
         //Load socket
         this.socket = io(ENDPOINT, { query: "purpose=game" });
 
@@ -156,6 +168,11 @@ class GameScene extends Phaser.Scene {
                 }
             });
         });
+
+        this.socket.on("laserFired", (center, dir, rot) => {
+            self.displayLaser(self, center, dir, rot);
+        })
+
         this.socket.on("newComet", (cometInfo) => {
             self.addComet(self, cometInfo);
         });
@@ -665,6 +682,20 @@ class GameScene extends Phaser.Scene {
         comet.rotation = cometInfo.rotation;
         comet.id = cometInfo.id;
         self.comets.add(comet);
+    }
+
+    displayLaser(self, center, dir, rot) {
+        let tempLaser = self.add.sprite(center.x + 670*dir.x , center.y + 670*dir.y , 'laser').setDisplaySize(100,1280).setDepth(5);
+        tempLaser.play('laserFlux');
+        tempLaser.rotation = rot;
+        tempLaser.alpha = 1;
+        var drawLoop = setInterval(() => {
+            tempLaser.alpha -= 0.02;
+            if (tempLaser.alpha <= 0.01) {
+                tempLaser.destroy();
+                clearInterval(drawLoop);
+            }
+        }, 16)
     }
 
     displayReloadBar(self, shipThatHasThisBar, positionX, reloadTime, newMaxMissiles) {
