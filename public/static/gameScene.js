@@ -5,6 +5,11 @@ class GameScene extends Phaser.Scene {
         super({ key: "gameScene" });
     }
 
+    init(socket) {
+        this.socket = socket;
+        console.log(socket);
+    }
+
     preload() {
         this.load.image("background", "/assets/background.png");
         this.load.image("stars", "/assets/background-stars.png");
@@ -34,7 +39,8 @@ class GameScene extends Phaser.Scene {
 
     create() {
         let self = this;
-        const ENDPOINT = window.location.protocol + '//' + window.location.hostname + ':' + window.location.port
+
+        this.socket.emit('requestInitialize');
 
         //Load background
         this.add.image(640, 360, "background").setScale(1);
@@ -70,9 +76,6 @@ class GameScene extends Phaser.Scene {
             }),
         });
 
-        //Load socket
-        this.socket = io(ENDPOINT, { query: "purpose=game" });
-
         //GroupsY
         this.missiles = this.physics.add.group();
         this.comets = this.physics.add.group();
@@ -98,6 +101,7 @@ class GameScene extends Phaser.Scene {
         this.UITweening = false;
         this.noMissilesLeft = false;
         this.maxMissilesClientCopy = -1;
+        this.created = true;
 
         //Initializing server-handled objects
         let UITextY = 15;
@@ -162,14 +166,6 @@ class GameScene extends Phaser.Scene {
         });
         this.socket.on("newComet", (cometInfo) => {
             self.addComet(self, cometInfo);
-        });
-
-        //very short delay between any two shots
-        this.socket.on('missileReload', (id, reloadTime) => {
-            if (id == self.playerId) {
-                this.reloading = true;
-                setTimeout(() => { this.reloading = false; }, reloadTime);
-            }
         });
 
         //missile count display; reload bar display
@@ -261,7 +257,11 @@ class GameScene extends Phaser.Scene {
             });
         });
         this.socket.on("gameOver", (data) => {
+            data['socket'] = this.socket;
+            console.log('game -> end')
             this.scene.start("endScene", data);
+            this.socket = undefined;
+            console.log(this.socket);
         });
 
         //Events where object states are updated
@@ -285,10 +285,12 @@ class GameScene extends Phaser.Scene {
         });
         this.socket.on("missileUpdate", (serverMissiles) => {
             self.missiles.getChildren().forEach((missile) => {
+                //console.log(serverMissiles[missile.id].x + "," + serverMissiles[missile.id].y)
                 missile.setPosition(
                     serverMissiles[missile.id].x,
                     serverMissiles[missile.id].y
                 );
+                //console.log(serverMissiles[missile.id].x + "," + serverMissiles[missile.id].y)
             });
         });
         this.socket.on("cometUpdate", (serverComets) => {
@@ -381,15 +383,11 @@ class GameScene extends Phaser.Scene {
     }
 
     update() {
-        if (!this.spectate && this.ship) {
+        if (this.created && !this.spectate && this.ship) {
             //Mouse handling
             let pointer = this.input.activePointer;
 
-            //instant rotation change
-            console.log("pointer: " + pointer.x + "," + pointer.y);
-            console.log("ship: " + this.ship.x + "," + this.ship.y);
             this.ship.rotation = angle(pointer.x, pointer.y, this.ship.x, this.ship.y);
-            console.log(this.ship.rotation);
             this.socket.emit("rotationChange", this.ship.rotation);
 
             let UICutoffY = 120;
@@ -511,13 +509,9 @@ class GameScene extends Phaser.Scene {
                 }
             })
 
-            console.log(this.key);
             if(this.key && !this.key.isDown) {
-                console.log('entered');
                 this.keypressed = false;
             }
-
-
         }
     }
 
