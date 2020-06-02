@@ -496,8 +496,6 @@ class GameScene extends Phaser.Scene {
             if(this.key && !this.key.isDown) {
                 this.keypressed = false;
             }
-
-
         }
     }
 

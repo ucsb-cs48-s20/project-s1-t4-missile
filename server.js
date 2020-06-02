@@ -58,7 +58,6 @@ for (let i = 0; i < cometLimit; i++) {
     comets[i] = undefined;
 }
 
-let socketCount = 0;
 io.on('connect', socket => {
     console.log(socket.handshake.query.purpose);
     if (socket.handshake.query.purpose === "game") {
@@ -267,7 +266,7 @@ io.on('connect', socket => {
     } else {
         let nextSlot = getNextSlot()
         console.log(nextSlot)
-        if (nextSlot == -1) {
+        if (nextSlot === -1) {
             console.log('Game full')
             return
         }
@@ -312,7 +311,6 @@ io.on('connect', socket => {
         });
 
     }
-    socketCount++
 })
 
 //Helper functions
@@ -485,7 +483,6 @@ function detectCollisions() {
         })
     }
 }
-
 
 function explosionDamage() {
     if (gameState == 'game') {
