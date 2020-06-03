@@ -34,11 +34,16 @@ class LobbyScene extends Phaser.Scene {
                 this.startButton.setTint(0xcfcfcf);
             })
             .on('pointerdown', () => {
-                this.socket.emit('startGame');
+                if(this.inProgress) {
+                    this.socket.emit('joinInProgress');
+                } else {
+                    this.socket.emit('startGame');
+                }
             })
 
         this.socket.emit('requestUsers');
         this.userTexts = {};
+        this.inProgress = false;
 
         this.socket.on('initUsers', users => {
             if (Object.keys(this.userTexts).length != 0) {
@@ -65,8 +70,8 @@ class LobbyScene extends Phaser.Scene {
         })
 
         this.socket.on('inProgress', () => {
-            console.log('reached');
             this.add.text(900, 50, 'Game in progress', { fontSize: '24px'});
+            this.inProgress = true;
         })
 
         this.socket.on('disconnect', userId => {

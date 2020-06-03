@@ -74,12 +74,7 @@ io.on('connect', socket => {
         if (gameState == 'lobby') {
             io.emit('initUsers', users);
         } else if (gameState == 'game') {
-            console.log('reached');
             setTimeout(() => {socket.emit('inProgress');}, 500);
-            /*
-            io.to(socket.id).emit('switchStart')
-            socket.broadcast.emit('newPlayer', players[socket.id]);
-            */
         } else {
             kills = [];
             Object.keys(players).forEach(playerId => {
@@ -92,6 +87,11 @@ io.on('connect', socket => {
                 io.to(socket.id).emit('lobbyToEnd', { 'round': round, 'score': score, 'kills': kills })
             }, 1000);
         }
+
+        socket.on('joinInProgress', () => {
+            socket.emit('switchStart');
+            socket.broadcast.emit('newPlayer', players[socket.id]);
+        })
 
         socket.on('startGame', () => {
             if(users[socket.id] == 'player') {
