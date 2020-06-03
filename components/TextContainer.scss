@@ -6,11 +6,15 @@
     justify-content: space-between;
 }
 
+.title {
+    margin-bottom: 10px !important;
+}
+
 .activeContainer {
     display: flex;
     align-items: center;
-    margin-bottom: 50%;
-    margin-left: 10%;
+    margin-bottom: auto;
+    margin-left: 8%;
 }
 
 .activeItem {
@@ -19,7 +23,8 @@
 }
 
 .activeContainer img {
-    padding-left: 20px;
+    padding-left: 10px;
+    padding-right: 10px;
 }
 
 .textContainer h1 {

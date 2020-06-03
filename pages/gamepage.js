@@ -79,12 +79,11 @@ const DynamicGameWindow = dynamic(() => import("../components/GameWindow"), {
 });
 
 const Test = () => {
-    const [pageTitle, setPageTitle] = useState("Missile Defense Game");
+    const [pageTitle, setPageTitle] = useState("Missile Defense");
     const [oldBodyStyle, setOldStyle] = useState("");
 
     const Router = useRouter();
 
-    //const [windowSrc, werror] = useScript("/static/parentGameWindow.js");
     const [socketSrc, serror] = useScript("/socket.io/socket.io.js");
     const [phaserSrc, perror] = useScript("//cdn.jsdelivr.net/npm/phaser@3.22.0/dist/phaser.js");
     const [gameSrc, gerror] = useScript("/static/game.js");
@@ -108,10 +107,6 @@ const Test = () => {
         gameSrc.type = "module";
 
         // execute before gameSrc loaded
-        /*
-        windowSrc.src = "/static/parentGameWindow.js";
-        windowSrc.async = true;
-        */
 
         /*
         document.body.appendChild(socketSrc);
