@@ -42,13 +42,7 @@ class EndScene extends Phaser.Scene {
             })
         
         this.socket.on('switchLobby', () => {
-            /*
-            console.log('end -> lobby')
-            this.scene.start('lobbyScene', this.socket);
-            this.socket = undefined;
-                console.log(this.socket);*/
             location.reload();
-            
         })
     }
 }

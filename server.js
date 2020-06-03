@@ -74,18 +74,9 @@ io.on('connect', socket => {
         if (gameState == 'lobby') {
             io.emit('initUsers', users);
         } else if (gameState == 'game') {
-            setTimeout(() => {socket.emit('inProgress');}, 500);
+            setTimeout(() => {socket.emit('inProgress')}, 500);
         } else {
-            kills = [];
-            Object.keys(players).forEach(playerId => {
-                if (socket.id != playerId) {
-                    kills.push(players[playerId].kills)
-                }
-            })
-            console.log('moving ' + socket.id)
-            setTimeout(() => {
-                io.to(socket.id).emit('lobbyToEnd', { 'round': round, 'score': score, 'kills': kills })
-            }, 1000);
+            setTimeout(() => {socket.emit('gameFinished')}, 500);
         }
 
         socket.on('joinInProgress', () => {
@@ -530,6 +521,7 @@ function detectCollisions() {
                             kills.push(players[playerId].kills)
                         })
                         io.emit('gameOver', { 'round': round, 'score': score, 'kills': kills });
+                        io.emit('gameFinished');
                         clearGame();
                     }
                 }
