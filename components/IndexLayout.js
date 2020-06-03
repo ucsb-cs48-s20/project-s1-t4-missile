@@ -19,7 +19,7 @@ const Layout = (props) => {
                 <meta charSet="utf-8" />
             </Head>
             <div className="joinInnerContainer">
-                <h1 className="heading">Join</h1>
+                <h1 className="heading">Missile Defense</h1>
                 <div>
                     <input
                         placeholder="Name"
@@ -29,7 +29,7 @@ const Layout = (props) => {
                     />
                 </div>
                 <button className="button mt-20" type="submit"
-                    onClick={(event) => (!name) ? event.preventDefault() : Router.push(`/gamepage?name=${name}`)}>Sign In</button>
+                    onClick={(event) => (!name) ? event.preventDefault() : Router.push(`/gamepage?name=${name}`)}>Play</button>
             </div>
         </div>
     );

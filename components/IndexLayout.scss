@@ -19,11 +19,15 @@ body {
   text-align: center;
   height: 100vh;
   align-items: center;
-  background-color: #1a1a1d;
+  background-image: url("/static/images/webpage-background.jpg");
 }
 
 .joinInnerContainer {
   width: 25%;
+}
+
+.joinInnerContainer h1 {
+  color: #ede8ff;
 }
 
 .joinInput {

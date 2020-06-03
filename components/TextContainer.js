@@ -30,6 +30,7 @@ const TextContainer = (props) => {
             }
         </div>
         */
+        
         <ScrollToBottom className="textContainer">
             <h1 className="title">Players in Lobby:</h1>
             <div className="activeContainer">
@@ -49,6 +50,7 @@ const TextContainer = (props) => {
                 } 
             </div>
         </ScrollToBottom>
+
     );
 };
 
