@@ -74,10 +74,12 @@ io.on('connect', socket => {
         if (gameState == 'lobby') {
             io.emit('initUsers', users);
         } else if (gameState == 'game') {
-            setTimeout(() => {
-                io.to(socket.id).emit('switchStart')
-            }, 1000);
+            console.log('reached');
+            setTimeout(() => {socket.emit('inProgress');}, 500);
+            /*
+            io.to(socket.id).emit('switchStart')
             socket.broadcast.emit('newPlayer', players[socket.id]);
+            */
         } else {
             kills = [];
             Object.keys(players).forEach(playerId => {

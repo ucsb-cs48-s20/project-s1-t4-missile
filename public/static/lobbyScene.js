@@ -64,6 +64,11 @@ class LobbyScene extends Phaser.Scene {
             })
         })
 
+        this.socket.on('inProgress', () => {
+            console.log('reached');
+            this.add.text(900, 50, 'Game in progress', { fontSize: '24px'});
+        })
+
         this.socket.on('disconnect', userId => {
             console.log(this.userTexts)
             if (this.userTexts[userId] != undefined) {
