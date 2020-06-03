@@ -48,6 +48,19 @@ class LobbyScene extends Phaser.Scene {
             }
             Object.keys(users).forEach((user, index) => {
                 this.userTexts[user] = this.add.text(100, 50 + (50 * index), `${user} - ${users[user]}`, { fontSize: '24px' });
+                if(user == this.socket.id) {
+                    this.userTexts[user]
+                        .setInteractive()
+                        .on('pointerover', () => {
+                            this.userTexts[user].setTint(0xfcfcfc);
+                        })
+                        .on('pointerout', () => {
+                            this.userTexts[user].setTint(0xcfcfcf);
+                        })
+                        .on('pointerdown', () => {
+                            this.socket.emit('attemptSwitchRole');
+                        })
+                }
             })
         })
 

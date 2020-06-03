@@ -69,35 +69,7 @@ io.on('connect', socket => {
         console.log(`${socket.id} connected`);
         console.log(gameState);
 
-        let nextSlot = getNextSlot();
-        if (nextSlot == -1) {
-            console.log('Game full')
-            users[socket.id] = 'spectator';
-            io.to(socket.id).emit('spectate')
-        } else {
-            users[socket.id] = 'player';
-            playerSlots[nextSlot] = socket.id;
-            players[socket.id] = {
-                rotation: 0,
-                x: 160 + 320 * nextSlot,
-                y: 670,
-                playerId: socket.id,
-                credits: 0,
-                kills: 0,
-                damage: 1,
-                radius: 60,
-                missiles: 2,
-                maxMissiles: 2,
-                rechargingMissiles: false,
-                regenSpeed: 0.4,
-
-                specialAttack: "none",
-                specialAttackAmmo: 0,
-
-                debugging: false,
-                speed: 10,
-            };
-        }
+        users[socket.id] = 'spectator';
 
         if (gameState == 'lobby') {
             io.emit('initUsers', users);
@@ -109,7 +81,7 @@ io.on('connect', socket => {
         } else {
             kills = [];
             Object.keys(players).forEach(playerId => {
-                if(socket.id != playerId) {
+                if (socket.id != playerId) {
                     kills.push(players[playerId].kills)
                 }
             })
@@ -120,8 +92,10 @@ io.on('connect', socket => {
         }
 
         socket.on('startGame', () => {
-            gameState = 'game';
-            io.emit('switchStart');
+            if(users[socket.id] == 'player') {
+                gameState = 'game';
+                io.emit('switchStart');
+            }
         })
 
         socket.on('requestInitialize', () => {
@@ -139,6 +113,45 @@ io.on('connect', socket => {
         })
 
         //Handles client inputs
+        socket.on('attemptSwitchRole', () => {
+            if (users[socket.id] == 'player') {
+                users[socket.id] = 'spectator';
+                delete players[socket.id];
+                for (let i = 0; i < 4; i++) {
+                    if (playerSlots[i] == socket.id) {
+                        playerSlots[i] == undefined;
+                    }
+                }
+                io.emit('initUsers', users);
+            } else {
+                let nextSlot = getNextSlot();
+                if (nextSlot != -1) {
+                    users[socket.id] = 'player';
+                    playerSlots[nextSlot] = socket.id;
+                    players[socket.id] = {
+                        rotation: 0,
+                        x: 160 + 320 * nextSlot,
+                        y: 670,
+                        playerId: socket.id,
+                        credits: 0,
+                        kills: 0,
+                        damage: 1,
+                        radius: 60,
+                        missiles: 2,
+                        maxMissiles: 2,
+                        rechargingMissiles: false,
+                        regenSpeed: 0.4,
+
+                        specialAttack: "none",
+                        specialAttackAmmo: 0,
+
+                        debugging: false,
+                        speed: 10,
+                    };
+                    io.emit('initUsers', users);
+                }
+            }
+        })
         socket.on('missileShot', missileData => {
             let thisPlayer = players[socket.id];
             if (thisPlayer.missiles > 0) {
@@ -204,7 +217,7 @@ io.on('connect', socket => {
         });
 
         socket.on('attemptBuyConsumable', consumableName => {
-            if (consumableName == 'laser'){
+            if (consumableName == 'laser') {
                 let bought = attemptBuyConsumable(socket.id, consumableName, 1500);
                 if (bought) {
                     players[socket.id].specialAttackAmmo = 3;
@@ -298,16 +311,10 @@ io.on('connect', socket => {
             io.emit('disconnect', socket.id);
         })
     } else {
-        let nextSlot = getNextSlot()
-        console.log(nextSlot)
-        if (nextSlot === -1) {
-            console.log('Game full')
-            return
-        }
 
         console.log(`Chat socket ${socket.id} connected`)
 
-        let defaultName = `Player ${nextSlot}`
+        let defaultName = `${socket.id}`
 
         //Handles the chat stuff
         socket.on('disconnect', () => {
@@ -382,7 +389,7 @@ function attemptUpgrade(socketID, upgradeName, upgradeIncrement, cost, costIncre
 }
 
 function attemptBuyConsumable(socketID, consumableName, cost) {
-    if (players[socketID].credits >= cost){
+    if (players[socketID].credits >= cost) {
         players[socketID].credits -= cost;
         players[socketID].specialAttack = consumableName;
         io.to(socketID).emit('updateCredits', players[socketID].credits);
@@ -533,26 +540,36 @@ function fireLaser(socketID) {
     let myPlayer = players[socketID];
 
     //unit vector of the laser direction
-    let laserDir = { "x": Math.sin(myPlayer.rotation) ,
-                     "y": -Math.cos(myPlayer.rotation)} ;
+    let laserDir = {
+        "x": Math.sin(myPlayer.rotation),
+        "y": -Math.cos(myPlayer.rotation)
+    };
 
-    io.emit('laserFired', { "x": myPlayer.x, 
-                           "y": myPlayer.y } , 
-            laserDir, myPlayer.rotation);
+    io.emit('laserFired', {
+        "x": myPlayer.x,
+        "y": myPlayer.y
+    },
+        laserDir, myPlayer.rotation);
 
     Object.keys(comets).forEach(cometId => {
         if (comets[cometId] == undefined) { return; }
         let thisComet = comets[cometId];
         //it's time for some crappy linear algebra. it finds the distance from the line of the laser.
-        let localPos = { "x": thisComet.x - myPlayer.x , 
-                         "y": thisComet.y - myPlayer.y } ;
-        
+        let localPos = {
+            "x": thisComet.x - myPlayer.x,
+            "y": thisComet.y - myPlayer.y
+        };
+
         let projectionLength = (localPos.x * laserDir.x) + (localPos.y * laserDir.y);
-        let projection = { "x": projectionLength * laserDir.x ,
-                           "y": projectionLength * laserDir.y} ;
-        let orthogonalPart = { "x": localPos.x - projection.x ,
-                               "y": localPos.y - projection.y} ;
-        let squareDistFromLaser = (orthogonalPart.x*orthogonalPart.x) + (orthogonalPart.y*orthogonalPart.y); // not using square root probably saves time
+        let projection = {
+            "x": projectionLength * laserDir.x,
+            "y": projectionLength * laserDir.y
+        };
+        let orthogonalPart = {
+            "x": localPos.x - projection.x,
+            "y": localPos.y - projection.y
+        };
+        let squareDistFromLaser = (orthogonalPart.x * orthogonalPart.x) + (orthogonalPart.y * orthogonalPart.y); // not using square root probably saves time
         if (squareDistFromLaser < 10000) { // 100 * 100
             thisComet.hp -= laserDamage;
             if (thisComet.hp <= 0) {
@@ -584,7 +601,7 @@ function destroyComet(cometId, awardPlayerSocketID) {
         durationLimit: comets[cometId].durationLimit,
         startTick: 0
     }
-    
+
     let size = comets[cometId].radius;
     let time = comets[cometId].durationLimit + 5;
 
