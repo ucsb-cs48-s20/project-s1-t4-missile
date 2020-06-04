@@ -16,6 +16,7 @@ const Chat = () => {
     const [name, setName] = useState("");
     const [message, setMessage] = useState("");
     const [messages, setMessages] = useState([]);
+    const [users, setUsers] = useState("");
     const [focus, setFocus] = useState("");
     const chatArea = useRef();
     const ENDPOINT = window.location.protocol + '//' + window.location.hostname + ':' + window.location.port;
