@@ -74,9 +74,9 @@ io.on('connect', socket => {
         if (gameState == 'lobby') {
             io.emit('initUsers', users);
         } else if (gameState == 'game') {
-            setTimeout(() => {socket.emit('inProgress')}, 500);
+            setTimeout(() => { socket.emit('inProgress') }, 500);
         } else {
-            setTimeout(() => {socket.emit('gameFinished')}, 500);
+            setTimeout(() => { socket.emit('gameFinished') }, 500);
         }
 
         socket.on('joinInProgress', () => {
@@ -85,7 +85,7 @@ io.on('connect', socket => {
         })
 
         socket.on('startGame', () => {
-            if(users[socket.id] == 'player') {
+            if (users[socket.id] == 'player') {
                 gameState = 'game';
                 io.emit('switchStart');
             }
@@ -254,6 +254,7 @@ io.on('connect', socket => {
             io.to(socket.id).emit('cometSpeedChange', cometSpeed);
         })
         socket.on('changeRound', () => {
+            round++;
             io.emit('updateRound', round);
             increaseDifficulty();
         })
@@ -675,6 +676,7 @@ function clearGame() {
     cometHealth = 1;
     cometSpeed = 2.5;
     score = 0;
+    roundOver = false;
 }
 
 //Game loops

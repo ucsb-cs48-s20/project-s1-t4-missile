@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import io from "socket.io-client";
 
 // Styling
@@ -14,6 +14,8 @@ const Chat = () => {
     const [name, setName] = useState("");
     const [message, setMessage] = useState("");
     const [messages, setMessages] = useState([]);
+    const [focus, setFocus] = useState("");
+    const chatArea = useRef();
     const ENDPOINT = window.location.protocol + '//' + window.location.hostname + ':' + window.location.port
 
     useEffect(() => {
@@ -46,6 +48,18 @@ const Chat = () => {
         socket.on("defaultName", ({ name }) => {
             setName(name);
         });
+
+        function updateFocus(event) {
+            if (chatArea.current) {
+                setFocus(chatArea.current.contains(event.target))
+            }
+        }
+
+        document.addEventListener("mousedown", updateFocus)
+
+        return () => {
+            document.removeEventListener("mousedown", updateFocus)
+        }
     }, []);
 
     const sendMessage = (event) => {
@@ -59,9 +73,9 @@ const Chat = () => {
 
     return (
         <div className="outerContainer">
-            <div className="container">
+            <div className="container" ref={chatArea}>
                 <Messages messages={messages} name={name} />
-                <Input message={message} setMessage={setMessage} sendMessage={sendMessage} />
+                <Input focus={focus} message={message} setMessage={setMessage} sendMessage={sendMessage} />
             </div>
         </div>
     );
