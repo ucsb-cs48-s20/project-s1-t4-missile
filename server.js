@@ -70,9 +70,6 @@ io.on('connect', socket => {
         console.log(`${socket.id} connected`);
         //console.log(gameState);
 
-<<<<<<< HEAD
-        users[socket.id] = 'spectator';
-=======
         let username = getName(window.location.href);
         let nextSlot = getNextSlot();
         if (nextSlot == -1) {
@@ -105,7 +102,6 @@ io.on('connect', socket => {
                 speed: 10,
             };
         }
->>>>>>> bq - added user object to users
 
         if (gameState == 'lobby') {
             io.emit('initUsers', users);
@@ -143,8 +139,8 @@ io.on('connect', socket => {
 
         //Handles client inputs
         socket.on('attemptSwitchRole', () => {
-            if (users[socket.id] == 'player') {
-                users[socket.id] = 'spectator';
+            if (users[socket.id][role] == 'player') {
+                users[socket.id][role] = 'spectator';
                 delete players[socket.id];
                 for (let i = 0; i < 4; i++) {
                     if (playerSlots[i] == socket.id) {
@@ -155,7 +151,7 @@ io.on('connect', socket => {
             } else {
                 let nextSlot = getNextSlot();
                 if (nextSlot != -1) {
-                    users[socket.id] = 'player';
+                    users[socket.id][role] = 'player';
                     playerSlots[nextSlot] = socket.id;
                     players[socket.id] = {
                         rotation: 0,
