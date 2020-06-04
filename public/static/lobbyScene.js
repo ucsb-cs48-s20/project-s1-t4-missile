@@ -34,11 +34,16 @@ class LobbyScene extends Phaser.Scene {
                 this.startButton.setTint(0xcfcfcf);
             })
             .on('pointerdown', () => {
-                this.socket.emit('startGame');
+                if(this.inProgress) {
+                    this.socket.emit('joinInProgress');
+                } else {
+                    this.socket.emit('startGame');
+                }
             })
 
         this.socket.emit('requestUsers');
         this.userTexts = {};
+        this.inProgress = false;
 
         this.socket.on('initUsers', users => {
             if (Object.keys(this.userTexts).length != 0) {
@@ -48,7 +53,36 @@ class LobbyScene extends Phaser.Scene {
             }
             Object.keys(users).forEach((user, index) => {
                 this.userTexts[user] = this.add.text(100, 50 + (50 * index), `${user} - ${users[user]}`, { fontSize: '24px' });
+                if(user == this.socket.id) {
+                    this.userTexts[user]
+                        .setInteractive()
+                        .on('pointerover', () => {
+                            this.userTexts[user].setTint(0xfcfcfc);
+                        })
+                        .on('pointerout', () => {
+                            this.userTexts[user].setTint(0xcfcfcf);
+                        })
+                        .on('pointerdown', () => {
+                            this.socket.emit('attemptSwitchRole');
+                        })
+                }
             })
+        })
+
+        this.socket.on('inProgress', () => {
+            this.progressText = this.add.text(900, 50, 'Game in progress', { fontSize: '24px'});
+            this.inProgress = true;
+        })
+
+        this.socket.on('gameFinished', () => {
+            if(this.progressText) {
+                this.progressText.destroy();
+            }
+            this.endText = this.add.text(900, 50, 'Game has ended,\nwaiting for players\nto return...', { fontSize: '24px' });
+        })
+
+        this.socket.on('restart', () => {
+            location.reload();
         })
 
         this.socket.on('disconnect', userId => {
