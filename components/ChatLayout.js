@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, createRef } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import io from "socket.io-client";
 
 // Styling
@@ -14,7 +14,7 @@ const Chat = () => {
     const [name, setName] = useState("");
     const [message, setMessage] = useState("");
     const [messages, setMessages] = useState([]);
-    const inputArea = createRef();
+    const [focus, setFocus] = useState("");
     const chatArea = useRef();
     const ENDPOINT = window.location.protocol + '//' + window.location.hostname + ':' + window.location.port
 
@@ -49,20 +49,16 @@ const Chat = () => {
             setName(name);
         });
 
-        function unfocusChat(event) {
-            console.log("UNFOCUS FUNCTION")
-            console.log(chatArea.current)
-            console.log(chatArea.current.contains(event.target))
-            if (chatArea.current && !chatArea.current.contains(event.target)) {
-                // inputArea.current.blur()
-                console.log("TODO")
+        function updateFocus(event) {
+            if (chatArea.current) {
+                setFocus(chatArea.current.contains(event.target))
             }
         }
 
-        document.addEventListener("mousedown", unfocusChat)
+        document.addEventListener("mousedown", updateFocus)
 
         return () => {
-            document.removeEventListener("mousedown", unfocusChat)
+            document.removeEventListener("mousedown", updateFocus)
         }
     }, []);
 
@@ -77,9 +73,9 @@ const Chat = () => {
 
     return (
         <div className="outerContainer">
-            <div className="container" ref={chatArea}>
+            <div className="container" ref={chatArea} id="test">
                 <Messages messages={messages} name={name} />
-                <Input ref={inputArea} focus={focus} message={message} setMessage={setMessage} sendMessage={sendMessage} />
+                <Input focus={focus} message={message} setMessage={setMessage} sendMessage={sendMessage} />
             </div>
         </div>
     );
