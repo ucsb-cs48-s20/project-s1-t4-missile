@@ -112,7 +112,7 @@ io.on('connect', socket => {
                 delete players[socket.id];
                 for (let i = 0; i < 4; i++) {
                     if (playerSlots[i] == socket.id) {
-                        playerSlots[i] == undefined;
+                        playerSlots[i] = undefined;
                     }
                 }
                 io.emit('initUsers', users);
