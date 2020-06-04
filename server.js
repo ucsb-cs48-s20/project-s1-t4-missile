@@ -303,6 +303,11 @@ io.on('connect', socket => {
             }
             delete users[socket.id];
             io.emit('disconnect', socket.id);
+            if(Object.keys(players).length == 0) {
+                clearGame();
+                io.emit('reload');
+                gameState = 'lobby';
+            }
         })
     } else {
 
