@@ -675,6 +675,7 @@ function clearGame() {
     cometHealth = 1;
     cometSpeed = 2.5;
     score = 0;
+    roundOver = false;
 }
 
 //Game loops
