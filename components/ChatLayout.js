@@ -73,7 +73,7 @@ const Chat = () => {
 
     return (
         <div className="outerContainer">
-            <div className="container" ref={chatArea} id="test">
+            <div className="container" ref={chatArea}>
                 <Messages messages={messages} name={name} />
                 <Input focus={focus} message={message} setMessage={setMessage} sendMessage={sendMessage} />
             </div>
