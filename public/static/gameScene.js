@@ -1,4 +1,4 @@
-import { angle } from '/static/gameCalculations.js' 
+import { angle } from '/static/gameCalculations.js'
 
 class GameScene extends Phaser.Scene {
     constructor() {
@@ -47,6 +47,10 @@ class GameScene extends Phaser.Scene {
         let self = this;
 
         this.socket.emit('requestInitialize');
+
+        this.pointerInGame = true
+        this.game.canvas.onmouseover = (e) => this.pointerInGame = true
+        this.game.canvas.onmouseout = (e) => this.pointerInGame = false
 
         //Load background
         this.add.image(640, 360, "background").setScale(1);
@@ -111,6 +115,7 @@ class GameScene extends Phaser.Scene {
         })
 
         this.makeUI(this);
+        this.focus = true;
 
         //Game variables
         this.shot = false;
@@ -120,11 +125,11 @@ class GameScene extends Phaser.Scene {
         this.UITweening = false;
         this.noMissilesLeft = false;
         this.maxMissilesClientCopy = -1;
-      
+
         this.specialAttackClientCopy = "none";
         this.specialAttackActive = false;
         this.specialAttackKey = this.input.keyboard.addKey('Q');
-      
+
         this.created = true;
 
         //Initializing server-handled objects
@@ -378,8 +383,8 @@ class GameScene extends Phaser.Scene {
                     }
                 });
             }
-            
-            
+
+
         })
         this.socket.on("updateRound", (round) => {
             this.roundText.setText(`${round}`);
@@ -444,15 +449,19 @@ class GameScene extends Phaser.Scene {
             //make the UI tray come out and go back in
             this.moveUI(pointer, UICutoffY);
 
-
             //Special attack activate
             if (this.specialAttackKey.isDown && !this.specialAttackActive && this.specialAttackClientCopy != "none") {
                 this.specialAttackActive = true;
                 this.specialAttackHolder.setTint(0xff0000);
             }
 
+            if (pointer.isDown) {
+                this.focus = this.pointerInGame
+            }
+
             //Shot handling
             if (
+                this.focus &&
                 !this.shot &&
                 pointer.isDown &&
                 pointer.y >= UICutoffY &&
@@ -462,7 +471,7 @@ class GameScene extends Phaser.Scene {
                 this.ship.play("fire");
                 this.shot = true;
 
-                if (this.specialAttackActive){
+                if (this.specialAttackActive) {
                     switch (this.specialAttackClientCopy) {
                         case "none":
                             this.specialAttackActive = false;
@@ -471,8 +480,7 @@ class GameScene extends Phaser.Scene {
                     }
                 }
 
-                if (!this.specialAttackActive)
-                {
+                if (!this.specialAttackActive) {
                     this.socket.emit("missileShot", {
                         x: this.ship.x,
                         y: this.ship.y,
@@ -481,7 +489,6 @@ class GameScene extends Phaser.Scene {
                         rotation: this.ship.rotation,
                     });
                 }
-                
             }
 
             if (!pointer.isDown) {
@@ -491,6 +498,9 @@ class GameScene extends Phaser.Scene {
             let keyb = this.input.keyboard;
 
             keyb.addListener('keydown', event => {
+                if (!this.focus) {
+                    return
+                }
                 if (event.keyCode === 192) {
                     this.socket.emit("enterDebug");
                 }
@@ -579,7 +589,7 @@ class GameScene extends Phaser.Scene {
                 }
             })
 
-            if(this.key && !this.key.isDown) {
+            if (this.key && !this.key.isDown) {
                 this.keypressed = false;
             }
         }
@@ -588,7 +598,7 @@ class GameScene extends Phaser.Scene {
     //Function for UI tray movement
     moveUI(pointer, UICutoffY) {
         if (!this.UITweening) {
-            if (pointer.y >= UICutoffY) {
+            if (pointer.y >= UICutoffY || !this.pointerInGame) {
                 if (this.UIOut) {
                     this.tweens.add({
                         targets: this.shopUI.getChildren(),
@@ -600,7 +610,7 @@ class GameScene extends Phaser.Scene {
                     this.UIOut = false;
                 }
             } else {
-                if (!this.UIOut) {
+                if (!this.UIOut && this.pointerInGame) {
                     this.tweens.add({
                         targets: this.shopUI.getChildren(),
                         y: "+=120",
@@ -617,7 +627,7 @@ class GameScene extends Phaser.Scene {
     //Helper add functions
     addTankBody(self, playerInfo) {
         return self.add
-            .sprite(playerInfo.x, playerInfo.y, "tankbody" + (1+Math.round((playerInfo.x-160)/320.0)))
+            .sprite(playerInfo.x, playerInfo.y, "tankbody" + (1 + Math.round((playerInfo.x - 160) / 320.0)))
             .setScale(0.5)
             .setDepth(25);
     }
@@ -634,15 +644,15 @@ class GameScene extends Phaser.Scene {
 
     updateSpecialAttackIcon(self, somePlayer, newAttackName, color) {
         if (somePlayer.specialAttackIcon != undefined) { somePlayer.specialAttackIcon.destroy(); }
-        if (newAttackName == "none") { 
+        if (newAttackName == "none") {
             if (self === somePlayer) {
                 self.specialAttackHolder.setTint(0xffffff);
             }
-            return; 
+            return;
         }
 
         somePlayer.specialAttackIcon = self.add.sprite(somePlayer.specialAttackHolder.x, somePlayer.specialAttackHolder.y, newAttackName)
-            .setDisplaySize(24,24).setDepth(101).setTint(color);
+            .setDisplaySize(24, 24).setDepth(101).setTint(color);
     }
 
     addPlayer(self, playerInfo) {
@@ -705,7 +715,7 @@ class GameScene extends Phaser.Scene {
     }
 
     displayLaser(self, center, dir, rot) {
-        let tempLaser = self.add.sprite(center.x + 670*dir.x , center.y + 670*dir.y , 'laser').setDisplaySize(100,1280).setDepth(5);
+        let tempLaser = self.add.sprite(center.x + 670 * dir.x, center.y + 670 * dir.y, 'laser').setDisplaySize(100, 1280).setDepth(5);
         tempLaser.play('laserFlux');
         tempLaser.rotation = rot;
         tempLaser.alpha = 1;
@@ -789,15 +799,15 @@ class GameScene extends Phaser.Scene {
     makeUIHalfButtonHelper(self, name, text, consumableType) {
         let xpos = self.shopUIButtonPlacerX;
         let ypos = self.shopUIButtonPlacerY;
-        if (ypos > -80) { 
-            self.shopUIButtonPlacerY = -85; 
+        if (ypos > -80) {
+            self.shopUIButtonPlacerY = -85;
             self.shopUIButtonPlacerX += 130;
         }
         else {
             self.shopUIButtonPlacerY += 65;
         }
 
-        self[name + 'Text'] = self.add.text(xpos - 55, ypos - 32, text, {fontSize: '16px'}).setDepth(102).setTint(0x202020);
+        self[name + 'Text'] = self.add.text(xpos - 55, ypos - 32, text, { fontSize: '16px' }).setDepth(102).setTint(0x202020);
         self[name] = self.add.image(xpos, ypos - 19, 'halfbutton').setDepth(101).setScale(1.25).setTint(0xcfcfcf)
             .setInteractive();
         self.makeButtonClickBehavior(self, self[name], () => {
