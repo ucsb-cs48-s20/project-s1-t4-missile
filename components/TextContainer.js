@@ -50,7 +50,6 @@ const TextContainer = (props) => {
                 } 
             </div>
         </ScrollToBottom>
-
     );
 };
 

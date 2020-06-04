@@ -4,7 +4,7 @@ import EndScene from '/static/endScene.js'
 
 let config = {
     type: Phaser.AUTO,
-    parent: 'gameWindow',  // doesnt work with dynamic game window. see parentGameWindow.js
+    parent: 'gameWindow',
     width: 1280,
     height: 720,
     physics: {

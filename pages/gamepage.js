@@ -30,7 +30,7 @@ function useScript(src) {
                 // Create script
                 let script = document.createElement("script");
                 script.src = src;
-                script.async = true;
+                // script.async = true;
 
                 if (src === "/static/game.js") {
                     script.type = "module";
@@ -78,52 +78,26 @@ const DynamicGameWindow = dynamic(() => import("../components/GameWindow"), {
     ssr: false
 });
 
-const Test = () => {
+const GamePageScript = () => {
+    const [socketSrc, serror] = useScript("/socket.io/socket.io.js");
+    const [phaserSrc, perror] = useScript("//cdn.jsdelivr.net/npm/phaser@3.22.0/dist/phaser.js");
+    
+    if (!socketSrc || !phaserSrc) {
+        return null;
+    }else {
+        return(<PageLayout></PageLayout>);
+    }
+};
+
+const PageLayout = () => {
     const [pageTitle, setPageTitle] = useState("Missile Defense");
     const [oldBodyStyle, setOldStyle] = useState("");
 
     const Router = useRouter();
 
-    const [socketSrc, serror] = useScript("/socket.io/socket.io.js");
-    const [phaserSrc, perror] = useScript("//cdn.jsdelivr.net/npm/phaser@3.22.0/dist/phaser.js");
     const [gameSrc, gerror] = useScript("/static/game.js");
-    
-    /*
-    // load scripts
-    useEffect(() => {
-        const socketSrc = document.createElement("script");
-        const phaserSrc = document.createElement("script");
-        const gameSrc = document.createElement("script");
-
-        // doesn't matter
-        socketSrc.src = "/socket.io/socket.io.js";
-        socketSrc.async = true;
-
-        // executes and finishes first
-        phaserSrc.src = "//cdn.jsdelivr.net/npm/phaser@3.22.0/dist/phaser.js";
-        phaserSrc.async = true;
-
-        gameSrc.src = "/static/game.js";
-        gameSrc.type = "module";
-
-        // execute before gameSrc loaded
-
-        /*
-        document.body.appendChild(socketSrc);
-        document.body.appendChild(phaserSrc);
-        //document.body.appendChild(windowSrc);
-        document.body.appendChild(gameSrc);
-
-        return () => {
-            document.body.removeChild(gameSrc);
-            //document.body.removeChild(windowSrc);
-            document.body.removeChild(socketSrc);
-            document.body.removeChild(phaserSrc);
-        };
-    }, [Router]); */
 
     useEffect(() => {
-        console.log("hello from useEffect!");
         setOldStyle(document.body.style);
         document.title = pageTitle;
 
@@ -138,7 +112,6 @@ const Test = () => {
         };
     }, [oldBodyStyle]);
 
-    
     return (
         <div style={styles.container}>
             <Head>
@@ -149,6 +122,6 @@ const Test = () => {
             <DynamicGameWindow />
         </div>
     );
-};
+}
 
-export default Test;
+export default GamePageScript;
