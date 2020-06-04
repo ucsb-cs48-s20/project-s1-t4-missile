@@ -70,7 +70,42 @@ io.on('connect', socket => {
         console.log(`${socket.id} connected`);
         //console.log(gameState);
 
+<<<<<<< HEAD
         users[socket.id] = 'spectator';
+=======
+        let username = getName(window.location.href);
+        let nextSlot = getNextSlot();
+        if (nextSlot == -1) {
+            console.log('Game full')
+            users[socket.id] = {
+                name: username,
+                role: 'spectator'
+                }    
+            io.to(socket.id).emit('spectate')
+        } else {
+            users[socket.id] = {
+                name: username,
+                role: 'player'
+            }
+            playerSlots[nextSlot] = socket.id;
+            players[socket.id] = {
+                rotation: 0,
+                x: 160 + 320 * nextSlot,
+                y: 670,
+                playerId: socket.id,
+                credits: 0,
+                kills: 0,
+                damage: 1,
+                radius: 60,
+                missiles: 2,
+                maxMissiles: 2,
+                rechargingMissiles: false,
+                regenSpeed: 0.4,
+                debugging: false,
+                speed: 10,
+            };
+        }
+>>>>>>> bq - added user object to users
 
         if (gameState == 'lobby') {
             io.emit('initUsers', users);
@@ -369,6 +404,10 @@ function removeFromSlot(id) {
         }
     })
     return;
+}
+
+function getName(url) {
+    return url.substring(url.indexOf('=') + 1);
 }
 
 function getNumPlayers() {
