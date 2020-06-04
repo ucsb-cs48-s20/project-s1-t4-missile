@@ -13,22 +13,22 @@ describe('Chat Window', () => {
     })
 
     it ('chat box is valid focus', () => {
-        cy.get('div[class="main"] input:first').focus();
+        cy.get('div[class="main"] input:second').focus();
     })
 
     it ('can submit and view my own messages', () => {
-        cy.get('div[class="main"] input:first').type('Hello from cypress!');
-        cy.get('div[class="main"] button:first').click();
+        cy.get('div[class="main"] input:second').type('Hello from cypress!');
+        cy.get('div[class="main"] button:second').click();
         cy.get('div[class="messageBox backgroundBlue"]:last').should('exist').should('have.text', 'Hello from cypress!');
 
-        cy.get('div[class="main"] input:first').type('This is my second message.');
-        cy.get('div[class="main"] button:first').click();
+        cy.get('div[class="main"] input:second').type('This is my second message.');
+        cy.get('div[class="main"] button:second').click();
         cy.get('div[class="messageBox backgroundBlue"]:last').should('have.text', 'This is my second message.');
     })
 
     it ('will not submit blank message', () => {
-        cy.get('div[class="main"] input:first').focus();
-        cy.get('div[class="main"] button:first').click();
+        cy.get('div[class="main"] input:second').focus();
+        cy.get('div[class="main"] button:second').click();
         cy.get('div[class="messageBox backgroundBlue"]').should('not.exist');
     })
 
