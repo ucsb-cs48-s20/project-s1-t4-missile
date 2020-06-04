@@ -306,6 +306,7 @@ io.on('connect', socket => {
             if(Object.keys(players).length == 0) {
                 clearGame();
                 io.emit('reload');
+                io.emit('clearLobby');
                 gameState = 'lobby';
             }
         })

@@ -86,6 +86,13 @@ class LobbyScene extends Phaser.Scene {
             location.reload();
         })
 
+        this.socket.on('clearLobby', () => {
+            this.inProgress = false;
+            if(this.progressText) {
+                this.progressText.destroy();
+            }
+        })
+
         this.socket.on('disconnect', userId => {
             console.log(this.userTexts)
             if (this.userTexts[userId] != undefined) {
