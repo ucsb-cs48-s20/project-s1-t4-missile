@@ -7,6 +7,7 @@ const Input = (props) => {
     return (
         <form className="form">
             <input
+                ref={props.inputArea}
                 className="input"
                 type="text"
                 placeholder="Type a message..."

@@ -254,6 +254,7 @@ io.on('connect', socket => {
             io.to(socket.id).emit('cometSpeedChange', cometSpeed);
         })
         socket.on('changeRound', () => {
+            round++;
             io.emit('updateRound', round);
             increaseDifficulty();
         })
