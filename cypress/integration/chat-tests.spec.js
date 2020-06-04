@@ -1,6 +1,6 @@
 describe('Chat Window', () => {
     beforeEach(() => {
-        cy.visit("http://localhost:3000");
+        cy.visit("http://localhost:3000/gamepage?name=testing");
         cy.viewport(1920 ,1080);
     })
 
