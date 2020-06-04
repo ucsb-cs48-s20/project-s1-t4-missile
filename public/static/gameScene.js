@@ -49,7 +49,6 @@ class GameScene extends Phaser.Scene {
         this.socket.emit('requestInitialize');
 
         this.pointerInGame = true
-        this.game.canvas.oncontextmenu = (e) => e.preventDefault()
         this.game.canvas.onmouseover = (e) => this.pointerInGame = true
         this.game.canvas.onmouseout = (e) => this.pointerInGame = false
 

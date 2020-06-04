@@ -15,6 +15,7 @@ class LobbyScene extends Phaser.Scene {
     }
 
     create() {
+        this.game.canvas.oncontextmenu = (e) => e.preventDefault()
         this.add.image(640, 360, 'background').setScale(5);
         this.add.image(640, 360, 'stars').setScale(4);
 
