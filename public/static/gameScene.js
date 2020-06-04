@@ -48,6 +48,8 @@ class GameScene extends Phaser.Scene {
 
         this.socket.emit('requestInitialize');
 
+        this.game.canvas.oncontextmenu = (e) => e.preventDefault()
+
         //Load background
         this.add.image(640, 360, "background").setScale(1);
         //this.add.image(640, 360, "stars").setScale(4);
@@ -485,7 +487,6 @@ class GameScene extends Phaser.Scene {
                         rotation: this.ship.rotation,
                     });
                 }
-                this.focus = true
             }
 
             if (!pointer.isDown) {
