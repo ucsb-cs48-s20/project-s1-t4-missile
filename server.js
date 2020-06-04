@@ -68,41 +68,13 @@ io.on('connect', socket => {
     // console.log(socket.handshake.query.purpose);
     if (socket.handshake.query.purpose === "game") {
         console.log(`${socket.id} connected`);
-        //console.log(gameState);
-
-        let username = getName(window.location.href);
-        let nextSlot = getNextSlot();
-        if (nextSlot == -1) {
-            console.log('Game full')
-            users[socket.id] = {
-                name: username,
-                role: 'spectator'
-                }    
-            io.to(socket.id).emit('spectate')
-        } else {
-            users[socket.id] = {
-                name: username,
-                role: 'player'
-            }
-            playerSlots[nextSlot] = socket.id;
-            players[socket.id] = {
-                rotation: 0,
-                x: 160 + 320 * nextSlot,
-                y: 670,
-                playerId: socket.id,
-                credits: 0,
-                kills: 0,
-                damage: 1,
-                radius: 60,
-                missiles: 2,
-                maxMissiles: 2,
-                rechargingMissiles: false,
-                regenSpeed: 0.4,
-                debugging: false,
-                speed: 10,
-            };
-        }
-
+        let username = socket.handshake.query.name;
+        users[socket.id] = {
+            name: username,
+            role: 'spectator',
+        }    
+        console.log(users[socket.id]);
+        
         if (gameState == 'lobby') {
             io.emit('initUsers', users);
         } else if (gameState == 'game') {
@@ -139,8 +111,8 @@ io.on('connect', socket => {
 
         //Handles client inputs
         socket.on('attemptSwitchRole', () => {
-            if (users[socket.id][role] == 'player') {
-                users[socket.id][role] = 'spectator';
+            if (users[socket.id].role == 'player') {
+                users[socket.id].role = 'spectator';
                 delete players[socket.id];
                 for (let i = 0; i < 4; i++) {
                     if (playerSlots[i] == socket.id) {
@@ -151,7 +123,7 @@ io.on('connect', socket => {
             } else {
                 let nextSlot = getNextSlot();
                 if (nextSlot != -1) {
-                    users[socket.id][role] = 'player';
+                    users[socket.id].role = 'player';
                     playerSlots[nextSlot] = socket.id;
                     players[socket.id] = {
                         rotation: 0,
@@ -400,10 +372,6 @@ function removeFromSlot(id) {
         }
     })
     return;
-}
-
-function getName(url) {
-    return url.substring(url.indexOf('=') + 1);
 }
 
 function getNumPlayers() {
