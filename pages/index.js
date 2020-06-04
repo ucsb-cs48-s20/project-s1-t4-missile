@@ -4,7 +4,7 @@ import dynamic from 'next/dynamic'
 import styles from '../components/styles'
 
 const DynamicGameWindow = dynamic(
-    () => import("../components/gameWindow"),
+    () => import("../components/GameWindow"),
     { ssr: false }
 )
 
