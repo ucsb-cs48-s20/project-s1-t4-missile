@@ -48,7 +48,10 @@ class GameScene extends Phaser.Scene {
 
         this.socket.emit('requestInitialize');
 
+        this.pointerInGame = true
         this.game.canvas.oncontextmenu = (e) => e.preventDefault()
+        this.game.canvas.onmouseover = (e) => this.pointerInGame = true
+        this.game.canvas.onmouseout = (e) => this.pointerInGame = false
 
         //Load background
         this.add.image(640, 360, "background").setScale(1);
@@ -454,7 +457,7 @@ class GameScene extends Phaser.Scene {
             }
 
             if (pointer.isDown) {
-                this.focus = this.isInGameWindow(pointer)
+                this.focus = this.pointerInGame
             }
 
             //Shot handling
@@ -596,7 +599,7 @@ class GameScene extends Phaser.Scene {
     //Function for UI tray movement
     moveUI(pointer, UICutoffY) {
         if (!this.UITweening) {
-            if (pointer.y >= UICutoffY) {
+            if (pointer.y >= UICutoffY || !this.pointerInGame) {
                 if (this.UIOut) {
                     this.tweens.add({
                         targets: this.shopUI.getChildren(),
@@ -608,7 +611,7 @@ class GameScene extends Phaser.Scene {
                     this.UIOut = false;
                 }
             } else {
-                if (!this.UIOut) {
+                if (!this.UIOut && this.pointerInGame) {
                     this.tweens.add({
                         targets: this.shopUI.getChildren(),
                         y: "+=120",
@@ -620,10 +623,6 @@ class GameScene extends Phaser.Scene {
                 }
             }
         }
-    }
-
-    isInGameWindow(pointer) {
-        return pointer.x >= 0 && pointer.x <= 1280 && pointer.y >= 0 && pointer.y <= 720
     }
 
     //Helper add functions
