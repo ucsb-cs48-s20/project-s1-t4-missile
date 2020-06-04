@@ -419,6 +419,9 @@ class GameScene extends Phaser.Scene {
                 this.healthText.setText(`${health}`);
             }
         })
+        this.socket.on('reload', () => {
+            location.reload();
+        })
         this.socket.on('debug', data => {
             this.debug = true;
             this.debugMode = -1;
