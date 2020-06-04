@@ -624,6 +624,10 @@ class GameScene extends Phaser.Scene {
         }
     }
 
+    isInGameWindow(pointer) {
+        return pointer.x >= 0 && pointer.x <= 1280 && pointer.y >= 0 && pointer.y <= 720
+    }
+
     //Helper add functions
     addTankBody(self, playerInfo) {
         return self.add
