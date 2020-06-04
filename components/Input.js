@@ -1,13 +1,19 @@
-import React from 'react';
+import React, { useRef } from 'react';
 
 import "./Input.scss";
 
 // event object contains info about details of the event
 const Input = (props) => {
+    const input = useRef()
+    
+    if (!props.focus && input.current) {
+        input.current.blur()
+    }
+
     return (
         <form className="form">
             <input
-                ref={props.inputArea}
+                ref={input}
                 className="input"
                 type="text"
                 placeholder="Type a message..."
