@@ -1,5 +1,5 @@
 import React from 'react';
-import Chat from '../components/ChatLayout';
+import Chat from './ChatLayout';
 import styles from './styles';
 import './GameWindow.scss';
 
