@@ -74,7 +74,7 @@ function useScript(src) {
     return [stateScript.loaded, stateScript.error];
 }
 
-const DynamicGameWindow = dynamic(() => import("../components/GameWindow"), {
+const DynamicGameWindow = dynamic(() => import("../components/gameWindow.js"), {
     ssr: false
 });
 
