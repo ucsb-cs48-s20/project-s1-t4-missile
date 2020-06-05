@@ -25,6 +25,7 @@ class EndScene extends Phaser.Scene {
         this.kills.forEach((kill, i) => {
             this.add.text(460, 360 + (50 * i), `Player ${i + 1} destroyed ${kill} comets`, {fontSize: '32px'})
         })
+        
         this.add.text(615, 625, 'Return\nto\nlobby').setDepth(50);
         this.lobbyButton = this.add.image(640, 650, 'button')
             .setInteractive();

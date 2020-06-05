@@ -8,7 +8,7 @@ import ReactEmoji from "react-emoji";
 const Message = (props) => {
     let isSentByCurrentUser = false;
     const trimmedName = props.name.trim();
-
+    
     if (props.message.user === trimmedName) {
         isSentByCurrentUser = true;
     }

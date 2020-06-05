@@ -52,8 +52,9 @@ class LobbyScene extends Phaser.Scene {
                     this.userTexts[user].destroy();
                 })
             }
+            console.log(users);
             Object.keys(users).forEach((user, index) => {
-                this.userTexts[user] = this.add.text(100, 50 + (50 * index), `${user} - ${users[user]}`, { fontSize: '24px' });
+                this.userTexts[user] = this.add.text(100, 50 + (50 * index), `${users[user].name} - ${users[user].role}`, { fontSize: '24px' });
                 if(user == this.socket.id) {
                     this.userTexts[user]
                         .setInteractive()

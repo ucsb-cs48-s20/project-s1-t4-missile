@@ -293,6 +293,10 @@ class GameScene extends Phaser.Scene {
                     otherTankbody.destroy();
                 }
             });
+
+            if (playerId == self.playerId) {
+                this.socket.close();
+            }
         });
         this.socket.on("gameOver", (data) => {
             data['socket'] = this.socket;
