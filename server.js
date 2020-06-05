@@ -89,7 +89,7 @@ io.on('connect', socket => {
         })
 
         socket.on('startGame', () => {
-            if (users[socket.id] == 'player') {
+            if (users[socket.id].role == 'player') {
                 gameState = 'game';
                 io.emit('switchStart');
             }
