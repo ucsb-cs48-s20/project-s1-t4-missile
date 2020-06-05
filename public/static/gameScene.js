@@ -37,6 +37,10 @@ class GameScene extends Phaser.Scene {
         this.load.image("crosshair", "/assets/crosshairs.png");
         this.load.image("shopbg", "/assets/shop-ui-main.png");
         this.load.image("specialholder", "/assets/special-attack-holder.png");
+        this.load.image("laser", "assets/laser-bar.png", {
+            frameWidth: 64,
+            frameHeight: 64,
+        });
         this.load.spritesheet("laser", "assets/laser-bar.png", {
             frameWidth: 64,
             frameHeight: 64,
@@ -197,6 +201,18 @@ class GameScene extends Phaser.Scene {
         this.socket.on("laserFired", (center, dir, rot) => {
             self.displayLaser(self, center, dir, rot);
         })
+
+        this.socket.on("flakFired", () => {
+            let pointer = this.input.activePointer;
+            this.socket.emit("missileShot", {
+                x: this.ship.x,
+                y: this.ship.y,
+                mouseX: pointer.x + (400 * Math.random()) - 200,
+                mouseY: pointer.y + (400 * Math.random()) - 200,
+                rotation: this.ship.rotation + 0.6 * Math.random() - 0.3,
+                flakSpecial: true,
+            });
+        });
 
         this.socket.on("newComet", (cometInfo) => {
             self.addComet(self, cometInfo);
@@ -374,8 +390,8 @@ class GameScene extends Phaser.Scene {
                 this.missileCountUpgradeText.setText(`Ammo\nCapacity\n\n${info[1]}`);
             }
         });
+        
         this.socket.on("updateSpecialAttack", (id, newAttackName, color) => {
-
             if (id == self.playerId) {
                 self.specialAttackClientCopy = newAttackName;
                 self.updateSpecialAttackIcon(self, self, newAttackName, color);
@@ -387,8 +403,6 @@ class GameScene extends Phaser.Scene {
                     }
                 });
             }
-
-
         })
         this.socket.on("updateRound", (round) => {
             this.roundText.setText(`${round}`);
@@ -693,10 +707,19 @@ class GameScene extends Phaser.Scene {
     }
 
     addMissile(self, missileInfo) {
-        const missile = self.add
+        let missile;
+        if (!missileInfo.flakSpecial) {
+            missile = self.add
             .sprite(missileInfo.x, missileInfo.y, "missile")
             .setDepth(15)
             .setScale(0.1875);
+        }else {
+            missile = self.add
+            .sprite(missileInfo.x, missileInfo.y, "missile")
+            .setDepth(15)
+            .setScale(0.02);
+        }
+        
         missile.rotation = missileInfo.rotation;
         missile.id = missileInfo.id;
         self.missiles.add(missile);
@@ -861,6 +884,13 @@ class GameScene extends Phaser.Scene {
             "laserConsumable",
             "Laser Shots\n1500",
             "laser"
+        );
+
+        this.makeUIHalfButtonHelper(
+            self,
+            "flakConsumable",
+            "Flak\n100",
+            "flak"
         );
 
         //To add more half-buttons, just list them as follows, and they will appear in the shop at an appropriate place
