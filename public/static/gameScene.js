@@ -796,7 +796,7 @@ class GameScene extends Phaser.Scene {
                         this.scoreInfoText = this.add.text(360, 185, 'Current game score', textFormatSmall).setDepth(102);
                         this.creditInfoText = this.add.text(640, 185, 'Current amount\nof credits', textFormatSmall).setDepth(102);
                         this.missileCountInfoText = this.add.text(this.ship.x - 100, 600, 'The amount of missiles you have', textFormatSmall).setDepth(102);
-                        this.instructionsText = this.add.text(990, 185, "Click anywhere to fire a missile.\nThe missile will explode at the\ncrosshair, and the explosion will do\ndamage to the comets.\n\nIf you purchase a fireable consumable,\npress 'q' and click to fire\nin the desired direction.\n\nAs the rounds progress, comets will\nincrease in number, speed, and damage.\nIf a comet reaches the base,\nyour base will receive damage equal\nto the comet's current health.\n\nYou lose when the base health reaches 0.", textFormatSmall);
+                        this.instructionsText = this.add.text(990, 185, "Click anywhere to fire a missile.\nThe missile will explode at the\ncrosshair, and the explosion will do\ndamage to the comets.\n\nIf you purchase a fireable consumable,\npress 'q' and click to fire\nin the desired direction.\n\nAs the rounds progress, comets will\nincrease in number, speed, and damage.\nIf a comet reaches the base,\nyour base will receive damage equal\nto the comet's current health.\n\nYou lose when base health reaches 0.", textFormatSmall);
                     }, 150)
                 })
                 .on('pointerout', () => {
