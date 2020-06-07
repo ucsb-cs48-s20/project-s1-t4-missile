@@ -129,7 +129,6 @@ class GameScene extends Phaser.Scene {
         this.noMissilesLeft = false;
         this.maxMissilesClientCopy = -1;
 
-        this.specialAttackClientCopy = "none";
         this.specialAttackActive = false;
         this.specialAttackKey = this.input.keyboard.addKey('Q', false);
 
@@ -444,8 +443,10 @@ class GameScene extends Phaser.Scene {
 
         this.socket.on("updateSpecialAttack", (id, newAttackName, color) => {
             if (id == self.playerId) {
-                self.specialAttackClientCopy = newAttackName;
                 self.updateSpecialAttackIcon(self, self, newAttackName, color);
+                if (newAttackName === 'none') {
+                    this.specialAttackActive = false;
+                }
             } else {
                 self.otherPlayers.getChildren().forEach(otherPlayer => {
                     if (id == otherPlayer.playerId) {
@@ -568,8 +569,8 @@ class GameScene extends Phaser.Scene {
                 this.focus = this.pointerInGame
             }
 
-            //Special attack activate
-            if (this.focus && this.specialAttackKey.isDown && !this.specialAttackActive && this.specialAttackClientCopy != "none") {
+            //Activate special attack
+            if (this.focus && this.specialAttackKey.isDown && !this.specialAttackActive) {
                 this.specialAttackActive = true;
                 this.specialAttackHolder.setTint(0xff0000);
             }
@@ -586,14 +587,9 @@ class GameScene extends Phaser.Scene {
                 this.ship.play("fire");
                 this.shot = true;
 
+                // specialAttackActive is set to false when specialattackclient copy is set to none
                 if (this.specialAttackActive) {
-                    switch (this.specialAttackClientCopy) {
-                        case "none":
-                            this.specialAttackActive = false;
-                        default:
-                            // attack is not none so assume it's something
-                            this.socket.emit("specialShot");
-                    }
+                    this.socket.emit("specialShot");
                 }
 
                 if (!this.specialAttackActive) {

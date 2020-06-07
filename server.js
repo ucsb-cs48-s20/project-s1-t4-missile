@@ -155,10 +155,17 @@ io.on('connect', socket => {
                 missileData["id"] = missileId;
                 missiles[missileId] = missileData;
                 if (missiles[missileId].flakSpecial) {
-                    missiles[missileId].dmg = 1;
-                    missiles[missileId].radius = players[socket.id].radius / 2.5;
-                    missiles[missileId].speedX = -1 * Math.cos(missileData.rotation + Math.PI / 2) * players[socket.id].speed * 1.5;
-                    missiles[missileId].speedY = -1 * Math.sin(missileData.rotation + Math.PI / 2) * players[socket.id].speed * 1.5;
+                    // flak damage scales w/ player's damage stat
+                    if (players[socket.id].damage < 3) {
+                        missiles[missileId].dmg = 1;
+                    }else if (players[socket.id].damage < 5) {
+                        missiles[missileId].dmg = 2;
+                    }else {
+                        missiles[missileId].dmg = 3;
+                    }
+                    missiles[missileId].radius = players[socket.id].radius / 2.3;
+                    missiles[missileId].speedX = -1 * Math.cos(missileData.rotation + Math.PI / 2) * players[socket.id].speed * 1.3;
+                    missiles[missileId].speedY = -1 * Math.sin(missileData.rotation + Math.PI / 2) * players[socket.id].speed * 1.3;
                 }else {
                     missiles[missileId].dmg = players[socket.id].damage;
                     missiles[missileId].radius = players[socket.id].radius;
@@ -248,7 +255,7 @@ io.on('connect', socket => {
                 fireLaser(socket.id);
             }else if (myPlayer.specialAttack == "flak") {
                 io.emit('updateSpecialAttack', socket.id, 'flak', 0x555555 * (myPlayer.specialAttackAmmo - 1));
-                fireFlak();
+                fireFlak(socket.id);
             }
             myPlayer.specialAttackAmmo -= 1;
             if (myPlayer.specialAttackAmmo <= 0) {
@@ -410,7 +417,7 @@ function attemptUpgrade(socketID, upgradeName, upgradeIncrement, cost, costIncre
 }
 
 function attemptBuyConsumable(socketID, consumableName, cost) {
-    if (players[socketID].credits >= cost) {
+    if (players[socketID].credits >= cost && players[socketID].specialAttack === "none") {
         players[socketID].credits -= cost;
         players[socketID].specialAttack = consumableName;
         io.to(socketID).emit('updateCredits', players[socketID].credits);
@@ -602,12 +609,12 @@ function fireLaser(socketID) {
     })
 }
 
-function fireFlak() {
+function fireFlak(socketID) {
     let tick = 0;
 
     const flakDuration = setInterval(() => {
         if (tick < 500) {
-            io.emit('flakFired');
+            io.to(socketID).emit('flakFired');
             tick++;
         }else {
             clearInterval(flakDuration);
