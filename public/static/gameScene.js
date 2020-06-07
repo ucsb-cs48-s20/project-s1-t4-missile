@@ -1,12 +1,12 @@
 import { angle } from '/static/gameCalculations.js'
 
 const textFormatSmall = {
-    "fontFamily": "Trebuchet MS", 
+    "fontFamily": "Trebuchet MS",
     "fontSize": "16px",
     "fill": '#0f0'
 }
 const textFormatMedium = {
-    "fontFamily": "Trebuchet MS", 
+    "fontFamily": "Trebuchet MS",
     "fontSize": "32px"
 };
 
@@ -58,7 +58,6 @@ class GameScene extends Phaser.Scene {
         let self = this;
 
         this.socket.emit('requestInitialize');
-
         this.pointerInGame = true
         this.game.canvas.onmouseover = (e) => this.pointerInGame = true
         this.game.canvas.onmouseout = (e) => this.pointerInGame = false
@@ -789,36 +788,35 @@ class GameScene extends Phaser.Scene {
                 .setDepth(100)
                 .setInteractive()
                 .on('pointerover', () => {
-                    setTimeout(() => {
-                        this.roundInfoText = this.add.text(10, 185, 'The current\nround', textFormatSmall).setDepth(102);
-                        this.timerInfoText = this.add.text(120, 185, 'How many\nseconds until\nthe round/break\nends', textFormatSmall).setDepth(102);
-                        this.healthInfoText = this.add.text(240, 185, 'Current base\nhealth', textFormatSmall).setDepth(102);
-                        this.scoreInfoText = this.add.text(360, 185, 'Current game score', textFormatSmall).setDepth(102);
-                        this.creditInfoText = this.add.text(640, 185, 'Current amount\nof credits', textFormatSmall).setDepth(102);
-                        this.missileCountInfoText = this.add.text(this.ship.x - 100, 600, 'The amount of missiles you have', textFormatSmall).setDepth(102);
-                        this.instructionsText = this.add.text(990, 185, "Click anywhere to fire a missile.\nThe missile will explode at the\ncrosshair, and the explosion will do\ndamage to the comets.\n\nIf you purchase a fireable consumable,\npress 'q' and click to fire\nin the desired direction.\n\nAs the rounds progress, comets will\nincrease in number, speed, and damage.\nIf a comet reaches the base,\nyour base will receive damage equal\nto the comet's current health.\n\nYou lose when base health reaches 0.", textFormatSmall);
-                    }, 150)
+                    this.roundInfoText = this.add.text(10, 185, 'The current\nround', textFormatSmall).setDepth(102);
+                    this.timerInfoText = this.add.text(120, 185, 'How many\nseconds until\nthe round/break\nends', textFormatSmall).setDepth(102);
+                    this.healthInfoText = this.add.text(240, 185, 'Current base\nhealth', textFormatSmall).setDepth(102);
+                    this.scoreInfoText = this.add.text(360, 185, 'Current game score', textFormatSmall).setDepth(102);
+                    this.creditInfoText = this.add.text(640, 185, 'Current amount\nof credits', textFormatSmall).setDepth(102);
+                    this.missileCountInfoText = this.add.text(this.ship.x - 100, 600, 'The amount of missiles you have', textFormatSmall).setDepth(102);
+                    this.instructionsText = this.add.text(990, 185, "Click anywhere to fire a missile.\nThe missile will explode at the\ncrosshair, and the explosion will do\ndamage to the comets.\n\nIf you purchase a fireable consumable,\npress 'q' and click to fire\nin the desired direction.\n\nAs the rounds progress, comets will\nincrease in number, speed, and damage.\nIf a comet reaches the base,\nyour base will receive damage equal\nto the comet's current health.\n\nYou lose when base health reaches 0.", textFormatSmall);
+
                 })
                 .on('pointerout', () => {
-                    if(this.roundInfoText) {
+                    if (this.roundInfoText) {
                         this.roundInfoText.destroy();
                     }
-                    if(this.timerInfoText) {
+                    if (this.timerInfoText) {
                         this.timerInfoText.destroy();
                     }
-                    if(this.healthInfoText) {
+                    if (this.healthInfoText) {
                         this.healthInfoText.destroy();
                     }
-                    if(this.scoreInfoText) {
+                    if (this.scoreInfoText) {
                         this.scoreInfoText.destroy();
                     }
-                    if(this.creditInfoText) {
+                    if (this.creditInfoText) {
                         this.creditInfoText.destroy();
                     }
-                    if(this.missileCountInfoText) {
+                    if (this.missileCountInfoText) {
                         this.missileCountInfoText.destroy();
                     }
-                    if(this.instructionsText) {
+                    if (this.instructionsText) {
                         this.instructionsText.destroy();
                     }
                 })
@@ -849,7 +847,7 @@ class GameScene extends Phaser.Scene {
                 this.upgradeHelpText = this.add.text(xpos - 60, ypos + 270, description, textFormatSmall).setDepth(200);
             })
             .on('pointerout', () => {
-                if(this.upgradeHelpText) {
+                if (this.upgradeHelpText) {
                     this.upgradeHelpText.destroy();
                 }
             })
@@ -878,7 +876,7 @@ class GameScene extends Phaser.Scene {
                 this.upgradeHelpText = this.add.text(xpos - 60, ypos + 270, description, textFormatSmall).setDepth(200);
             })
             .on('pointerout', () => {
-                if(this.upgradeHelpText) {
+                if (this.upgradeHelpText) {
                     this.upgradeHelpText.destroy();
                 }
             })
@@ -942,7 +940,7 @@ class GameScene extends Phaser.Scene {
             "Laser Shots\n1500",
             "laser"
         );
-
+    
         this.makeUIHalfButtonHelper(
             self,
             "laserConsumable",
