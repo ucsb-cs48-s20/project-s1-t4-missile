@@ -34,6 +34,8 @@ let timer = 60;
 let roundOver = false;
 let countdown = false;
 let score = 0;
+let countdownTimer = undefined;
+let gameTimeout = undefined;
 
 let reloadSpeed = 0.5;
 let numMissiles = 2;
@@ -96,7 +98,7 @@ io.on('connect', socket => {
                 countdown = true;
                 io.emit('updateCountdownTimer', 5);
                 let time = 4;
-                let timer = setInterval(() => {
+                countdownTimer = setInterval(() => {
                     io.emit('updateCountdownTimer', time);
                     time--;
                     console.log(time);
@@ -104,7 +106,7 @@ io.on('connect', socket => {
                         clearInterval(timer);
                     }
                 }, 1000);
-                setTimeout(() => {
+                gameTimeout = setTimeout(() => {
                     countdown = false;
                     gameState = 'game';
                     io.emit('switchStart');
@@ -325,6 +327,11 @@ io.on('connect', socket => {
             delete users[socket.id];
             io.emit('disconnect', socket.id);
             if(Object.keys(players).length == 0) {
+                if(countdown) {
+                    clearInterval(countdownTimer);
+                    clearTimeout(gameTimeout);
+                    countdown = false;
+                }
                 clearGame();
                 io.emit('reload');
                 io.emit('clearLobby');

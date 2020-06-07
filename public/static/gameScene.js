@@ -1,5 +1,15 @@
 import { angle } from '/static/gameCalculations.js'
 
+const textFormatSmall = {
+    "fontFamily": "Trebuchet MS", 
+    "fontSize": "16px",
+    "fill": '#0f0'
+}
+const textFormatMedium = {
+    "fontFamily": "Trebuchet MS", 
+    "fontSize": "32px"
+};
+
 class GameScene extends Phaser.Scene {
     constructor() {
         super({ key: "gameScene" });
@@ -41,19 +51,11 @@ class GameScene extends Phaser.Scene {
             frameWidth: 64,
             frameHeight: 64,
         });
+        this.load.image('info', '/assets/info.png');
     }
 
     create() {
         let self = this;
-
-        this.textFormatSmall = {
-            "fontFamily": "Trebuchet MS", 
-            "fontSize": "16px"
-        }
-        this.textFormatMedium = {
-            "fontFamily": "Trebuchet MS", 
-            "fontSize": "32px"
-        };
 
         this.socket.emit('requestInitialize');
 
@@ -782,6 +784,40 @@ class GameScene extends Phaser.Scene {
         self.shopUI.add(shopUIBackground);
 
         if (!self.spectate) {
+            self.infoButton = self.add.image(1220, 50, 'info')
+                .setScale(0.5)
+                .setDepth(100)
+                .setInteractive()
+                .on('pointerover', () => {
+                    setTimeout(() => {
+                        this.roundInfoText = this.add.text(10, 185, 'The current\nround', textFormatSmall).setDepth(102);
+                        this.timerInfoText = this.add.text(120, 185, 'How many\nseconds until\nthe round/break\nends', textFormatSmall).setDepth(102);
+                        this.healthInfoText = this.add.text(240, 185, 'Current base\nhealth', textFormatSmall).setDepth(102);
+                        this.scoreInfoText = this.add.text(360, 185, 'Current game score', textFormatSmall).setDepth(102);
+                        this.creditInfoText = this.add.text(640, 185, 'Current amount\nof credits', textFormatSmall).setDepth(102);
+                        this.missileCountInfoText = this.add.text(this.ship.x - 100, 600, 'The amount of missiles you have', textFormatSmall).setDepth(102);
+                    }, 150)
+                })
+                .on('pointerout', () => {
+                    if(this.roundInfoText) {
+                        this.roundInfoText.destroy();
+                    }
+                    if(this.timerInfoText) {
+                        this.timerInfoText.destroy();
+                    }
+                    if(this.healthInfoText) {
+                        this.healthInfoText.destroy();
+                    }
+                    if(this.scoreInfoText) {
+                        this.scoreInfoText.destroy();
+                    }
+                    if(this.creditInfoText) {
+                        this.creditInfoText.destroy();
+                    }
+                    if(this.missileCountInfoText) {
+                        this.missileCountInfoText.destroy();
+                    }
+                })
             self.makeUIButtons(self);
         }
     }
@@ -806,7 +842,7 @@ class GameScene extends Phaser.Scene {
         self[name] = self.add.image(xpos, ypos, 'button').setDepth(101).setScale(1.5).setTint(0xcfcfcf)
             .setInteractive()
             .on('pointerover', () => {
-                this.upgradeHelpText = this.add.text(xpos - 60, ypos + 270, description, this.textFormatSmall).setDepth(200);
+                this.upgradeHelpText = this.add.text(xpos - 60, ypos + 270, description, textFormatSmall).setDepth(200);
             })
             .on('pointerout', () => {
                 if(this.upgradeHelpText) {
@@ -835,7 +871,7 @@ class GameScene extends Phaser.Scene {
         self[name] = self.add.image(xpos, ypos - 19, 'halfbutton').setDepth(101).setScale(1.25).setTint(0xcfcfcf)
             .setInteractive()
             .on('pointerover', () => {
-                this.upgradeHelpText = this.add.text(xpos - 60, ypos + 270, description, this.textFormatSmall).setDepth(200);
+                this.upgradeHelpText = this.add.text(xpos - 60, ypos + 270, description, textFormatSmall).setDepth(200);
             })
             .on('pointerout', () => {
                 if(this.upgradeHelpText) {
