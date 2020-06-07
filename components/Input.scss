@@ -9,6 +9,7 @@
     padding: 5%;
     width: 80%;
     font-size: 1.2em;
+    background-color: rgba(135, 99, 170, 0.692);
 }
 
 input:focus,
@@ -19,6 +20,7 @@ select:focus {
 
 .sendButton {
     color: #fff !important;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     text-transform: uppercase;
     text-decoration: none;
     background: #2979ff;
@@ -26,4 +28,12 @@ select:focus {
     display: inline-block;
     border: none;
     width: 20%;
+}
+
+.sendButton:hover {
+    background: #2363d1;
+}
+
+.sendButton:active {
+    background: #2260cc;
 }

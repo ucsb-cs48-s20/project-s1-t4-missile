@@ -1,13 +1,13 @@
 import React from 'react';
-import Chat from './ChatLayout';
-import styles from './styles';
 import './GameWindow.scss';
+import Chat from './ChatLayout'
 
 function Make() {
     return (
-        <div className="main" style={styles.gameWindow}>
-            <div id="gameWindow" className="game" />
-            <Chat className="chat" />
+        <div className="main gameWindow">
+            <div id="gameWindow" className="game">
+            </div>
+            <Chat className="chat"/>
         </div>
     )
 }

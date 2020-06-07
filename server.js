@@ -9,7 +9,7 @@ const nextApp = next({ dev });
 const nextHandler = nextApp.getRequestHandler();
 const PORT = process.env.PORT || 3000;
 
-const { addUser, removeUser, getUser } = require('./utils/chatUsers.js');
+const { addUser, removeUser, getUser, getAllUsers } = require('./utils/chatUsers.js');
 const { distance } = require('./utils/serverCalculations.js');
 
 nextApp.prepare().then(() => {
@@ -54,6 +54,7 @@ let playerSlots = {
     p3: undefined,
     p4: undefined
 }
+
 let users = {};
 let missiles = {};
 let comets = {};
@@ -64,13 +65,16 @@ for (let i = 0; i < cometLimit; i++) {
 }
 
 io.on('connect', socket => {
-    console.log(socket.handshake.query.purpose);
+    // console.log(socket.handshake.query.purpose);
     if (socket.handshake.query.purpose === "game") {
         console.log(`${socket.id} connected`);
-        console.log(gameState);
-
-        users[socket.id] = 'spectator';
-
+        let username = socket.handshake.query.name;
+        users[socket.id] = {
+            name: username,
+            role: 'spectator',
+        }    
+        console.log(users[socket.id]);
+        
         if (gameState == 'lobby') {
             io.emit('initUsers', users);
         } else if (gameState == 'game') {
@@ -85,7 +89,7 @@ io.on('connect', socket => {
         })
 
         socket.on('startGame', () => {
-            if (users[socket.id] == 'player') {
+            if (users[socket.id].role == 'player') {
                 gameState = 'game';
                 io.emit('switchStart');
             }
@@ -107,8 +111,8 @@ io.on('connect', socket => {
 
         //Handles client inputs
         socket.on('attemptSwitchRole', () => {
-            if (users[socket.id] == 'player') {
-                users[socket.id] = 'spectator';
+            if (users[socket.id].role == 'player') {
+                users[socket.id].role = 'spectator';
                 delete players[socket.id];
                 for (let i = 0; i < 4; i++) {
                     if (playerSlots[i] == socket.id) {
@@ -119,7 +123,7 @@ io.on('connect', socket => {
             } else {
                 let nextSlot = getNextSlot();
                 if (nextSlot != -1) {
-                    users[socket.id] = 'player';
+                    users[socket.id].role = 'player';
                     playerSlots[nextSlot] = socket.id;
                     players[socket.id] = {
                         rotation: 0,
@@ -311,25 +315,23 @@ io.on('connect', socket => {
             }
         })
     } else {
-
         console.log(`Chat socket ${socket.id} connected`)
 
         let defaultName = `${socket.id}`
 
         //Handles the chat stuff
         socket.on('disconnect', () => {
-            console.log('User has left!');
+            console.log(`Chat socket ${socket.id} has left!`);
             const user = removeUser(socket.id);
-
             if (user) {
                 io.to(user.room).emit('message', { user: 'admin', text: `${user.name} has left.` });
+                io.to(user.room).emit('roomData', { room: user.room, users: getAllUsers() });
             }
-
             socket.disconnect();
         })
 
         socket.on('join', (obj, callback) => {
-            const { error, user } = addUser({ id: socket.id, name: defaultName, room: 'Room' });
+            const { error, user } = addUser({ id: socket.id, name: obj.name, room: 'Room' });
             console.log(`Adding ${obj.name} to room ${user.room}`);
 
             if (error) {
@@ -337,10 +339,10 @@ io.on('connect', socket => {
             }
 
             socket.emit('message', { user: 'admin', text: `${user.name}, welcome to the room!` });
-            socket.emit('defaultName', { name: `${defaultName}` });
             socket.broadcast.to(user.room).emit('message', { user: 'admin', text: `${user.name} has joined the room.` });
             socket.join(user.room);
 
+            io.to(user.room).emit('roomData', { room: user.room, users: getAllUsers() });
             callback();
         });
 

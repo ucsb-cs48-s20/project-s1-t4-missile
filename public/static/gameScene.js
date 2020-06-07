@@ -128,7 +128,7 @@ class GameScene extends Phaser.Scene {
 
         this.specialAttackClientCopy = "none";
         this.specialAttackActive = false;
-        this.specialAttackKey = this.input.keyboard.addKey('Q');
+        this.specialAttackKey = this.input.keyboard.addKey('Q', false);
 
         this.created = true;
 
@@ -293,6 +293,10 @@ class GameScene extends Phaser.Scene {
                     otherTankbody.destroy();
                 }
             });
+
+            if (playerId == self.playerId) {
+                this.socket.close();
+            }
         });
         this.socket.on("gameOver", (data) => {
             data['socket'] = this.socket;
@@ -452,14 +456,14 @@ class GameScene extends Phaser.Scene {
             //make the UI tray come out and go back in
             this.moveUI(pointer, UICutoffY);
 
-            //Special attack activate
-            if (this.specialAttackKey.isDown && !this.specialAttackActive && this.specialAttackClientCopy != "none") {
-                this.specialAttackActive = true;
-                this.specialAttackHolder.setTint(0xff0000);
-            }
-
             if (pointer.isDown) {
                 this.focus = this.pointerInGame
+            }
+
+            //Special attack activate
+            if (this.focus && this.specialAttackKey.isDown && !this.specialAttackActive && this.specialAttackClientCopy != "none") {
+                this.specialAttackActive = true;
+                this.specialAttackHolder.setTint(0xff0000);
             }
 
             //Shot handling
