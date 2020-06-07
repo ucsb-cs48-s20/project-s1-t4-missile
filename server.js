@@ -90,11 +90,7 @@ io.on('connect', socket => {
         })
 
         socket.on('startGame', () => {
-<<<<<<< HEAD
-            if (users[socket.id].role == 'player') {
-=======
-            console.log('entered');
-            if (users[socket.id] == 'player' && !countdown) {
+            if (users[socket.id].role == 'player' && !countdown) {
                 countdown = true;
                 let time = 5;
                 let timer = setInterval(() => {
@@ -106,7 +102,6 @@ io.on('connect', socket => {
                     console.log(time);
                 }, 1000);
                 countdown = false;
->>>>>>> bq - added countdown timer
                 gameState = 'game';
                 io.emit('switchStart');
             }
