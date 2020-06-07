@@ -1,3 +1,13 @@
+const textFormatSmall = {
+    "fontFamily": "Trebuchet MS", 
+    "fontSize": "16px",
+    "fill": '#0f0'
+}
+const textFormatMedium = {
+    "fontFamily": "Trebuchet MS", 
+    "fontSize": "32px"
+};
+
 class LobbyScene extends Phaser.Scene {
     constructor() {
         super({ key: "lobbyScene" });
@@ -10,14 +20,14 @@ class LobbyScene extends Phaser.Scene {
 
     preload() {
         this.load.image('background', '/assets/background.png');
-        this.load.image('stars', '/assets/background-stars.png');
         this.load.image("start", "/assets/start.png");
+        this.load.image('info', '/assets/info.png');
     }
 
     create() {
         this.game.canvas.oncontextmenu = (e) => e.preventDefault()
         this.add.image(640, 360, 'background').setScale(5);
-        this.add.image(640, 360, 'stars').setScale(4);
+        this.role = 'spectator';
 
         if (this.socket == undefined) {
             const ENDPOINT = window.location.protocol + '//' + window.location.hostname + ':' + window.location.port;
@@ -29,10 +39,16 @@ class LobbyScene extends Phaser.Scene {
             .setInteractive()
         this.startButton
             .on('pointerover', () => {
+                if(!this.inProgress && this.role == 'spectator') {
+                    this.spectatorHelpText = this.add.text(520, 600, 'Only players can start the game.\nClick on your name to switch roles.', textFormatSmall);
+                }
                 this.startButton.setTint(0xfcfcfc);
             })
             .on('pointerout', () => {
                 this.startButton.setTint(0xcfcfcf);
+                if(this.spectatorHelpText) {
+                    this.spectatorHelpText.destroy();
+                }
             })
             .on('pointerdown', () => {
                 if(this.inProgress) {
@@ -54,18 +70,24 @@ class LobbyScene extends Phaser.Scene {
             }
             console.log(users);
             Object.keys(users).forEach((user, index) => {
-                this.userTexts[user] = this.add.text(100, 50 + (50 * index), `${users[user].name} - ${users[user].role}`, { fontSize: '24px' });
+                this.userTexts[user] = this.add.text(100, 50 + (50 * index), `${users[user].name} - ${users[user].role}`, textFormatMedium);
                 if(user == this.socket.id) {
+                    this.role = users[user].role;
                     this.userTexts[user]
                         .setInteractive()
                         .on('pointerover', () => {
                             this.userTexts[user].setTint(0xfcfcfc);
+                            this.roleHelpText = this.add.text(this.userTexts[user].x + this.userTexts[user].width + 25, this.userTexts[user].y + 11, 'Click to switch roles', textFormatSmall);
                         })
                         .on('pointerout', () => {
                             this.userTexts[user].setTint(0xcfcfcf);
+                            this.roleHelpText.destroy();
                         })
                         .on('pointerdown', () => {
                             this.socket.emit('attemptSwitchRole');
+                            if(this.roleHelpText) {
+                                this.roleHelpText.destroy();
+                            }
                         })
                 }
             })
@@ -91,6 +113,14 @@ class LobbyScene extends Phaser.Scene {
             this.inProgress = false;
             if(this.progressText) {
                 this.progressText.destroy();
+            }
+        })
+
+        this.socket.on('updateCountdownTimer', (time) => {
+            if(!this.timerText) {
+                this.timerText = this.add.text(500, 360, `Game starting in ${time}...`, textFormatMedium);
+            } else {
+                this.timerText.setText(`Game starting in ${time}...`)
             }
         })
 
