@@ -93,20 +93,21 @@ io.on('connect', socket => {
             console.log(countdown);
             if (users[socket.id].role == 'player' && !countdown) {
                 countdown = true;
-                let time = 5;
+                io.emit('updateCountdownTimer', 5);
+                let time = 4;
                 let timer = setInterval(() => {
-                    if(time <= 0) {
-                        clearInterval(timer);
-                    }
                     io.emit('updateCountdownTimer', time);
                     time--;
                     console.log(time);
+                    if(time <= 0) {
+                        clearInterval(timer);
+                    }
                 }, 1000);
                 setTimeout(() => {
                     countdown = false;
                     gameState = 'game';
                     io.emit('switchStart');
-                }, 6000)
+                }, 5000)
             }
         })
 
