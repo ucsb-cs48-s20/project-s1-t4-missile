@@ -103,7 +103,7 @@ io.on('connect', socket => {
                     time--;
                     console.log(time);
                     if(time <= 0) {
-                        clearInterval(timer);
+                        clearInterval(countdownTimer);
                     }
                 }, 1000);
                 gameTimeout = setTimeout(() => {
