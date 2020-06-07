@@ -94,9 +94,9 @@ class LobbyScene extends Phaser.Scene {
             }
         })
 
-        this.socket.on('updateTimer', (time) => {
+        this.socket.on('updateCountdownTimer', (time) => {
             if(!this.timerText) {
-                this.timerText = this.add.text(640, 360, `Game starting in ${time}...`, {font: 'Trebuchet MS', fontSize: '24px'});
+                this.timerText = this.add.text(500, 360, `Game starting in ${time}...`, {fontFamily: 'Trebuchet MS', fontSize: '32px'});
             } else {
                 this.timerText.setText(`Game starting in ${time}...`)
             }
