@@ -122,6 +122,9 @@ class GameScene extends Phaser.Scene {
         this.socket.on("spectate", () => {
             this.spectate = true;
             this.spectateText = this.add.text(50, 200, 'Spectating', { fontSize: '24px' });
+            if(this.infoButton) {
+                this.infoButton.destroy();
+            }
         })
 
         this.makeUI(this);
@@ -782,8 +785,8 @@ class GameScene extends Phaser.Scene {
         const shopUIBackground = self.add.sprite(640, -40, 'shopbg').setDisplaySize(1280, 200).setTint(0xffffff).setDepth(100);
         self.shopUI.add(shopUIBackground);
 
-        if (!self.spectate) {
-            self.infoButton = self.add.image(1220, 50, 'info')
+        if (!this.spectate) {
+            this.infoButton = this.add.image(1220, 50, 'info')
                 .setScale(0.5)
                 .setDepth(100)
                 .setInteractive()

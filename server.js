@@ -433,7 +433,7 @@ function initializeGame(socketId) {
     io.to(socketId).emit('initTimer', timer);
     io.to(socketId).emit('initScore', score);
     io.to(socketId).emit('initRound', round);
-    if (users[socketId] != 'spectator') {
+    if (users[socketId].role != 'spectator') {
         io.to(socketId).emit('initCredits', 0);
     } else {
         io.to(socketId).emit('spectate');
