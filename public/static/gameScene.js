@@ -46,6 +46,15 @@ class GameScene extends Phaser.Scene {
     create() {
         let self = this;
 
+        this.textFormatSmall = {
+            "fontFamily": "Trebuchet MS", 
+            "fontSize": "16px"
+        }
+        this.textFormatMedium = {
+            "fontFamily": "Trebuchet MS", 
+            "fontSize": "32px"
+        };
+
         this.socket.emit('requestInitialize');
 
         this.pointerInGame = true
@@ -788,14 +797,22 @@ class GameScene extends Phaser.Scene {
     }
 
     //this helper makes a button
-    makeUIButtonHelper(self, name, text, upgradeType) {
+    makeUIButtonHelper(self, name, text, upgradeType, description) {
         let xpos = self.shopUIButtonPlacerX;
         let ypos = self.shopUIButtonPlacerY;
         self.shopUIButtonPlacerX += 160;
 
         self[name + 'Text'] = self.add.text(xpos - 40, ypos - 25, text, { fontSize: '18px' }).setDepth(102);
         self[name] = self.add.image(xpos, ypos, 'button').setDepth(101).setScale(1.5).setTint(0xcfcfcf)
-            .setInteractive();
+            .setInteractive()
+            .on('pointerover', () => {
+                this.upgradeHelpText = this.add.text(xpos - 60, ypos + 270, description, this.textFormatSmall).setDepth(200);
+            })
+            .on('pointerout', () => {
+                if(this.upgradeHelpText) {
+                    this.upgradeHelpText.destroy();
+                }
+            })
         self.makeButtonClickBehavior(self, self[name], () => {
             self.socket.emit('attemptUpgrade', upgradeType);
         })
@@ -803,7 +820,7 @@ class GameScene extends Phaser.Scene {
         self.shopUI.add(self[name + "Text"]);
     }
 
-    makeUIHalfButtonHelper(self, name, text, consumableType) {
+    makeUIHalfButtonHelper(self, name, text, consumableType, description) {
         let xpos = self.shopUIButtonPlacerX;
         let ypos = self.shopUIButtonPlacerY;
         if (ypos > -80) {
@@ -816,7 +833,15 @@ class GameScene extends Phaser.Scene {
 
         self[name + 'Text'] = self.add.text(xpos - 55, ypos - 32, text, { fontSize: '16px' }).setDepth(102).setTint(0x202020);
         self[name] = self.add.image(xpos, ypos - 19, 'halfbutton').setDepth(101).setScale(1.25).setTint(0xcfcfcf)
-            .setInteractive();
+            .setInteractive()
+            .on('pointerover', () => {
+                this.upgradeHelpText = this.add.text(xpos - 60, ypos + 270, description, this.textFormatSmall).setDepth(200);
+            })
+            .on('pointerout', () => {
+                if(this.upgradeHelpText) {
+                    this.upgradeHelpText.destroy();
+                }
+            })
         self.makeButtonClickBehavior(self, self[name], () => {
             self.socket.emit('attemptBuyConsumable', consumableType);
         })
@@ -829,38 +854,44 @@ class GameScene extends Phaser.Scene {
             self,
             "speedUpgrade",
             "Missile\nSpeed\n\n1000",
-            "speed"
+            "speed",
+            "Increases the rate\nat which missiles fly"
         );
         this.makeUIButtonHelper(
             self,
             "damageUpgrade",
             "Missile\nDamage\n\n1000",
-            "damage"
+            "damage",
+            "Increases the damage\nof your missiles"
         );
         this.makeUIButtonHelper(
             self,
             "radiusUpgrade",
             "Explosion\nRadius\n\n500",
-            "radius"
+            "radius",
+            "Increases the explosion\nradius of your missiles"
         );
         this.makeUIButtonHelper(
             self,
             "regenUpgrade",
             "Ammo Regen\nSpeed\n\n500",
-            "regenSpeed"
+            "regenSpeed",
+            "Increases how fast\nyour missiles regenerate"
         );
         this.makeUIButtonHelper(
             self,
             "missileCountUpgrade",
             "Ammo\nCapacity\n\n800",
-            "maxMissiles"
+            "maxMissiles",
+            "Increases how many\nmissiles you can store"
         );
 
         this.makeUIHalfButtonHelper(
             self,
             "laserConsumable",
             "Laser Shots\n1500",
-            "laser"
+            "laser",
+            "Allows you to fire 3\nlasers that can hit\nmultiple targets"
         );
 
         //To add more half-buttons, just list them as follows, and they will appear in the shop at an appropriate place

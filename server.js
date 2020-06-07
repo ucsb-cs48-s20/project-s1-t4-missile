@@ -74,7 +74,8 @@ io.on('connect', socket => {
             name: username,
             role: 'spectator',
         }    
-        console.log(users[socket.id]);
+        console.log(users);
+        console.log(players);
         
         if (gameState == 'lobby') {
             io.emit('initUsers', users);
@@ -317,7 +318,7 @@ io.on('connect', socket => {
         //Destroys objects on server & clients
         socket.on('disconnect', () => {
             console.log(`${socket.id} disconnected`)
-            if (users[socket.id] == 'player') {
+            if (users[socket.id]) {
                 delete players[socket.id];
                 removeFromSlot(socket.id);
             }
@@ -329,6 +330,7 @@ io.on('connect', socket => {
                 io.emit('clearLobby');
                 gameState = 'lobby';
             }
+            socket.disconnect();
         })
     } else {
         console.log(`Chat socket ${socket.id} connected`)
