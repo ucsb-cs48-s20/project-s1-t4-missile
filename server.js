@@ -32,7 +32,10 @@ let baseHealth = 50;
 let missileId = 0;
 let timer = 60;
 let roundOver = false;
+let countdown = false;
 let score = 0;
+let countdownTimer = undefined;
+let gameTimeout = undefined;
 
 let reloadSpeed = 0.5;
 let numMissiles = 2;
@@ -73,7 +76,8 @@ io.on('connect', socket => {
             name: username,
             role: 'spectator',
         }    
-        console.log(users[socket.id]);
+        console.log(users);
+        console.log(players);
         
         if (gameState == 'lobby') {
             io.emit('initUsers', users);
@@ -89,9 +93,24 @@ io.on('connect', socket => {
         })
 
         socket.on('startGame', () => {
-            if (users[socket.id].role == 'player') {
-                gameState = 'game';
-                io.emit('switchStart');
+            console.log(countdown);
+            if (users[socket.id].role == 'player' && !countdown) {
+                countdown = true;
+                io.emit('updateCountdownTimer', 5);
+                let time = 4;
+                countdownTimer = setInterval(() => {
+                    io.emit('updateCountdownTimer', time);
+                    time--;
+                    console.log(time);
+                    if(time <= 0) {
+                        clearInterval(countdownTimer);
+                    }
+                }, 1000);
+                gameTimeout = setTimeout(() => {
+                    countdown = false;
+                    gameState = 'game';
+                    io.emit('switchStart');
+                }, 5000)
             }
         })
 
@@ -327,18 +346,24 @@ io.on('connect', socket => {
         //Destroys objects on server & clients
         socket.on('disconnect', () => {
             console.log(`${socket.id} disconnected`)
-            if (users[socket.id] == 'player') {
+            if (users[socket.id]) {
                 delete players[socket.id];
                 removeFromSlot(socket.id);
             }
             delete users[socket.id];
             io.emit('disconnect', socket.id);
             if(Object.keys(players).length == 0) {
+                if(countdown) {
+                    clearInterval(countdownTimer);
+                    clearTimeout(gameTimeout);
+                    countdown = false;
+                }
                 clearGame();
                 io.emit('reload');
                 io.emit('clearLobby');
                 gameState = 'lobby';
             }
+            socket.disconnect();
         })
     } else {
         console.log(`Chat socket ${socket.id} connected`)
@@ -434,7 +459,7 @@ function initializeGame(socketId) {
     io.to(socketId).emit('initTimer', timer);
     io.to(socketId).emit('initScore', score);
     io.to(socketId).emit('initRound', round);
-    if (users[socketId] != 'spectator') {
+    if (users[socketId].role != 'spectator') {
         io.to(socketId).emit('initCredits', 0);
     } else {
         io.to(socketId).emit('spectate');
