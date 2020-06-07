@@ -18,10 +18,9 @@ let config = {
 
 let game = new Phaser.Game(config);
 
-console.log("game!");
-
 const ENDPOINT = window.location.protocol + '//' + window.location.hostname + ':' + window.location.port;
-let socket = io(ENDPOINT, { query: "purpose=game" });
+console.log(window.location.href);
+let socket = io(ENDPOINT, { query: `purpose=game&name=${window.location.href.substring(window.location.href.indexOf('=') + 1)}` })
 
 game.scene.add('lobbyScene', new LobbyScene());
 game.scene.add('gameScene', new GameScene());

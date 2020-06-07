@@ -68,10 +68,13 @@ io.on('connect', socket => {
     // console.log(socket.handshake.query.purpose);
     if (socket.handshake.query.purpose === "game") {
         console.log(`${socket.id} connected`);
-        //console.log(gameState);
-
-        users[socket.id] = 'spectator';
-
+        let username = socket.handshake.query.name;
+        users[socket.id] = {
+            name: username,
+            role: 'spectator',
+        }    
+        console.log(users[socket.id]);
+        
         if (gameState == 'lobby') {
             io.emit('initUsers', users);
         } else if (gameState == 'game') {
@@ -86,7 +89,7 @@ io.on('connect', socket => {
         })
 
         socket.on('startGame', () => {
-            if (users[socket.id] == 'player') {
+            if (users[socket.id].role == 'player') {
                 gameState = 'game';
                 io.emit('switchStart');
             }
@@ -108,8 +111,8 @@ io.on('connect', socket => {
 
         //Handles client inputs
         socket.on('attemptSwitchRole', () => {
-            if (users[socket.id] == 'player') {
-                users[socket.id] = 'spectator';
+            if (users[socket.id].role == 'player') {
+                users[socket.id].role = 'spectator';
                 delete players[socket.id];
                 for (let i = 0; i < 4; i++) {
                     if (playerSlots[i] == socket.id) {
@@ -120,7 +123,7 @@ io.on('connect', socket => {
             } else {
                 let nextSlot = getNextSlot();
                 if (nextSlot != -1) {
-                    users[socket.id] = 'player';
+                    users[socket.id].role = 'player';
                     playerSlots[nextSlot] = socket.id;
                     players[socket.id] = {
                         rotation: 0,
