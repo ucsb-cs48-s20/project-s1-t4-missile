@@ -32,6 +32,7 @@ let baseHealth = 50;
 let missileId = 0;
 let timer = 60;
 let roundOver = false;
+let countdown = false;
 let score = 0;
 
 let reloadSpeed = 0.5;
@@ -89,7 +90,23 @@ io.on('connect', socket => {
         })
 
         socket.on('startGame', () => {
+<<<<<<< HEAD
             if (users[socket.id].role == 'player') {
+=======
+            console.log('entered');
+            if (users[socket.id] == 'player' && !countdown) {
+                countdown = true;
+                let time = 5;
+                let timer = setInterval(() => {
+                    if(time <= 0) {
+                        clearInterval(timer);
+                    }
+                    io.emit('updateCountdownTimer', time);
+                    time--;
+                    console.log(time);
+                }, 1000);
+                countdown = false;
+>>>>>>> bq - added countdown timer
                 gameState = 'game';
                 io.emit('switchStart');
             }
