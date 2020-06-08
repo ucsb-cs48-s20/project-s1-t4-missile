@@ -827,13 +827,23 @@ setInterval(() => {
     if (gameState == 'game') {
         timer--;
         io.emit('timerUpdate', timer);
+        if (!roundOver && timer <= 5) {
+            io.emit('updateIncomingStatus', {
+                timer: timer,
+                status: 'Break'
+            });
+        } else if (roundOver && timer <= 5) {
+            io.emit('updateIncomingStatus', {
+                timer: timer,
+                status: `Round ${round + 1}`
+            })
+        }
         if (!roundOver && timer <= 0) {
             roundOver = true;
-            round++;
-            io.emit('updateRound', round);
             timer = 10;
-            increaseDifficulty();
         } else if (roundOver && timer <= 0) {
+            io.emit('updateRound', ++round);
+            increaseDifficulty();
             roundOver = false;
             timer = 60;
         }

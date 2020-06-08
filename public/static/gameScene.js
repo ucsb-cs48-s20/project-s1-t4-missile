@@ -205,7 +205,7 @@ class GameScene extends Phaser.Scene {
         });
         this.socket.on('initSpectate', () => {
             this.spectate = true;
-            this.spectateText = this.add.text(50, 200, 'Spectating', formatTUT);
+            this.spectateText = this.add.text(50, 300, 'Spectating', formatTUT);
             if(this.infoButton) {
                 this.infoButton.destroy();
             }
@@ -332,6 +332,17 @@ class GameScene extends Phaser.Scene {
                 }
             }
         );
+
+        this.socket.on('updateIncomingStatus', (info) => {
+            if (info.timer == 0) {
+                this.incomingStatusText.destroy();
+            } else {
+                if(this.incomingStatusText) {
+                    this.incomingStatusText.destroy();
+                }
+                this.incomingStatusText = this.add.text(50, 200, `${info.status} in ${info.timer}...`, formatMED);
+            } 
+        })
 
         //Events where objects are destroyed
         this.socket.on("missileDestroyed", (missileId, size, time) => {
