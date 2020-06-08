@@ -105,7 +105,7 @@ class LobbyScene extends Phaser.Scene {
             this.endText = this.add.text(900, 50, 'Game has ended,\nwaiting for players\nto return...', { fontSize: '24px' });
         })
 
-        this.socket.on('restart', () => {
+        this.socket.on('reloadLobby', () => {
             location.reload();
         })
 

@@ -75,10 +75,10 @@ io.on('connect', socket => {
         users[socket.id] = {
             name: username,
             role: 'spectator',
-        }    
+        }
         console.log(users);
         console.log(players);
-        
+
         if (gameState == 'lobby') {
             io.emit('initUsers', users);
         } else if (gameState == 'game') {
@@ -102,7 +102,7 @@ io.on('connect', socket => {
                     io.emit('updateCountdownTimer', time);
                     time--;
                     console.log(time);
-                    if(time <= 0) {
+                    if (time <= 0) {
                         clearInterval(countdownTimer);
                     }
                 }, 1000);
@@ -118,10 +118,10 @@ io.on('connect', socket => {
             initializeGame(socket.id);
         })
 
-        socket.on('returnToLobby', () => {
+        socket.on('requestEndToLobby', () => {
             gameState = 'lobby';
-            io.emit('switchLobby');
-            io.emit('restart');
+            io.emit('reloadEnd');
+            io.emit('reloadLobby');
         })
 
         socket.on('requestUsers', () => {
@@ -145,12 +145,13 @@ io.on('connect', socket => {
                     users[socket.id].role = 'player';
                     playerSlots[nextSlot] = socket.id;
                     players[socket.id] = {
+                        name: users[socket.id].name,
                         rotation: 0,
                         x: 160 + 320 * nextSlot,
                         y: 670,
                         playerId: socket.id,
                         credits: 0,
-                        kills: 0,
+                        cometsDestroyed: 0,
                         damage: 1,
                         radius: 40,
                         missiles: 5,
@@ -177,9 +178,9 @@ io.on('connect', socket => {
                     // flak damage scales w/ player's damage stat
                     if (players[socket.id].damage < 3) {
                         missiles[missileId].dmg = 1;
-                    }else if (players[socket.id].damage < 5) {
+                    } else if (players[socket.id].damage < 5) {
                         missiles[missileId].dmg = 2;
-                    }else {
+                    } else {
                         missiles[missileId].dmg = 3;
                     }
                     missiles[missileId].radius = players[socket.id].radius / 2.7;
@@ -198,7 +199,7 @@ io.on('connect', socket => {
                 }
                 missiles[missileId].startX = missiles[missileId].x
                 missiles[missileId].startY = missiles[missileId].y
-                
+
                 missiles[missileId].playerId = socket.id;
 
                 io.emit('newMissile', missiles[missileId]);
@@ -216,7 +217,7 @@ io.on('connect', socket => {
                     io.emit('missileCountChange', socket.id, thisPlayer.missiles, thisPlayer.maxMissiles, regenMs, displayBar);
                     giveBulletsUntilMax(socket.id, thisPlayer, regenMs);
                 }
-                
+
                 if (missileId > 1000) {
                     missileId = 0;
                 } else {
@@ -263,12 +264,12 @@ io.on('connect', socket => {
                 if (bought) {
                     players[socket.id].specialAttackAmmo = 3;
                 }
-            }else if (consumableName == 'flak') {
+            } else if (consumableName == 'flak') {
                 let bought = attemptBuyConsumable(socket.id, consumableName, 100);
                 if (bought) {
                     players[socket.id].specialAttackAmmo = 1;
                 }
-            }else if (consumableName == 'nuke') {
+            } else if (consumableName == 'nuke') {
                 let bought = attemptBuyConsumable(socket.id, consumableName, 200);
                 if (bought) {
                     players[socket.id].specialAttackAmmo = 1;
@@ -282,10 +283,10 @@ io.on('connect', socket => {
             else if (myPlayer.specialAttack == "laser") {
                 io.emit('updateSpecialAttack', socket.id, 'laser', 0x555555 * (myPlayer.specialAttackAmmo - 1));
                 fireLaser(socket.id);
-            }else if (myPlayer.specialAttack == "flak") {
+            } else if (myPlayer.specialAttack == "flak") {
                 io.emit('updateSpecialAttack', socket.id, 'flak', 0x555555 * (myPlayer.specialAttackAmmo - 1));
                 fireFlak(socket.id);
-            }else if (myPlayer.specialAttack == "nuke") {
+            } else if (myPlayer.specialAttack == "nuke") {
                 io.emit('updateSpecialAttack', socket.id, 'nuke', 0x555555 * (myPlayer.specialAttackAmmo - 1));
                 fireNuke(socket.id);
             }
@@ -365,8 +366,8 @@ io.on('connect', socket => {
             }
             delete users[socket.id];
             io.emit('disconnect', socket.id);
-            if(Object.keys(players).length == 0) {
-                if(countdown) {
+            if (Object.keys(players).length == 0) {
+                if (countdown) {
                     clearInterval(countdownTimer);
                     clearTimeout(gameTimeout);
                     countdown = false;
@@ -549,7 +550,7 @@ function updateMissiles() {
                         durationLimit: 80,
                         startTick: 0
                     }
-                }else {
+                } else {
                     explosions[id] = {
                         x: explosionLocation[0],
                         y: explosionLocation[1],
@@ -562,7 +563,7 @@ function updateMissiles() {
                         startTick: 0
                     }
                 }
-                
+
                 let time = explosions[id].durationLimit + 5;
                 let size = missiles[id].radius;
 
@@ -603,11 +604,18 @@ function detectCollisions() {
                     if (baseHealth > 0) {
                         io.emit('baseDamaged', [cometId, baseHealth]);
                     } else {
-                        kills = [];
+                        cometsDestroyedStats = [];
                         Object.keys(players).forEach(playerId => {
-                            kills.push(players[playerId].kills)
+                            cometsDestroyedStats.push({
+                                name: players[playerId].name,
+                                cometsDestroyed: players[playerId].cometsDestroyed    
+                            })
                         })
-                        io.emit('gameOver', { 'round': round, 'score': score, 'kills': kills });
+                        io.emit('gameOver', { 
+                            round: round, 
+                            score: score, 
+                            cometsDestroyedStats: cometsDestroyedStats
+                        });
                         io.emit('gameFinished');
                         clearGame();
                     }
@@ -668,7 +676,7 @@ function fireFlak(socketID) {
         if (tick < 500) {
             io.to(socketID).emit('flakFired');
             tick++;
-        }else {
+        } else {
             clearInterval(flakDuration);
         }
     }, 15);
@@ -681,7 +689,7 @@ function fireNuke(socketID) {
 function destroyComet(cometId, awardPlayerSocketID) {
     if (players[awardPlayerSocketID] != undefined) {
         players[awardPlayerSocketID].credits += comets[cometId].credits;
-        players[awardPlayerSocketID].kills += 1;
+        players[awardPlayerSocketID].cometsDestroyed++;
         io.to(awardPlayerSocketID).emit('updateCredits', players[awardPlayerSocketID].credits);
     }
 
