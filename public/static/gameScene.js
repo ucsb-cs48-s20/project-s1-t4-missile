@@ -12,7 +12,7 @@ class GameScene extends Phaser.Scene {
 
     /* Defines the key identifier for the scene */
     constructor() {
-        super({ key: "gameScene" });
+        super({ key: 'gameScene' });
     }
 
     /* Receives the socket to avoid mutliple socket creations */
@@ -422,7 +422,7 @@ class GameScene extends Phaser.Scene {
             });
         });
 
-        this.socket.on("crosshairDestroyed", (crosshairId) => {
+        this.socket.on('crosshairDestroyed', (crosshairId) => {
             this.crosshairs.getChildren().forEach((crosshair) => {
                 if (crosshair.id == crosshairId) {
                     crosshair.destroy();
@@ -430,12 +430,12 @@ class GameScene extends Phaser.Scene {
             });
         });
 
-        this.socket.on("cometDestroyed", (cometId, size, time) => {
+        this.socket.on('cometDestroyed', (cometId, size, time) => {
             this.comets.getChildren().forEach((comet) => {
                 if (comet.id == cometId) {
-                    const explosion = this.add.sprite(comet.x, comet.y, "explosion", 0)
+                    const explosion = this.add.sprite(comet.x, comet.y, 'explosion', 0)
                         .setScale(size / 96);
-                    explosion.play("explode");
+                    explosion.play('explode');
                     explosion.anims.setTimeScale(40 / time);
                     explosion.once(Phaser.Animations.Events.SPRITE_ANIMATION_COMPLETE,() => { explosion.destroy(); });
                     comet.destroy();
@@ -444,14 +444,14 @@ class GameScene extends Phaser.Scene {
         });
 
         /* Handles game over & switch to endScene */
-        this.socket.on("gameOver", data => {
-            data["socket"] = this.socket;
-            this.scene.start("endScene", data);
+        this.socket.on('gameOver', data => {
+            data['socket'] = this.socket;
+            this.scene.start('endScene', data);
             this.socket = undefined;
         });
 
         /* Handles player disconnect */
-        this.socket.on("disconnect", playerId => {
+        this.socket.on('disconnect', playerId => {
             this.otherPlayers.getChildren().forEach(otherPlayer => {
                 if (playerId === otherPlayer.playerId) {
                     otherPlayer.missileCountSprite.destroy();
@@ -535,53 +535,45 @@ class GameScene extends Phaser.Scene {
         });
     }
 
+    /* Code that runs continuously as the game loops */
     update() {
+
+        /* Sends key inputs by players only to the server */
         if (!this.spectate && this.ship) {
-            //Mouse handling
+            
+            /* Barrel tracking */
             let pointer = this.input.activePointer;
-            this.ship.rotation = angle(
-                pointer.x,
-                pointer.y,
-                this.ship.x,
-                this.ship.y
-            );
-            this.socket.emit("rotationChange", this.ship.rotation);
+            this.ship.rotation = angle(pointer.x, pointer.y, this.ship.x, this.ship.y);
+            this.socket.emit('rotationChange', this.ship.rotation);
 
+            /* Moves the UI */
             let UICutoffY = 120;
-
-            //make the UI tray come out and go back in
             this.moveUI(pointer, UICutoffY);
 
+            /* Updates focus */
             if (pointer.isDown) {
-                this.focus = this.pointerInGame
+                this.focus = this.pointerInGame;
             }
 
-            //Activate special attack
+            /* Activates special attack */
             if (this.focus && this.specialAttackKey.isDown && !this.specialAttackActive && this.activeConsumable) {
                 this.specialAttackActive = true;
                 this.specialAttackHolder.setTint(0xff0000);
             }
 
-            //Shot handling
-            if (
-                this.focus &&
-                !this.shot &&
-                pointer.isDown &&
-                pointer.y >= UICutoffY &&
-                !this.reloading &&
-                (!this.missilesEmpty || this.specialAttackActive)
-            ) {
+            /* Handles missile/special firing */
+            if (this.focus && !this.shot && pointer.isDown && pointer.y >= UICutoffY && !this.reloading &&
+                (!this.missilesEmpty || this.specialAttackActive)) {
                 this.ship.play('fireShot');
                 this.shot = true;
 
-                // specialAttackActive is set to false when specialattackclient copy is set to none
                 if (this.specialAttackActive) {
-                    this.socket.emit("specialShot");
+                    this.socket.emit('specialShot');
                     this.activeConsumable = false;
                 }
 
                 if (!this.specialAttackActive) {
-                    this.socket.emit("missileShot", {
+                    this.socket.emit('missileShot', {
                         x: this.ship.x,
                         y: this.ship.y,
                         mouseX: pointer.x,
@@ -590,348 +582,127 @@ class GameScene extends Phaser.Scene {
                     });
                 }
             }
-
             if (!pointer.isDown) {
                 this.shot = false;
             }
 
+            /* Handles keyboard inputs for debug mode */
             let keyb = this.input.keyboard;
-
-            keyb.addListener("keydown", event => {
+            keyb.addListener('keydown', event => {
                 if (!this.focus) {
                     return;
                 }
                 if (event.keyCode === 192) {
-                    this.socket.emit("enterDebug");
+                    this.socket.emit('enterDebug');
                 }
                 if (this.debug) {
                     if (event.keyCode === 48) {
                         this.debugMode = event.keyCode - 48;
-                        this.debugText.setText("cometSpeed");
+                        this.debugText.setText('cometSpeed');
                     }
                     if (event.keyCode === 49) {
                         this.debugMode = event.keyCode - 48;
-                        this.debugText.setText("round");
+                        this.debugText.setText('round');
                     }
                     if (event.keyCode === 50) {
                         this.debugMode = event.keyCode - 48;
-                        this.debugText.setText("baseHealth");
+                        this.debugText.setText('baseHealth');
                     }
                     if (event.keyCode === 51) {
                         this.debugMode = event.keyCode - 48;
-                        this.debugText.setText("timer");
+                        this.debugText.setText('timer');
                     }
                     if (event.keyCode === 52) {
                         this.debugMode = event.keyCode - 48;
-                        this.debugText.setText("credits");
+                        this.debugText.setText('credits');
                     }
                     if (event.keyCode === 53) {
                         this.debugMode = event.keyCode - 48;
-                        this.debugText.setText("maxMissiles");
+                        this.debugText.setText('maxMissiles');
                     }
                     if (event.keyCode === 54) {
                         this.debugMode = event.keyCode - 48;
-                        this.debugText.setText("regenSpeed");
+                        this.debugText.setText('regenSpeed');
                     }
                     if (event.keyCode === 55) {
                         this.debugMode = event.keyCode - 48;
-                        this.debugText.setText("cometLimit");
+                        this.debugText.setText('cometLimit');
                     }
                     if (event.keyCode === 56) {
                         this.debugMode = event.keyCode - 48;
-                        this.debugText.setText("cometRate");
+                        this.debugText.setText('cometRate');
                     }
                     if (event.keyCode === 57) {
                         this.debugMode = event.keyCode - 48;
-                        this.debugText.setText("cometHealth");
+                        this.debugText.setText('cometHealth');
                     }
 
                     let negative = 1;
                     if (event.keyCode === 189) {
                         negative = -1;
                     }
-                    if (
-                        !this.keypressed &&
-                        (event.keyCode === 189 || event.keyCode === 187)
-                    ) {
-                        this.key = new Phaser.Input.Keyboard.Key(
-                            keyb,
-                            event.keyCode
-                        );
+
+                    if (!this.keypressed && (event.keyCode === 189 || event.keyCode === 187)) {
+                        this.key = new Phaser.Input.Keyboard.Key(keyb, event.keyCode);
                         this.keypressed = true;
                         switch (this.debugMode) {
                             case 0:
-                                this.socket.emit(
-                                    "changeCometSpeed",
-                                    1 * negative
-                                );
+                                this.socket.emit('changeCometSpeed', 1 * negative);
                                 break;
                             case 1:
-                                this.socket.emit("changeRound");
+                                this.socket.emit('changeRound');
                                 break;
                             case 2:
-                                this.socket.emit(
-                                    "changeBaseHealth",
-                                    10 * negative
-                                );
+                                this.socket.emit('changeBaseHealth', 10 * negative);
                                 break;
                             case 3:
-                                this.socket.emit("changeTimer", 5 * negative);
+                                this.socket.emit('changeTimer', 5 * negative);
                                 break;
                             case 4:
-                                this.socket.emit(
-                                    "changeCredits",
-                                    100 * negative
-                                );
+                                this.socket.emit('changeCredits', 100 * negative);
                                 break;
                             case 5:
-                                this.socket.emit(
-                                    "changeMaxMissiles",
-                                    1 * negative
-                                );
+                                this.socket.emit('changeMaxMissiles', 1 * negative);
                                 break;
                             case 6:
-                                this.socket.emit(
-                                    "changeRegenSpeed",
-                                    1 * negative
-                                );
+                                this.socket.emit('changeRegenSpeed', 1 * negative);
                                 break;
                             case 7:
-                                this.socket.emit(
-                                    "changeCometLimit",
-                                    1 * negative
-                                );
+                                this.socket.emit('changeCometLimit', 1 * negative);
                                 break;
                             case 8:
-                                this.socket.emit(
-                                    "changeCometRate",
-                                    -500 * negative
-                                );
+                                this.socket.emit('changeCometRate', -150 * negative);
                                 break;
                             case 9:
-                                this.socket.emit(
-                                    "changeCometHealth",
-                                    1 * negative
-                                );
+                                this.socket.emit('changeCometHealth', 1 * negative);
                                 break;
                         }
                     }
                 }
             });
-
             if (this.key && !this.key.isDown) {
                 this.keypressed = false;
             }
         }
     }
 
-    //Function for UI tray movement
-    moveUI(pointer, UICutoffY) {
-        if (!this.UITweening) {
-            if (pointer.y >= UICutoffY || !this.pointerInGame) {
-                if (this.UIOut) {
-                    this.tweens.add({
-                        targets: this.shopUI.getChildren(),
-                        y: "-=120",
-                        duration: 100
-                    });
-                    this.UITweening = true;
-                    setTimeout(() => (this.UITweening = false), 150);
-                    this.UIOut = false;
-                }
-            } else {
-                if (!this.UIOut && this.pointerInGame) {
-                    this.tweens.add({
-                        targets: this.shopUI.getChildren(),
-                        y: "+=120",
-                        duration: 100
-                    });
-                    this.UITweening = true;
-                    setTimeout(() => (this.UITweening = false), 150);
-                    this.UIOut = true;
-                }
-            }
-        }
-    }
+    /* Helper functions */
 
-    //Helper add functions
-    addTankBody(playerInfo) {
-        return this.add.sprite(playerInfo.x, playerInfo.y, "tankbody" + (1 + Math.round((playerInfo.x - 160) / 320.0)))
-            .setScale(0.5)
-            .setDepth(25);
-    }
-
-    addMissileCounter(player, playerInfo) {
-        player.missileCountSprite = this.add.sprite(playerInfo.x - 45, 575, 'missile')
-            .setDisplaySize(20, 30)
-            .setDepth(100);
-        player.missileCountText = this.add.text(playerInfo.x - 15, 575, 
-            `${playerInfo.missiles}/${playerInfo.maxMissiles}`, formatSMMED)
-            .setTint(0xffffff)
-            .setDepth(100);
-    }
-
-    addSpecialAttackHolder(player, playerInfo) {
-        player.specialAttackHolder = this.add.sprite(playerInfo.x - 60, 650, 'specialholder')
-            .setDisplaySize(32, 32)
-            .setDepth(100);
-    }
-
-    updateSpecialAttackIcon(player, newAttackName, color) {
-        if (player.specialAttackIcon != undefined) {
-            player.specialAttackIcon.destroy();
-        }
-        if (newAttackName == 'none') {
-            if (this === player) {
-                this.specialAttackHolder.setTint(0xffffff);
-            }
-            return;
-        }
-
-        player.specialAttackIcon = this.add.sprite(player.specialAttackHolder.x, player.specialAttackHolder.y,      
-            newAttackName)
-            .setDisplaySize(24, 24)
-            .setDepth(101)
-            .setTint(color);
-    }
-
-    addPlayer(playerInfo) {
-        this.addTankBody(playerInfo);
-        this.ship = this.physics.add.sprite(playerInfo.x, playerInfo.y - 10, 'tankbarrel')
-            .setScale(0.7)
-            .setDepth(20);
-        this.ship.setDrag(100);
-        this.ship.setAngularDrag(100);
-        this.ship.setMaxVelocity(200);
-        this.playerId = playerInfo.playerId;
-        this.addMissileCounter(this, playerInfo);
-        this.addSpecialAttackHolder(this, playerInfo);
-        this.maxMissilesClientCopy = playerInfo.maxMissiles;
-    }
-
-    addOtherPlayers(playerInfo) {
-        const otherTankbody = this.addTankBody(playerInfo);
-        const otherPlayer = this.add.sprite(playerInfo.x, playerInfo.y - 10, 'tankbarrel')
-            .setScale(0.7)
-            .setDepth(2);
-        otherPlayer.playerId = playerInfo.playerId;
-        otherPlayer.rotation = playerInfo.rotation;
-        this.addMissileCounter(otherPlayer, playerInfo);
-        this.addSpecialAttackHolder(otherPlayer, playerInfo);
-        this.maxMissilesClientCopy = playerInfo.maxMissiles;
-        otherTankbody.playerId = playerInfo.playerId;
-        this.otherPlayers.add(otherPlayer);
-        this.otherTankbodies.add(otherTankbody);
-    }
-
-    addMissile(missileInfo) {
-        let missile;
-        if (!missileInfo.flakSpecial && !missileInfo.nukeSpecial) {
-            missile = this.add.sprite(missileInfo.x, missileInfo.y, 'missile')
-                .setDepth(15)
-                .setScale(0.1875);
-        } else if (missileInfo.flakSpecial) {
-            missile = this.add.sprite(missileInfo.x, missileInfo.y, 'missile')
-                .setDepth(15)
-                .setScale(0.02);
-        }else {
-            missile = this.add.sprite(missileInfo.x, missileInfo.y, 'nuke-projectile')
-                .setDepth(15)
-                .setScale(0.25);
-            missile.play('nukeRevolve');
-        }
-        missile.rotation = missileInfo.rotation;
-        missile.id = missileInfo.id;
-        this.missiles.add(missile);
-    }
-
-    addCrosshair(crosshairInfo) {
-        const crosshair = this.add.sprite(crosshairInfo.mouseX, crosshairInfo.mouseY, "crosshair")
-            .setScale(0.3);
-        crosshair.id = crosshairInfo.id;
-        this.crosshairs.add(crosshair);
-    }
-
-    addComet(cometInfo) {
-        const comet = this.add.sprite(cometInfo.x, cometInfo.y, 'comet')
-            .setDisplaySize(32, 64);
-        comet.rotation = cometInfo.rotation;
-        comet.id = cometInfo.id;
-        comet.play('cometRevolve');
-        this.comets.add(comet);
-    }
-
-    displayLaser(center, dir, rot) {
-        let tempLaser = this.add.sprite(center.x + 670 * dir.x, center.y + 670 * dir.y, 'laser')
-            .setDisplaySize(100, 1280)
-            .setDepth(5);
-        tempLaser.play('laserFlux');
-        tempLaser.rotation = rot;
-        tempLaser.alpha = 1;
-        let drawLoop = setInterval(() => {
-            tempLaser.alpha -= 0.02;
-            if (tempLaser.alpha <= 0.01) {
-                tempLaser.destroy();
-                clearInterval(drawLoop);
-            }
-        }, 16);
-    }
-
-    displayReloadBar(ship, positionX, reloadTime, newMaxMissiles) {
-        const width = 120;
-        const height = 16;
-        const positionY = 708;
-
-        ship.maxMissilesClientCopy = newMaxMissiles;
-
-        const reloadBarBase = this.add.sprite(positionX, positionY, 'reloadmeter')
-            .setDisplaySize(width, height)
-            .setTint(0xbb0000)
-            .setDepth(100);
-        const reloadBarFront = this.add.sprite(positionX - width * 0.5, positionY, 'reloadmeter')
-            .setDisplaySize(0, height)
-            .setTint(0x00ff00)
-            .setDepth(101);
-
-        let timer = 0;
-        let oldMaxMissiles = newMaxMissiles;
-
-        let drawLoop = setInterval(() => {
-            if (timer >= reloadTime || ship.maxMissilesClientCopy != oldMaxMissiles) {
-                reloadBarBase.destroy();
-                reloadBarFront.destroy();
-                clearInterval(drawLoop);
-            } else {
-                let progress = timer / reloadTime;
-                reloadBarFront.setPosition(positionX - width * 0.5 + progress * width * 0.5, positionY);
-                reloadBarFront.setDisplaySize(progress * width, height);
-                timer += 16;
-            }
-        }, 16);
-    }
-
-    displayMissileCount(somePlayer, newAmount, maxAmount) {
-        somePlayer.maxMissilesClientCopy = maxAmount;
-        somePlayer.missileCountText.setText("" + newAmount + "/" + maxAmount);
-    }
-
-    /* Creates the UI */
+    /* UI creation helper functions */
     makeUI() {
         const shopUIBackground = this.add
-            .sprite(640, -40, "shopbg")
+            .sprite(640, -40, 'shopbg')
             .setDisplaySize(1280, 200)
             .setTint(0xffffff)
             .setDepth(1);
         this.shopUI.add(shopUIBackground);
-
-        /* If the user is not spectating, create an info button and create the shop */
+        
         if (!this.spectate) {
             this.makeInfoButton();
             this.makeUIButtons();
         }
     }
 
-    /* Create info button that displays tutorial text */
     makeInfoButton() {
         this.infoButton = this.add.image(1220, 50, 'info')
             .setScale(0.5)
@@ -999,7 +770,6 @@ You lose when base health reaches 0.`,
             })
     }
 
-    //this helper makes a button
     makeButton(name, text, upgradeType, description) {
         let xpos = this.shopUIButtonPlacerX;
         let ypos = this.shopUIButtonPlacerY;
@@ -1022,10 +792,10 @@ You lose when base health reaches 0.`,
                 }
             })
         assignButtonBehavior(this[name], () => {
-            this.socket.emit("attemptUpgrade", upgradeType);
+            this.socket.emit('attemptUpgrade', upgradeType);
         });
         this.shopUI.add(this[name]);
-        this.shopUI.add(this[name + "Text"]);
+        this.shopUI.add(this[name + 'Text']);
     }
 
     makeHalfButton(name, text, consumableType, description) {
@@ -1055,65 +825,256 @@ You lose when base health reaches 0.`,
                 }
             })
         assignButtonBehavior(this[name], () => {
-            this.socket.emit("attemptBuyConsumable", consumableType);
+            this.socket.emit('attemptBuyConsumable', consumableType);
         });
         this.shopUI.add(this[name]);
-        this.shopUI.add(this[name + "Text"]);
+        this.shopUI.add(this[name + 'Text']);
     }
 
     makeUIButtons() {
         this.makeButton(
-            "speedUpgrade",
-            "Missile\nSpeed\n\n1000",
-            "speed",
-            "Increases the rate\nat which missiles fly"
+            'speedUpgrade',
+            'Missile\nSpeed\n\n1000',
+            'speed',
+            'Increases the rate\nat which missiles fly'
         );
         this.makeButton(
-            "damageUpgrade",
-            "Missile\nDamage\n\n1000",
-            "damage",
-            "Increases the damage\nof your missiles"
+            'damageUpgrade',
+            'Missile\nDamage\n\n1000',
+            'damage',
+            'Increases the damage\nof your missiles'
         );
         this.makeButton(
-            "radiusUpgrade",
-            "Explosion\nRadius\n\n400",
-            "radius",
-            "Increases the explosion\nradius of your missiles"
+            'radiusUpgrade',
+            'Explosion\nRadius\n\n400',
+            'radius',
+            'Increases the explosion\nradius of your missiles'
         );
         this.makeButton(
-            "regenUpgrade",
-            "Ammo Regen\nSpeed\n\n500",
-            "regenSpeed",
-            "Increases how fast\nyour missiles regenerate"
+            'regenUpgrade',
+            'Ammo Regen\nSpeed\n\n500',
+            'regenSpeed',
+            'Increases how fast\nyour missiles regenerate'
         );
         this.makeButton(
-            "missileCountUpgrade",
-            "Ammo\nCapacity\n\n800",
-            "maxMissiles",
-            "Increases how many\nmissiles you can store"
+            'missileCountUpgrade',
+            'Ammo\nCapacity\n\n800',
+            'maxMissiles',
+            'Increases how many\nmissiles you can store'
         );
 
         this.makeHalfButton(
-            "laserConsumable",
-            "Laser\n1500",
-            "laser",
-            "Fires a laser beam in\na line,hitting multiple\ntargets. Grants 3 uses"
+            'laserConsumable',
+            'Laser\n1500',
+            'laser',
+            'Fires a laser beam in\na line,hitting multiple\ntargets. Grants 3 uses'
         );
 
         this.makeHalfButton(
-            "flakConsumable",
-            "Flak\n100",
-            "flak",
-            "For 10 seconds, fire\nnumerous smaller missiles\nnear the cursor location"
+            'flakConsumable',
+            'Flak\n100',
+            'flak',
+            'For 10 seconds, fire\nnumerous smaller missiles\nnear the cursor location'
         );
 
         this.makeHalfButton(
-            "nukeConsumable",
-            "Nuke\n200",
-            "nuke",
-            "Huge explosion radius"
+            'nukeConsumable',
+            'Nuke\n200',
+            'nuke',
+            'Huge explosion radius'
         )
     }
+
+    addMissileCounter(player, playerInfo) {
+        player.missileCountSprite = this.add.sprite(playerInfo.x - 45, 575, 'missile')
+            .setDisplaySize(20, 30)
+            .setDepth(100);
+        player.missileCountText = this.add.text(playerInfo.x - 15, 575, 
+            `${playerInfo.missiles}/${playerInfo.maxMissiles}`, formatSMMED)
+            .setTint(0xffffff)
+            .setDepth(100);
+    }
+
+    addSpecialAttackHolder(player, playerInfo) {
+        player.specialAttackHolder = this.add.sprite(playerInfo.x - 60, 650, 'specialholder')
+            .setDisplaySize(32, 32)
+            .setDepth(100);
+    }
+
+    /* UI update helper functions */
+    moveUI(pointer, UICutoffY) {
+        if (!this.UITweening) {
+            if (pointer.y >= UICutoffY || !this.pointerInGame) {
+                if (this.UIOut) {
+                    this.tweens.add({
+                        targets: this.shopUI.getChildren(),
+                        y: '-=120',
+                        duration: 100
+                    });
+                    this.UITweening = true;
+                    setTimeout(() => (this.UITweening = false), 150);
+                    this.UIOut = false;
+                }
+            } else {
+                if (!this.UIOut && this.pointerInGame) {
+                    this.tweens.add({
+                        targets: this.shopUI.getChildren(),
+                        y: '+=120',
+                        duration: 100
+                    });
+                    this.UITweening = true;
+                    setTimeout(() => (this.UITweening = false), 150);
+                    this.UIOut = true;
+                }
+            }
+        }
+    }
+
+    updateSpecialAttackIcon(player, newAttackName, color) {
+        if (player.specialAttackIcon != undefined) {
+            player.specialAttackIcon.destroy();
+        }
+        if (newAttackName == 'none') {
+            if (this === player) {
+                this.specialAttackHolder.setTint(0xffffff);
+            }
+            return;
+        }
+        
+        player.specialAttackIcon = this.add.sprite(player.specialAttackHolder.x, player.specialAttackHolder.y,      
+            newAttackName)
+            .setDisplaySize(24, 24)
+            .setDepth(101)
+            .setTint(color);
+    }
+
+    displayReloadBar(ship, positionX, reloadTime, newMaxMissiles) {
+        const width = 120;
+        const height = 16;
+        const positionY = 708;
+
+        ship.maxMissilesClientCopy = newMaxMissiles;
+
+        const reloadBarBase = this.add.sprite(positionX, positionY, 'reloadmeter')
+            .setDisplaySize(width, height)
+            .setTint(0xbb0000)
+            .setDepth(100);
+        const reloadBarFront = this.add.sprite(positionX - width * 0.5, positionY, 'reloadmeter')
+            .setDisplaySize(0, height)
+            .setTint(0x00ff00)
+            .setDepth(101);
+
+        let timer = 0;
+        let oldMaxMissiles = newMaxMissiles;
+
+        let drawLoop = setInterval(() => {
+            if (timer >= reloadTime || ship.maxMissilesClientCopy != oldMaxMissiles) {
+                reloadBarBase.destroy();
+                reloadBarFront.destroy();
+                clearInterval(drawLoop);
+            } else {
+                let progress = timer / reloadTime;
+                reloadBarFront.setPosition(positionX - width * 0.5 + progress * width * 0.5, positionY);
+                reloadBarFront.setDisplaySize(progress * width, height);
+                timer += 16;
+            }
+        }, 16);
+    }
+
+    displayMissileCount(somePlayer, newAmount, maxAmount) {
+        somePlayer.maxMissilesClientCopy = maxAmount;
+        somePlayer.missileCountText.setText('' + newAmount + '/' + maxAmount);
+    }
+
+    /* Object creation helper functions */
+    addTankBody(playerInfo) {
+        return this.add.sprite(playerInfo.x, playerInfo.y, 'tankbody' + (1 + Math.round((playerInfo.x - 160) / 320.0)))
+            .setScale(0.5)
+            .setDepth(25);
+    }
+
+    addPlayer(playerInfo) {
+        this.addTankBody(playerInfo);
+        this.ship = this.physics.add.sprite(playerInfo.x, playerInfo.y - 10, 'tankbarrel')
+            .setScale(0.7)
+            .setDepth(20);
+        this.ship.setDrag(100);
+        this.ship.setAngularDrag(100);
+        this.ship.setMaxVelocity(200);
+        this.playerId = playerInfo.playerId;
+        this.addMissileCounter(this, playerInfo);
+        this.addSpecialAttackHolder(this, playerInfo);
+        this.maxMissilesClientCopy = playerInfo.maxMissiles;
+    }
+
+    addOtherPlayers(playerInfo) {
+        const otherTankbody = this.addTankBody(playerInfo);
+        const otherPlayer = this.add.sprite(playerInfo.x, playerInfo.y - 10, 'tankbarrel')
+            .setScale(0.7)
+            .setDepth(2);
+        otherPlayer.playerId = playerInfo.playerId;
+        otherPlayer.rotation = playerInfo.rotation;
+        this.addMissileCounter(otherPlayer, playerInfo);
+        this.addSpecialAttackHolder(otherPlayer, playerInfo);
+        this.maxMissilesClientCopy = playerInfo.maxMissiles;
+        otherTankbody.playerId = playerInfo.playerId;
+        this.otherPlayers.add(otherPlayer);
+        this.otherTankbodies.add(otherTankbody);
+    }
+
+    addMissile(missileInfo) {
+        let missile;
+        if (!missileInfo.flakSpecial && !missileInfo.nukeSpecial) {
+            missile = this.add.sprite(missileInfo.x, missileInfo.y, 'missile')
+                .setDepth(15)
+                .setScale(0.1875);
+        } else if (missileInfo.flakSpecial) {
+            missile = this.add.sprite(missileInfo.x, missileInfo.y, 'missile')
+                .setDepth(15)
+                .setScale(0.02);
+        }else {
+            missile = this.add.sprite(missileInfo.x, missileInfo.y, 'nuke-projectile')
+                .setDepth(15)
+                .setScale(0.25);
+            missile.play('nukeRevolve');
+        }
+        missile.rotation = missileInfo.rotation;
+        missile.id = missileInfo.id;
+        this.missiles.add(missile);
+    }
+
+    addCrosshair(crosshairInfo) {
+        const crosshair = this.add.sprite(crosshairInfo.mouseX, crosshairInfo.mouseY, 'crosshair')
+            .setScale(0.3);
+        crosshair.id = crosshairInfo.id;
+        this.crosshairs.add(crosshair);
+    }
+
+    addComet(cometInfo) {
+        const comet = this.add.sprite(cometInfo.x, cometInfo.y, 'comet')
+            .setDisplaySize(32, 64);
+        comet.rotation = cometInfo.rotation;
+        comet.id = cometInfo.id;
+        comet.play('cometRevolve');
+        this.comets.add(comet);
+    }
+
+    displayLaser(center, dir, rot) {
+        let tempLaser = this.add.sprite(center.x + 670 * dir.x, center.y + 670 * dir.y, 'laser')
+            .setDisplaySize(100, 1280)
+            .setDepth(5);
+        tempLaser.play('laserFlux');
+        tempLaser.rotation = rot;
+        tempLaser.alpha = 1;
+        let drawLoop = setInterval(() => {
+            tempLaser.alpha -= 0.02;
+            if (tempLaser.alpha <= 0.01) {
+                tempLaser.destroy();
+                clearInterval(drawLoop);
+            }
+        }, 16);
+    }
 }
+    
 
 export default GameScene;
