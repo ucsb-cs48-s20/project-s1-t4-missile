@@ -1,6 +1,9 @@
 /* Text formatting */
 import { formatBUT, formatMED, formatLG } from '/static/textFormatting.js'
 
+/* Button behavior helper */
+import { assignButtonBehavior } from '/static/buttonUtils.js'
+
 /* Scene that displays results and stats about the game */
 class EndScene extends Phaser.Scene {
     
@@ -43,17 +46,10 @@ class EndScene extends Phaser.Scene {
             to
             Lobby`, 
             formatBUT).setDepth(1);
-        this.lobbyButton = this.add.image(640, 650, 'button')
-            .setInteractive()
-            .on('pointerover', () => {
-                this.lobbyButton.setTint(0xfcfcfc);
-            })
-            .on('pointerout', () => {
-                this.lobbyButton.setTint(0xcfcfcf);
-            })
-            .on('pointerdown', () => {
-                this.socket.emit('requestEndToLobby');
-            });
+        this.lobbyButton = this.add.image(640, 650, 'button');
+        assignButtonBehavior(this.lobbyButton, () => {
+            this.socket.emit('requestEndToLobby');
+        })
         
         /* Reloads the window to start from the lobbyScene again */
         this.socket.on('reloadEnd', () => {

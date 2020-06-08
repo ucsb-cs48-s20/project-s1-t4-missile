@@ -1,8 +1,11 @@
-/* Imports angle function for calculating barrel angle */
+/* Angle function for calculating barrel angle */
 import { angle } from '/static/gameCalculations.js';
 
-/* Imports text formatting */
-import { formatTUT, formatBUT, formatMED } from '/static/textFormatting.js'
+/* Text formatting */
+import { formatTUT, formatBUT, formatMED } from '/static/textFormatting.js';
+
+/* Button behavior helper */
+import { assignButtonBehavior } from '/static/buttonUtils.js';
 
 /* Scene that handles redrawing of the game and server-client interactions */
 class GameScene extends Phaser.Scene {
@@ -1037,29 +1040,36 @@ class GameScene extends Phaser.Scene {
 
         /* If the user is not spectating, create an info button and create the shop */
         if (!this.spectate) {
-            this.infoButton = this.add.image(1220, 50, 'info')
-                .setScale(0.5)
-                .setDepth(1)
-                .setInteractive()
-                .on('pointerover', () => {
-                    this.roundInfoText = this.add.text(10, 185, 
+            this.makeInfoButton();
+            this.makeUIButtons();
+        }
+    }
+
+    /* Create info button that displays tutorial text */
+    makeInfoButton() {
+        this.infoButton = this.add.image(1220, 50, 'info')
+            .setScale(0.5)
+            .setDepth(1)
+            .setInteractive()
+            .on('pointerover', () => {
+                this.roundInfoText = this.add.text(10, 185, 
 `The current
 round`,
-                        formatTUT).setDepth(2);
-                    this.timerInfoText = this.add.text(100, 185, 
+                    formatTUT).setDepth(2);
+                this.timerInfoText = this.add.text(100, 185, 
 `Seconds remaining
 until the 
 round/break ends`, 
-                        formatTUT).setDepth(2);
-                    this.healthInfoText = this.add.text(240, 185, 
+                    formatTUT).setDepth(2);
+                this.healthInfoText = this.add.text(240, 185, 
 `Current base 
 health`, 
-                        formatTUT).setDepth(2);
-                    this.scoreInfoText = this.add.text(360, 185, 'Current game score', formatTUT).setDepth(2);
-                    this.creditInfoText = this.add.text(640, 185, 'Current amount of credits', formatTUT).setDepth(2);
-                    this.missileCountInfoText = this.add.text(this.ship.x - 100, 600, 
-                        'The amount of missiles you have', formatTUT).setDepth(2);
-                    this.instructionsText = this.add.text(900, 165, 
+                    formatTUT).setDepth(2);
+                this.scoreInfoText = this.add.text(360, 185, 'Current game score', formatTUT).setDepth(2);
+                this.creditInfoText = this.add.text(640, 185, 'Current amount of credits', formatTUT).setDepth(2);
+                this.missileCountInfoText = this.add.text(this.ship.x - 100, 600, 
+                    'The amount of missiles you have', formatTUT).setDepth(2);
+                this.instructionsText = this.add.text(900, 165, 
 `Firing Missiles: 
 Click anywhere to fire a missile.
 The missile explodes at the crosshair, 
@@ -1076,153 +1086,140 @@ If a comet reaches the base,
 your base will receive damage equal to 
 the comet's current health.
 You lose when base health reaches 0.`, 
-                        formatTUT);
-                })
-                .on('pointerout', () => {
-                    if (this.roundInfoText) {
-                        this.roundInfoText.destroy();
-                    }
-                    if (this.timerInfoText) {
-                        this.timerInfoText.destroy();
-                    }
-                    if (this.healthInfoText) {
-                        this.healthInfoText.destroy();
-                    }
-                    if (this.scoreInfoText) {
-                        this.scoreInfoText.destroy();
-                    }
-                    if (this.creditInfoText) {
-                        this.creditInfoText.destroy();
-                    }
-                    if (this.missileCountInfoText) {
-                        this.missileCountInfoText.destroy();
-                    }
-                    if (this.instructionsText) {
-                        this.instructionsText.destroy();
-                    }
-                })
-            this.makeUIButtons(this);
-        }
-    }
-
-    makeButtonClickBehavior(self, button, onClickFunction) {
-        button
-            .on("pointerover", () => {
-                button.setTint(0xfcfcfc);
+                    formatTUT);
             })
-            .on("pointerout", () => {
-                button.setTint(0xcfcfcf);
+            .on('pointerout', () => {
+                if (this.roundInfoText) {
+                    this.roundInfoText.destroy();
+                }
+                if (this.timerInfoText) {
+                    this.timerInfoText.destroy();
+                }
+                if (this.healthInfoText) {
+                    this.healthInfoText.destroy();
+                }
+                if (this.scoreInfoText) {
+                    this.scoreInfoText.destroy();
+                }
+                if (this.creditInfoText) {
+                    this.creditInfoText.destroy();
+                }
+                if (this.missileCountInfoText) {
+                    this.missileCountInfoText.destroy();
+                }
+                if (this.instructionsText) {
+                    this.instructionsText.destroy();
+                }
             })
-            .on("pointerdown", onClickFunction);
     }
 
     //this helper makes a button
-    makeUIButtonHelper(self, name, text, upgradeType, description) {
-        let xpos = self.shopUIButtonPlacerX;
-        let ypos = self.shopUIButtonPlacerY;
-        self.shopUIButtonPlacerX += 160;
+    makeButton(name, text, upgradeType, description) {
+        let xpos = this.shopUIButtonPlacerX;
+        let ypos = this.shopUIButtonPlacerY;
+        this.shopUIButtonPlacerX += 160;
 
-        self[name + 'Text'] = self.add.text(xpos - 40, ypos - 25, text, { fontSize: '18px' }).setDepth(102);
-        self[name] = self.add.image(xpos, ypos, 'button').setDepth(101).setScale(1.5).setTint(0xcfcfcf)
+        this[name + 'Text'] = this.add.text(xpos - 40, ypos - 25, text, formatBUT).setDepth(2);
+        this[name] = this.add.image(xpos, ypos, 'button')
+            .setDepth(1)
+            .setScale(1.5)
+            .setTint(0xcfcfcf)
             .setInteractive()
             .on('pointerover', () => {
-                this.upgradeHelpText = this.add.text(xpos - 60, ypos + 270, description, textFormatSmall).setDepth(200);
+                this.upgradeHelpText = this.add.text(xpos - 60, ypos + 270, description, formatTUT).setDepth(200);
             })
             .on('pointerout', () => {
                 if (this.upgradeHelpText) {
                     this.upgradeHelpText.destroy();
                 }
             })
-        self.makeButtonClickBehavior(self, self[name], () => {
-            self.socket.emit("attemptUpgrade", upgradeType);
+        assignButtonBehavior(this[name], () => {
+            this.socket.emit("attemptUpgrade", upgradeType);
         });
-        self.shopUI.add(self[name]);
-        self.shopUI.add(self[name + "Text"]);
+        this.shopUI.add(this[name]);
+        this.shopUI.add(this[name + "Text"]);
     }
 
-    makeUIHalfButtonHelper(self, name, text, consumableType, description) {
-        let xpos = self.shopUIButtonPlacerX;
-        let ypos = self.shopUIButtonPlacerY;
+    makeHalfButton(name, text, consumableType, description) {
+        let xpos = this.shopUIButtonPlacerX;
+        let ypos = this.shopUIButtonPlacerY;
         if (ypos > -80) {
-            self.shopUIButtonPlacerY = -85;
-            self.shopUIButtonPlacerX += 130;
+            this.shopUIButtonPlacerY = -85;
+            this.shopUIButtonPlacerX += 130;
         } else {
-            self.shopUIButtonPlacerY += 65;
+            this.shopUIButtonPlacerY += 65;
         }
 
-        self[name + 'Text'] = self.add.text(xpos - 55, ypos - 32, text, { fontSize: '16px' }).setDepth(102).setTint(0x202020);
-        self[name] = self.add.image(xpos, ypos - 19, 'halfbutton').setDepth(101).setScale(1.25).setTint(0xcfcfcf)
+        this[name + 'Text'] = this.add.text(xpos - 55, ypos - 32, text, formatBUT)
+            .setDepth(2)
+            .setTint(0x202020);
+        this[name] = this.add.image(xpos, ypos - 19, 'halfbutton')
+            .setDepth(101)
+            .setScale(1.25)
+            .setTint(0xcfcfcf)
             .setInteractive()
             .on('pointerover', () => {
-                this.upgradeHelpText = this.add.text(xpos - 60, ypos + 270, description, textFormatSmall).setDepth(200);
+                this.upgradeHelpText = this.add.text(xpos - 60, ypos + 270, description, textFormatSmall).setDepth(2);
             })
             .on('pointerout', () => {
                 if (this.upgradeHelpText) {
                     this.upgradeHelpText.destroy();
                 }
             })
-        self.makeButtonClickBehavior(self, self[name], () => {
-            self.socket.emit("attemptBuyConsumable", consumableType);
+        assignButtonBehavior(this[name], () => {
+            this.socket.emit("attemptBuyConsumable", consumableType);
         });
-        self.shopUI.add(self[name]);
-        self.shopUI.add(self[name + "Text"]);
+        this.shopUI.add(this[name]);
+        this.shopUI.add(this[name + "Text"]);
     }
 
-    makeUIButtons(self) {
-        this.makeUIButtonHelper(
-            self,
+    makeUIButtons() {
+        this.makeButton(
             "speedUpgrade",
             "Missile\nSpeed\n\n1000",
             "speed",
             "Increases the rate\nat which missiles fly"
         );
-        this.makeUIButtonHelper(
-            self,
+        this.makeButton(
             "damageUpgrade",
             "Missile\nDamage\n\n1000",
             "damage",
             "Increases the damage\nof your missiles"
         );
-        this.makeUIButtonHelper(
-            self,
+        this.makeButton(
             "radiusUpgrade",
             "Explosion\nRadius\n\n400",
             "radius",
             "Increases the explosion\nradius of your missiles"
         );
-        this.makeUIButtonHelper(
-            self,
+        this.makeButton(
             "regenUpgrade",
             "Ammo Regen\nSpeed\n\n500",
             "regenSpeed",
             "Increases how fast\nyour missiles regenerate"
         );
-        this.makeUIButtonHelper(
-            self,
+        this.makeButton(
             "missileCountUpgrade",
             "Ammo\nCapacity\n\n800",
             "maxMissiles",
             "Increases how many\nmissiles you can store"
         );
 
-        this.makeUIHalfButtonHelper(
-            self,
+        this.makeHalfButton(
             "laserConsumable",
             "Laser\n1500",
             "laser",
             "Fires a laser beam in\na line,hitting multiple\ntargets. Grants 3 uses"
         );
 
-        this.makeUIHalfButtonHelper(
-            self,
+        this.makeHalfButton(
             "flakConsumable",
             "Flak\n100",
             "flak",
             "For 10 seconds, fire\nnumerous smaller missiles\nnear the cursor location"
         );
 
-        this.makeUIHalfButtonHelper(
-            self,
+        this.makeHalfButton(
             "nukeConsumable",
             "Nuke\n200",
             "nuke",
