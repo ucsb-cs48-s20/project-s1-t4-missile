@@ -48,6 +48,7 @@ class GameScene extends Phaser.Scene {
         this.load.image("shopbg", "/assets/shop-ui-main.png");
         this.load.image("specialholder", "/assets/special-attack-holder.png");
         this.load.image("flak", "/assets/flak-icon.png");
+        this.load.image("nuke", "/assets/nuke-icon.png");
         this.load.spritesheet("laser", "assets/laser-bar.png", {
             frameWidth: 64,
             frameHeight: 64
@@ -139,7 +140,7 @@ class GameScene extends Phaser.Scene {
         this.UITweening = false;
         this.noMissilesLeft = false;
         this.maxMissilesClientCopy = -1;
-
+        this.activeConsumable = false;
         this.specialAttackActive = false;
         this.specialAttackKey = this.input.keyboard.addKey('Q', false);
 
@@ -233,6 +234,18 @@ class GameScene extends Phaser.Scene {
             });
         });
 
+        this.socket.on("nukeFired", () => {
+            let pointer = this.input.activePointer;
+            this.socket.emit("missileShot", {
+                x: this.ship.x,
+                y: this.ship.y,
+                mouseX: pointer.x,
+                mouseY: pointer.y,
+                rotation: this.ship.rotation,
+                nukeSpecial: true
+            });
+        })
+
         this.socket.on("newComet", cometInfo => {
             self.addComet(self, cometInfo);
         });
@@ -306,7 +319,7 @@ class GameScene extends Phaser.Scene {
                 if (missile.id == missileId) {
                     const explosion = this.add
                         .sprite(missile.x, missile.y, "explosion", 0)
-                        .setScale(size / 128);
+                        .setScale(size / 96);
                     explosion.play("explode");
                     explosion.anims.setTimeScale(40 / time);
                     explosion.once(
@@ -457,6 +470,9 @@ class GameScene extends Phaser.Scene {
                 self.updateSpecialAttackIcon(self, self, newAttackName, color);
                 if (newAttackName === 'none') {
                     this.specialAttackActive = false;
+                    this.activeConsumable = false;
+                }else {
+                    this.activeConsumable = true;
                 }
             } else {
                 self.otherPlayers.getChildren().forEach(otherPlayer => {
@@ -581,7 +597,7 @@ class GameScene extends Phaser.Scene {
             }
 
             //Activate special attack
-            if (this.focus && this.specialAttackKey.isDown && !this.specialAttackActive) {
+            if (this.focus && this.specialAttackKey.isDown && !this.specialAttackActive && this.activeConsumable) {
                 this.specialAttackActive = true;
                 this.specialAttackHolder.setTint(0xff0000);
             }
@@ -601,6 +617,7 @@ class GameScene extends Phaser.Scene {
                 // specialAttackActive is set to false when specialattackclient copy is set to none
                 if (this.specialAttackActive) {
                     this.socket.emit("specialShot");
+                    this.activeConsumable = false;
                 }
 
                 if (!this.specialAttackActive) {
@@ -867,16 +884,22 @@ class GameScene extends Phaser.Scene {
 
     addMissile(self, missileInfo) {
         let missile;
-        if (!missileInfo.flakSpecial) {
+        if (!missileInfo.flakSpecial && !missileInfo.nukeSpecial) {
             missile = self.add
                 .sprite(missileInfo.x, missileInfo.y, "missile")
                 .setDepth(15)
                 .setScale(0.1875);
-        } else {
+        } else if (missileInfo.flakSpecial) {
             missile = self.add
                 .sprite(missileInfo.x, missileInfo.y, "missile")
                 .setDepth(15)
                 .setScale(0.02);
+        }else {
+            // make nuke here
+            missile = self.add
+                .sprite(missileInfo.x, missileInfo.y, "missile")
+                .setDepth(15)
+                .setScale(0.25);
         }
 
         missile.rotation = missileInfo.rotation;
@@ -993,7 +1016,6 @@ class GameScene extends Phaser.Scene {
                     this.creditInfoText = this.add.text(640, 185, 'Current amount\nof credits', textFormatSmall).setDepth(102);
                     this.missileCountInfoText = this.add.text(this.ship.x - 100, 600, 'The amount of missiles you have', textFormatSmall).setDepth(102);
                     this.instructionsText = this.add.text(990, 185, "Click anywhere to fire a missile.\nThe missile will explode at the\ncrosshair, and the explosion will do\ndamage to the comets.\n\nIf you purchase a fireable consumable,\npress 'q' and click to fire\nin the desired direction.\n\nAs the rounds progress, comets will\nincrease in number, speed, and damage.\nIf a comet reaches the base,\nyour base will receive damage equal\nto the comet's current health.\n\nYou lose when base health reaches 0.", textFormatSmall);
-
                 })
                 .on('pointerout', () => {
                     if (this.roundInfoText) {
@@ -1103,7 +1125,7 @@ class GameScene extends Phaser.Scene {
         this.makeUIButtonHelper(
             self,
             "radiusUpgrade",
-            "Explosion\nRadius\n\n500",
+            "Explosion\nRadius\n\n400",
             "radius",
             "Increases the explosion\nradius of your missiles"
         );
@@ -1125,17 +1147,26 @@ class GameScene extends Phaser.Scene {
         this.makeUIHalfButtonHelper(
             self,
             "laserConsumable",
-            "Laser Shots\n1500",
+            "Laser\n1500",
             "laser",
-            "Allows you to fire 3\nlasers that can hit\nmultiple targets"
+            "Fires a laser beam in\na line,hitting multiple\ntargets. Grants 3 uses"
         );
 
         this.makeUIHalfButtonHelper(
             self,
             "flakConsumable",
             "Flak\n100",
-            "flak"
+            "flak",
+            "For 10 seconds, fire\nnumerous smaller missiles\nnear the cursor location"
         );
+
+        this.makeUIHalfButtonHelper(
+            self,
+            "nukeConsumable",
+            "Nuke\n200",
+            "nuke",
+            "Huge explosion radius"
+        )
 
         //To add more half-buttons, just list them as follows, and they will appear in the shop at an appropriate place
 
