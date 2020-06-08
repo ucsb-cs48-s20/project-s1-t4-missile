@@ -1,150 +1,159 @@
-import { angle } from "/static/gameCalculations.js";
+/* Imports angle function for calculating barrel angle */
+import { angle } from '/static/gameCalculations.js';
 
-const textFormatSmall = {
-    "fontFamily": "Trebuchet MS",
-    "fontSize": "16px",
-    "fill": '#0f0'
-}
-const textFormatMedium = {
-    "fontFamily": "Trebuchet MS",
-    "fontSize": "32px"
-};
+/* Imports text formatting */
+import { formatTUT, formatBUT, formatMED } from '/static/textFormatting.js'
 
+/* Scene that handles redrawing of the game and server-client interactions */
 class GameScene extends Phaser.Scene {
+
+    /* Defines the key identifier for the scene */
     constructor() {
         super({ key: "gameScene" });
     }
 
+    /* Receives the socket to avoid mutliple socket creations */
     init(socket) {
         this.socket = socket;
-        console.log(socket);
     }
 
+    /* Loads game assets */
     preload() {
-        this.load.image("background", "/assets/background.png");
-        this.load.image("stars", "/assets/background-stars.png");
-        this.load.image("tankbody1", "/assets/tankbody1.png");
-        this.load.image("tankbody2", "/assets/tankbody2.png");
-        this.load.image("tankbody3", "/assets/tankbody3.png");
-        this.load.image("tankbody4", "/assets/tankbody4.png");
-        this.load.spritesheet("tankbarrel", "/assets/tankbarrel.png", {
+        
+        /* Background sprites */
+        this.load.image('background', '/assets/background.png');
+        this.load.image('base', '/assets/base.png');
+        
+        /* Player/game sprites */
+        this.load.image('tankbody1', '/assets/tankbody1.png');
+        this.load.image('tankbody2', '/assets/tankbody2.png');
+        this.load.image('tankbody3', '/assets/tankbody3.png');
+        this.load.image('tankbody4', '/assets/tankbody4.png');
+        this.load.image('missile', '/assets/missile.png');
+        this.load.image('crosshair', '/assets/crosshairs.png');
+        this.load.image('flak', '/assets/flak-icon.png');
+        this.load.image('nuke', '/assets/nuke-icon.png');
+
+        /* UI Sprites */
+        this.load.image('button', '/assets/button.png');
+        this.load.image('halfbutton', '/assets/half-button.png');
+        this.load.image('reloadmeter', '/assets/reload-meter-tex.png');
+        this.load.image('shopbg', '/assets/shop-ui-main.png');
+        this.load.image('specialholder', '/assets/special-attack-holder.png');
+        this.load.image('info', '/assets/info.png');
+
+        /* Spritesheets */
+        this.load.spritesheet('tankbarrel', '/assets/tankbarrel.png', {
             frameWidth: 32,
             frameHeight: 256
         });
-        this.load.image("missile", "/assets/missile.png");
-        this.load.spritesheet("comet", "/assets/comet.png", {
+        this.load.spritesheet('comet', '/assets/comet.png', {
             frameWidth: 64,
             frameHeight: 128
         });
-        this.load.spritesheet("nuke-projectile", "/assets/nuke-projectile.png", {
+        this.load.spritesheet('nuke-projectile', '/assets/nuke-projectile.png', {
             frameWidth: 256,
             frameHeight: 256
         });
-        this.load.spritesheet("explosion", "/assets/explosion.png", {
+        this.load.spritesheet('explosion', '/assets/explosion.png', {
             frameWidth: 128,
             frameHeight: 128
         });
-        this.load.image("base", "/assets/base.png");
-        this.load.image("button", "/assets/button.png");
-        this.load.image("halfbutton", "/assets/half-button.png");
-        this.load.image("reloadmeter", "/assets/reload-meter-tex.png");
-        this.load.image("crosshair", "/assets/crosshairs.png");
-        this.load.image("shopbg", "/assets/shop-ui-main.png");
-        this.load.image("specialholder", "/assets/special-attack-holder.png");
-        this.load.image("flak", "/assets/flak-icon.png");
-        this.load.image("nuke", "/assets/nuke-icon.png");
-        this.load.spritesheet("laser", "assets/laser-bar.png", {
+        this.load.spritesheet('laser', 'assets/laser-bar.png', {
             frameWidth: 64,
             frameHeight: 64
         });
-        this.load.image('info', '/assets/info.png');
     }
 
+    /* Code run on scene start */
     create() {
-        let self = this;
+        
+        /* Display background sprites */
+        this.add.image(640, 360, 'background').setScale(1);
+        this.add.image(640, 360, 'base').setScale(1);
 
-        this.socket.emit('requestInitialize');
-        this.pointerInGame = true
-        this.game.canvas.onmouseover = (e) => this.pointerInGame = true
-        this.game.canvas.onmouseout = (e) => this.pointerInGame = false
-
-        //Load background
-        this.add.image(640, 360, "background").setScale(1);
-        //this.add.image(640, 360, "stars").setScale(4);
-        this.add.image(640, 360, "base").setScale(1);
-
-        //Create animations
+        /* Creates animations */
         this.anims.create({
-            key: "explode",
+            key: 'explode',
             frameRate: 20,
-            frames: this.anims.generateFrameNames("explosion", {
+            frames: this.anims.generateFrameNames('explosion', {
                 start: 0,
                 end: 15
             })
         });
-
         this.anims.create({
-            key: "cometMain",
+            key: 'cometRevolve',
             frameRate: 20,
             repeat: -1,
-            frames: this.anims.generateFrameNames("comet", {
+            frames: this.anims.generateFrameNames('comet', {
                 start: 0,
                 end: 15
             })
         });
 
         this.anims.create({
-            key: "fire",
+            key: 'fireShot',
             frameRate: 20,
-            frames: this.anims.generateFrameNames("tankbarrel", {
+            frames: this.anims.generateFrameNames('tankbarrel', {
                 start: 1,
                 end: 8
             })
         });
-
         this.anims.create({
-            key: "laserFlux",
+            key: 'laserFlux',
             frameRate: 8,
             repeat: -1,
-            frames: this.anims.generateFrameNames("laser", {
+            frames: this.anims.generateFrameNames('laser', {
                 start: 0,
                 end: 2
             })
         });
 
         this.anims.create({
-            key: "nukeMain",
+            key: 'nukeRevolve',
             frameRate: 20,
             repeat: -1,
-            frames: this.anims.generateFrameNames("nuke-projectile", {
+            frames: this.anims.generateFrameNames('nuke-projectile', {
                 start: 0,
                 end: 15
             })
         });
 
-        //GroupsY
+         /* Focus data */
+         this.pointerInGame = true
+         this.game.canvas.onmouseover = () => this.pointerInGame = true
+         this.game.canvas.onmouseout = () => this.pointerInGame = false
+         this.focus = true;
+
+        /* Object groups */
         this.missiles = this.physics.add.group();
         this.comets = this.physics.add.group();
         this.otherPlayers = this.physics.add.group();
         this.otherTankbodys = this.physics.add.group();
         this.crosshairs = this.physics.add.group();
         this.shopUI = this.add.group();
-        //special variables for shop button placement
+
+        /* Variables for button placement */
         this.shopUIButtonPlacerX = 80;
         this.shopUIButtonPlacerY = -85;
 
+        /* Player is set to default spectate */
         this.spectate = false;
 
-        this.socket.on("spectate", () => {
+        /* Requests information about comets, other players, missiles on screen */
+        this.socket.emit('requestInitialize');
+
+        /* Handles spectators */
+        this.socket.on('initSpectate', () => {
             this.spectate = true;
-            this.spectateText = this.add.text(50, 200, 'Spectating', { fontSize: '24px' });
+            this.spectateText = this.add.text(50, 200, 'Spectating', formatTUT);
             if(this.infoButton) {
                 this.infoButton.destroy();
             }
-        })
+        });
 
-        this.makeUI(this);
-        this.focus = true;
+        /* Creates the UI */
+        this.makeUI();
 
         //Game variables
         this.shot = false;
@@ -199,41 +208,41 @@ class GameScene extends Phaser.Scene {
         });
         this.socket.on("currentPlayers", players => {
             Object.keys(players).forEach(id => {
-                if (players[id].playerId === self.socket.id) {
-                    self.addPlayer(self, players[id]);
+                if (players[id].playerId === this.socket.id) {
+                    this.addPlayer(this, players[id]);
                 } else {
-                    self.addOtherPlayers(self, players[id]);
+                    this.addOtherPlayers(this, players[id]);
                 }
             });
         });
         this.socket.on("initComets", serverComets => {
             Object.keys(serverComets).forEach(comet => {
                 if (comet != undefined) {
-                    self.addComet(self, serverComets[comet]);
+                    this.addComet(this, serverComets[comet]);
                 }
             });
         });
 
         //Events where new objects are created
         this.socket.on("newPlayer", playerInfo => {
-            self.addOtherPlayers(self, playerInfo);
+            this.addOtherPlayers(this, playerInfo);
         });
         this.socket.on("newMissile", missileInfo => {
-            self.addMissile(self, missileInfo);
+            this.addMissile(this, missileInfo);
         });
         this.socket.on("newCrosshair", crosshairInfo => {
-            self.addCrosshair(self, crosshairInfo);
+            this.addCrosshair(this, crosshairInfo);
         });
         this.socket.on("missileFired", id => {
-            self.otherPlayers.getChildren().forEach(otherPlayer => {
+            this.otherPlayers.getChildren().forEach(otherPlayer => {
                 if (id == otherPlayer.playerId) {
-                    otherPlayer.play("fire");
+                    otherPlayer.play('fireShot');
                 }
             });
         });
 
         this.socket.on("laserFired", (center, dir, rot) => {
-            self.displayLaser(self, center, dir, rot);
+            this.displayLaser(this, center, dir, rot);
         });
 
         this.socket.on("flakFired", () => {
@@ -261,14 +270,14 @@ class GameScene extends Phaser.Scene {
         })
 
         this.socket.on("newComet", cometInfo => {
-            self.addComet(self, cometInfo);
+            this.addComet(this, cometInfo);
         });
 
         //missile count display; reload bar display
         this.socket.on(
             "missileCountChange",
             (id, newAmount, maxAmount, regenTime, displayBar) => {
-                if (id == self.playerId) {
+                if (id == this.playerId) {
                     if (this.debug) {
                         this.missileCountText.setText(
                             `5 - Maximum missile capacity = ${newAmount}`
@@ -279,35 +288,35 @@ class GameScene extends Phaser.Scene {
                     } else {
                         this.noMissilesLeft = false;
                     }
-                    self.displayMissileCount(
-                        self,
-                        self,
+                    this.displayMissileCount(
+                        this,
+                        this,
                         newAmount,
                         maxAmount,
                         regenTime
                     );
                     if (displayBar) {
                         this.displayReloadBar(
-                            self,
-                            self,
+                            this,
+                            this,
                             this.ship.x,
                             regenTime,
                             this.maxMissilesClientCopy
                         );
                     }
                 } else {
-                    self.otherPlayers.getChildren().forEach(otherPlayer => {
+                    this.otherPlayers.getChildren().forEach(otherPlayer => {
                         if (id == otherPlayer.playerId) {
-                            self.displayMissileCount(
-                                self,
+                            this.displayMissileCount(
+                                this,
                                 otherPlayer,
                                 newAmount,
                                 maxAmount,
                                 regenTime
                             );
                             if (displayBar) {
-                                self.displayReloadBar(
-                                    self,
+                                this.displayReloadBar(
+                                    this,
                                     otherPlayer,
                                     otherPlayer.x,
                                     regenTime,
@@ -315,9 +324,9 @@ class GameScene extends Phaser.Scene {
                                 );
                             }
                         }
-                        self.displayMissileCount(
-                            self,
-                            self,
+                        this.displayMissileCount(
+                            this,
+                            this,
                             newAmount,
                             maxAmount,
                             regenTime
@@ -329,7 +338,7 @@ class GameScene extends Phaser.Scene {
 
         //Events where objects are destroyed
         this.socket.on("missileDestroyed", (missileId, size, time) => {
-            self.missiles.getChildren().forEach(missile => {
+            this.missiles.getChildren().forEach(missile => {
                 if (missile.id == missileId) {
                     const explosion = this.add
                         .sprite(missile.x, missile.y, "explosion", 0)
@@ -348,7 +357,7 @@ class GameScene extends Phaser.Scene {
         });
 
         this.socket.on("crosshairDestroyed", crosshairId => {
-            self.crosshairs.getChildren().forEach(crosshair => {
+            this.crosshairs.getChildren().forEach(crosshair => {
                 if (crosshair.id == crosshairId) {
                     crosshair.destroy();
                 }
@@ -356,7 +365,7 @@ class GameScene extends Phaser.Scene {
         });
 
         this.socket.on("cometDestroyed", (cometId, size, time) => {
-            self.comets.getChildren().forEach(comet => {
+            this.comets.getChildren().forEach(comet => {
                 if (comet.id == cometId) {
                     const explosion = this.add
                         .sprite(comet.x, comet.y, "explosion", 0)
@@ -375,7 +384,7 @@ class GameScene extends Phaser.Scene {
         });
 
         this.socket.on("disconnect", playerId => {
-            self.otherPlayers.getChildren().forEach(otherPlayer => {
+            this.otherPlayers.getChildren().forEach(otherPlayer => {
                 if (playerId === otherPlayer.playerId) {
                     otherPlayer.missileCountSprite.destroy();
                     otherPlayer.missileCountText.destroy();
@@ -386,13 +395,13 @@ class GameScene extends Phaser.Scene {
                     otherPlayer.destroy();
                 }
             });
-            self.otherTankbodys.getChildren().forEach(otherTankbody => {
+            this.otherTankbodys.getChildren().forEach(otherTankbody => {
                 if (playerId === otherTankbody.playerId) {
                     otherTankbody.destroy();
                 }
             });
 
-            if (playerId == self.playerId) {
+            if (playerId == this.playerId) {
                 this.socket.close();
             }
         });
@@ -406,7 +415,7 @@ class GameScene extends Phaser.Scene {
 
         //Events where object states are updated
         this.socket.on("baseDamaged", info => {
-            self.comets.getChildren().forEach(comet => {
+            this.comets.getChildren().forEach(comet => {
                 if (comet.id == info[0]) {
                     this.healthText.setText(`${info[1]}`);
                     const explosion = this.add
@@ -424,7 +433,7 @@ class GameScene extends Phaser.Scene {
             });
         });
         this.socket.on("missileUpdate", serverMissiles => {
-            self.missiles.getChildren().forEach(missile => {
+            this.missiles.getChildren().forEach(missile => {
                 //console.log(serverMissiles[missile.id].x + "," + serverMissiles[missile.id].y)
                 missile.setPosition(
                     serverMissiles[missile.id].x,
@@ -434,7 +443,7 @@ class GameScene extends Phaser.Scene {
             });
         });
         this.socket.on("cometUpdate", serverComets => {
-            self.comets.getChildren().forEach(comet => {
+            this.comets.getChildren().forEach(comet => {
                 if (serverComets[comet.id] != undefined) {
                     comet.setPosition(
                         serverComets[comet.id].x,
@@ -444,7 +453,7 @@ class GameScene extends Phaser.Scene {
             });
         });
         this.socket.on("playerMoved", playerInfo => {
-            self.otherPlayers.getChildren().forEach(otherPlayer => {
+            this.otherPlayers.getChildren().forEach(otherPlayer => {
                 if (playerInfo.playerId === otherPlayer.playerId) {
                     otherPlayer.setRotation(playerInfo.rotation);
                 }
@@ -480,8 +489,8 @@ class GameScene extends Phaser.Scene {
         });
 
         this.socket.on("updateSpecialAttack", (id, newAttackName, color) => {
-            if (id == self.playerId) {
-                self.updateSpecialAttackIcon(self, self, newAttackName, color);
+            if (id == this.playerId) {
+                this.updateSpecialAttackIcon(this, this, newAttackName, color);
                 if (newAttackName === 'none') {
                     this.specialAttackActive = false;
                     this.activeConsumable = false;
@@ -489,10 +498,10 @@ class GameScene extends Phaser.Scene {
                     this.activeConsumable = true;
                 }
             } else {
-                self.otherPlayers.getChildren().forEach(otherPlayer => {
+                this.otherPlayers.getChildren().forEach(otherPlayer => {
                     if (id == otherPlayer.playerId) {
-                        self.updateSpecialAttackIcon(
-                            self,
+                        this.updateSpecialAttackIcon(
+                            this,
                             otherPlayer,
                             newAttackName,
                             color
@@ -592,7 +601,6 @@ class GameScene extends Phaser.Scene {
         if (this.created && !this.spectate && this.ship) {
             //Mouse handling
             let pointer = this.input.activePointer;
-
             this.ship.rotation = angle(
                 pointer.x,
                 pointer.y,
@@ -625,7 +633,7 @@ class GameScene extends Phaser.Scene {
                 !this.reloading &&
                 (!this.noMissilesLeft || this.specialAttackActive)
             ) {
-                this.ship.play("fire");
+                this.ship.play('fireShot');
                 this.shot = true;
 
                 // specialAttackActive is set to false when specialattackclient copy is set to none
@@ -914,7 +922,7 @@ class GameScene extends Phaser.Scene {
                 .sprite(missileInfo.x, missileInfo.y, "nuke-projectile")
                 .setDepth(15)
                 .setScale(0.25);
-            missile.play("nukeMain");
+            missile.play("nukeRevolve");
         }
 
         missile.rotation = missileInfo.rotation;
@@ -937,7 +945,7 @@ class GameScene extends Phaser.Scene {
             .setDisplaySize(32, 64);
         comet.rotation = cometInfo.rotation;
         comet.id = cometInfo.id;
-        comet.play("cometMain");
+        comet.play('cometRevolve');
         self.comets.add(comet);
     }
 
@@ -1010,13 +1018,13 @@ class GameScene extends Phaser.Scene {
         somePlayer.missileCountText.setText("" + newAmount + "/" + maxAmount);
     }
 
-    makeUI(self) {
-        const shopUIBackground = self.add
+    makeUI() {
+        const shopUIBackground = this.add
             .sprite(640, -40, "shopbg")
             .setDisplaySize(1280, 200)
             .setTint(0xffffff)
             .setDepth(100);
-        self.shopUI.add(shopUIBackground);
+        this.shopUI.add(shopUIBackground);
 
         if (!this.spectate) {
             this.infoButton = this.add.image(1220, 50, 'info')
@@ -1055,7 +1063,7 @@ class GameScene extends Phaser.Scene {
                         this.instructionsText.destroy();
                     }
                 })
-            self.makeUIButtons(self);
+            this.makeUIButtons(this);
         }
     }
 

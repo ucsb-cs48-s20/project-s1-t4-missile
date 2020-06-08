@@ -115,8 +115,18 @@ io.on('connect', socket => {
         })
 
         socket.on('requestInitialize', () => {
-            initializeGame(socket.id);
-        })
+            io.to(socket.id).emit('initComets', comets);
+            io.to(socket.id).emit('initHealth', baseHealth);
+            io.to(socket.id).emit('initTimer', timer);
+            io.to(socket.id).emit('initScore', score);
+            io.to(socket.id).emit('initRound', round);
+            if (users[socket.id].role != 'spectator') {
+                io.to(socket.id).emit('initCredits', 0);
+            } else {
+                io.to(socket.id).emit('initSpectate');
+            }
+            io.to(socket.id).emit('currentPlayers', players);
+        });
 
         socket.on('requestEndToLobby', () => {
             gameState = 'lobby';
@@ -465,20 +475,6 @@ function attemptBuyConsumable(socketID, consumableName, cost) {
     }
 
     return false;
-}
-
-function initializeGame(socketId) {
-    io.to(socketId).emit('initComets', comets);
-    io.to(socketId).emit('initHealth', baseHealth);
-    io.to(socketId).emit('initTimer', timer);
-    io.to(socketId).emit('initScore', score);
-    io.to(socketId).emit('initRound', round);
-    if (users[socketId].role != 'spectator') {
-        io.to(socketId).emit('initCredits', 0);
-    } else {
-        io.to(socketId).emit('spectate');
-    }
-    io.to(socketId).emit('currentPlayers', players);
 }
 
 // give the player missiles until they have their max amount. 

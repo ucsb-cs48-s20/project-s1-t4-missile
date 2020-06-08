@@ -1,7 +1,7 @@
 /* Text formatting */
 import { formatBUT, formatMED, formatLG } from '/static/textFormatting.js'
 
-/* An ending scene that displays results and statistics about the game */
+/* Scene that displays results and stats about the game */
 class EndScene extends Phaser.Scene {
     
     /* Defines the key identifier for the scene */
@@ -9,7 +9,7 @@ class EndScene extends Phaser.Scene {
         super({key: 'endScene'});
     }
 
-    /* Passes the socket and receives statistics about the game */
+    /* Receives the socket and statistics about the game */
     init(data) {
         this.socket = data.socket;
         this.round = data.round;
@@ -23,7 +23,7 @@ class EndScene extends Phaser.Scene {
         this.load.image('button', '/assets/button.png');
     }
 
-    /* Code run on creation */
+    /* Code run on scene start */
     create() {
 
         /* Displays assets */
