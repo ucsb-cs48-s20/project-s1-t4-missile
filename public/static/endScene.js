@@ -42,9 +42,9 @@ class EndScene extends Phaser.Scene {
         
         /* Creates return to lobby button */
         this.add.text(615, 625, 
-            `Return
-            to
-            Lobby`, 
+`Return
+to
+Lobby`, 
             formatBUT).setDepth(1);
         this.lobbyButton = this.add.image(640, 650, 'button');
         assignButtonBehavior(this.lobbyButton, () => {
