@@ -7,20 +7,20 @@ import { formatTUT, formatBUT, formatSMMED, formatMED } from '/static/textFormat
 /* Button behavior helper */
 import { assignButtonBehavior } from '/static/buttonUtils.js';
 
-/* Scene that handles redrawing of the game and server-client interactions */
+/* ---------- Scene that handles redrawing of the game and server-client interactions ---------- */
 class GameScene extends Phaser.Scene {
 
-    /* Defines the key identifier for the scene */
+    /* ----- Defines the key identifier for the scene ----- */
     constructor() {
         super({ key: 'gameScene' });
     }
 
-    /* Receives the socket to avoid mutliple socket creations */
+    /* ----- Receives the socket to avoid mutliple socket creations ----- */
     init(socket) {
         this.socket = socket;
     }
 
-    /* Loads game assets */
+    /* ----- Loads game assets ----- */
     preload() {
         
         /* Background sprites */
@@ -68,7 +68,7 @@ class GameScene extends Phaser.Scene {
         });
     }
 
-    /* Code run on scene start */
+    /* ----- Code that runs on scene start ----- */
     create() {
         
         /* Display background sprites */
@@ -535,7 +535,7 @@ class GameScene extends Phaser.Scene {
         });
     }
 
-    /* Code that runs continuously as the game loops */
+    /* ----- Code that runs continuously as the game loops ----- */
     update() {
 
         /* Sends key inputs by players only to the server */
@@ -686,24 +686,31 @@ class GameScene extends Phaser.Scene {
         }
     }
 
-    /* Helper functions */
+    /* ---------- Helper functions ---------- */
 
-    /* UI creation helper functions */
+    /* ----- UI creation helper functions ----- */
+
+    /* Main create UI function */
     makeUI() {
-        const shopUIBackground = this.add
-            .sprite(640, -40, 'shopbg')
+
+        /* Creates the UI panel at the top of the screen */
+        const shopUIBackground = this.add.sprite(640, -40, 'shopbg')
             .setDisplaySize(1280, 200)
             .setTint(0xffffff)
             .setDepth(1);
         this.shopUI.add(shopUIBackground);
         
+        /* If the user is not a spectator, create info buttons & the upgrade/consumable buttons */
         if (!this.spectate) {
             this.makeInfoButton();
             this.makeUIButtons();
         }
     }
 
+    /* Creates the info button */
     makeInfoButton() {
+
+        /* Info button displays text on hover over, removes text when not hovering */
         this.infoButton = this.add.image(1220, 50, 'info')
             .setScale(0.5)
             .setDepth(1)
@@ -770,67 +777,7 @@ You lose when base health reaches 0.`,
             })
     }
 
-    makeButton(name, text, upgradeType, description) {
-        let xpos = this.shopUIButtonPlacerX;
-        let ypos = this.shopUIButtonPlacerY;
-        this.shopUIButtonPlacerX += 160;
-
-        this[name + 'Text'] = this.add.text(xpos - 40, ypos - 25, text, formatBUT)
-            .setDepth(2)
-            .setTint(0x202020);
-        this[name] = this.add.image(xpos, ypos, 'button')
-            .setDepth(1)
-            .setScale(1.5)
-            .setTint(0xcfcfcf)
-            .setInteractive()
-            .on('pointerover', () => {
-                this.upgradeHelpText = this.add.text(xpos - 60, ypos + 270, description, formatTUT).setDepth(200);
-            })
-            .on('pointerout', () => {
-                if (this.upgradeHelpText) {
-                    this.upgradeHelpText.destroy();
-                }
-            })
-        assignButtonBehavior(this[name], () => {
-            this.socket.emit('attemptUpgrade', upgradeType);
-        });
-        this.shopUI.add(this[name]);
-        this.shopUI.add(this[name + 'Text']);
-    }
-
-    makeHalfButton(name, text, consumableType, description) {
-        let xpos = this.shopUIButtonPlacerX;
-        let ypos = this.shopUIButtonPlacerY;
-        if (ypos > -80) {
-            this.shopUIButtonPlacerY = -85;
-            this.shopUIButtonPlacerX += 130;
-        } else {
-            this.shopUIButtonPlacerY += 65;
-        }
-
-        this[name + 'Text'] = this.add.text(xpos - 55, ypos - 32, text, formatBUT)
-            .setDepth(2)
-            .setTint(0x202020);
-        this[name] = this.add.image(xpos, ypos - 19, 'halfbutton')
-            .setDepth(1)
-            .setScale(1.25)
-            .setTint(0xcfcfcf)
-            .setInteractive()
-            .on('pointerover', () => {
-                this.upgradeHelpText = this.add.text(xpos - 60, ypos + 270, description, formatTUT).setDepth(2);
-            })
-            .on('pointerout', () => {
-                if (this.upgradeHelpText) {
-                    this.upgradeHelpText.destroy();
-                }
-            })
-        assignButtonBehavior(this[name], () => {
-            this.socket.emit('attemptBuyConsumable', consumableType);
-        });
-        this.shopUI.add(this[name]);
-        this.shopUI.add(this[name + 'Text']);
-    }
-
+    /* Function to pass in what buttons need to be made */
     makeUIButtons() {
         this.makeButton(
             'speedUpgrade',
@@ -885,6 +832,80 @@ You lose when base health reaches 0.`,
         )
     }
 
+    /* Helper function to make full-sized buttons for missile upgrades */
+    makeButton(name, text, upgradeType, description) {
+
+        /* Updates position of button */
+        let xpos = this.shopUIButtonPlacerX;
+        let ypos = this.shopUIButtonPlacerY;
+        this.shopUIButtonPlacerX += 160;
+
+        /* Creates the button and assigns it to attemptUpgrade when clicked */
+        this[name + 'Text'] = this.add.text(xpos - 40, ypos - 25, text, formatBUT)
+            .setDepth(2)
+            .setTint(0x202020);
+        this[name] = this.add.image(xpos, ypos, 'button')
+            .setDepth(1)
+            .setScale(1.5)
+            .setTint(0xcfcfcf)
+            .setInteractive()
+            .on('pointerover', () => {
+                this.upgradeHelpText = this.add.text(xpos - 60, ypos + 270, description, formatTUT).setDepth(200);
+            })
+            .on('pointerout', () => {
+                if (this.upgradeHelpText) {
+                    this.upgradeHelpText.destroy();
+                }
+            })
+        assignButtonBehavior(this[name], () => {
+            this.socket.emit('attemptUpgrade', upgradeType);
+        });
+
+        /* Adds button to shop */
+        this.shopUI.add(this[name]);
+        this.shopUI.add(this[name + 'Text']);
+    }
+
+    /* Helper function to add half buttons to shop */
+    makeHalfButton(name, text, consumableType, description) {
+
+        /* Calculates position of where button should be placed */
+        let xpos = this.shopUIButtonPlacerX;
+        let ypos = this.shopUIButtonPlacerY;
+        if (ypos > -80) {
+            this.shopUIButtonPlacerY = -85;
+            this.shopUIButtonPlacerX += 130;
+        } else {
+            this.shopUIButtonPlacerY += 65;
+        }
+
+        /* Creates button and assigns it to attemptBuyConsumable when clicked */
+        this[name + 'Text'] = this.add.text(xpos - 55, ypos - 32, text, formatBUT)
+            .setDepth(2)
+            .setTint(0x202020);
+        this[name] = this.add.image(xpos, ypos - 19, 'halfbutton')
+            .setDepth(1)
+            .setScale(1.25)
+            .setTint(0xcfcfcf)
+            .setInteractive()
+            .on('pointerover', () => {
+                this.upgradeHelpText = this.add.text(xpos - 60, ypos + 270, description, formatTUT).setDepth(2);
+            })
+            .on('pointerout', () => {
+                if (this.upgradeHelpText) {
+                    this.upgradeHelpText.destroy();
+                }
+            })
+        assignButtonBehavior(this[name], () => {
+            this.socket.emit('attemptBuyConsumable', consumableType);
+        });
+
+        /* Adds buttons to UI */
+        this.shopUI.add(this[name]);
+        this.shopUI.add(this[name + 'Text']);
+    }
+
+    /* Adds the missile counter */
     addMissileCounter(player, playerInfo) {
         player.missileCountSprite = this.add.sprite(playerInfo.x - 45, 575, 'missile')
             .setDisplaySize(20, 30)
@@ -895,13 +916,16 @@ You lose when base health reaches 0.`,
             .setDepth(100);
     }
 
+    /* Adds the special attack holder */
     addSpecialAttackHolder(player, playerInfo) {
         player.specialAttackHolder = this.add.sprite(playerInfo.x - 60, 650, 'specialholder')
             .setDisplaySize(32, 32)
             .setDepth(100);
     }
 
-    /* UI update helper functions */
+    /* ----- UI update helper functions ----- */
+
+    /* Moves the UI downwards when user hovers over it */
     moveUI(pointer, UICutoffY) {
         if (!this.UITweening) {
             if (pointer.y >= UICutoffY || !this.pointerInGame) {
@@ -930,7 +954,10 @@ You lose when base health reaches 0.`,
         }
     }
 
+    /* Updates the special attack icon with the purchased consumable */
     updateSpecialAttackIcon(player, newAttackName, color) {
+
+        /* Clears the special attack holder */
         if (player.specialAttackIcon != undefined) {
             player.specialAttackIcon.destroy();
         }
@@ -941,6 +968,7 @@ You lose when base health reaches 0.`,
             return;
         }
         
+        /* Adds the special attack icon if it exists*/
         player.specialAttackIcon = this.add.sprite(player.specialAttackHolder.x, player.specialAttackHolder.y,      
             newAttackName)
             .setDisplaySize(24, 24)
@@ -948,6 +976,7 @@ You lose when base health reaches 0.`,
             .setTint(color);
     }
 
+    /* Updates reload bar */
     displayReloadBar(ship, positionX, reloadTime, newMaxMissiles) {
         const width = 120;
         const height = 16;
@@ -955,6 +984,7 @@ You lose when base health reaches 0.`,
 
         ship.maxMissilesClientCopy = newMaxMissiles;
 
+        /* Creates the progress and full reload bar */
         const reloadBarBase = this.add.sprite(positionX, positionY, 'reloadmeter')
             .setDisplaySize(width, height)
             .setTint(0xbb0000)
@@ -967,6 +997,7 @@ You lose when base health reaches 0.`,
         let timer = 0;
         let oldMaxMissiles = newMaxMissiles;
 
+        /* Updates the reload bar until it is full */
         let drawLoop = setInterval(() => {
             if (timer >= reloadTime || ship.maxMissilesClientCopy != oldMaxMissiles) {
                 reloadBarBase.destroy();
@@ -981,32 +1012,27 @@ You lose when base health reaches 0.`,
         }, 16);
     }
 
+    /* Updates the missile count */
     displayMissileCount(somePlayer, newAmount, maxAmount) {
         somePlayer.maxMissilesClientCopy = maxAmount;
         somePlayer.missileCountText.setText('' + newAmount + '/' + maxAmount);
     }
 
-    /* Object creation helper functions */
-    addTankBody(playerInfo) {
-        return this.add.sprite(playerInfo.x, playerInfo.y, 'tankbody' + (1 + Math.round((playerInfo.x - 160) / 320.0)))
-            .setScale(0.5)
-            .setDepth(25);
-    }
+    /* ----- Object creation helper functions ----- */
 
+    /* Main function for adding players */
     addPlayer(playerInfo) {
         this.addTankBody(playerInfo);
         this.ship = this.physics.add.sprite(playerInfo.x, playerInfo.y - 10, 'tankbarrel')
             .setScale(0.7)
             .setDepth(20);
-        this.ship.setDrag(100);
-        this.ship.setAngularDrag(100);
-        this.ship.setMaxVelocity(200);
         this.playerId = playerInfo.playerId;
         this.addMissileCounter(this, playerInfo);
         this.addSpecialAttackHolder(this, playerInfo);
         this.maxMissilesClientCopy = playerInfo.maxMissiles;
     }
 
+    /* Adds a player that isn't the current player */
     addOtherPlayers(playerInfo) {
         const otherTankbody = this.addTankBody(playerInfo);
         const otherPlayer = this.add.sprite(playerInfo.x, playerInfo.y - 10, 'tankbarrel')
@@ -1022,6 +1048,14 @@ You lose when base health reaches 0.`,
         this.otherTankbodies.add(otherTankbody);
     }
 
+    /* Adds the body of the player/tank sprite */
+    addTankBody(playerInfo) {
+        return this.add.sprite(playerInfo.x, playerInfo.y, 'tankbody' + (1 + Math.round((playerInfo.x - 160) / 320.0)))
+            .setScale(0.5)
+            .setDepth(25);
+    }
+
+    /* Adds a missile to the screen */
     addMissile(missileInfo) {
         let missile;
         if (!missileInfo.flakSpecial && !missileInfo.nukeSpecial) {
@@ -1043,6 +1077,7 @@ You lose when base health reaches 0.`,
         this.missiles.add(missile);
     }
 
+    /* Adds a crosshair to the screen */
     addCrosshair(crosshairInfo) {
         const crosshair = this.add.sprite(crosshairInfo.mouseX, crosshairInfo.mouseY, 'crosshair')
             .setScale(0.3);
@@ -1050,6 +1085,7 @@ You lose when base health reaches 0.`,
         this.crosshairs.add(crosshair);
     }
 
+    /* Adds a comet to the screen */
     addComet(cometInfo) {
         const comet = this.add.sprite(cometInfo.x, cometInfo.y, 'comet')
             .setDisplaySize(32, 64);
@@ -1059,6 +1095,7 @@ You lose when base health reaches 0.`,
         this.comets.add(comet);
     }
 
+    /* Adds a laser to the screen */
     displayLaser(center, dir, rot) {
         let tempLaser = this.add.sprite(center.x + 670 * dir.x, center.y + 670 * dir.y, 'laser')
             .setDisplaySize(100, 1280)
