@@ -16,6 +16,12 @@ export const formatSM = {
     align: 'center',
 };
 
+export const formatSMMED = {
+    fontFamily: 'Trebuchet MS',
+    fontSize: '24px',
+    align: 'center',
+};
+
 export const formatMED = {
     fontFamily: 'Trebuchet MS',
     fontSize: '32px',

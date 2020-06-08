@@ -224,7 +224,7 @@ io.on('connect', socket => {
                     if (thisPlayer.missiles == thisPlayer.maxMissiles) { displayBar = true; }
                     thisPlayer.missiles--;
                     let regenMs = (1.0 / thisPlayer.regenSpeed) * 1000;
-                    io.emit('missileCountChange', socket.id, thisPlayer.missiles, thisPlayer.maxMissiles, regenMs, displayBar);
+                    io.emit('updateMissileCount', socket.id, thisPlayer.missiles, thisPlayer.maxMissiles, regenMs, displayBar);
                     giveBulletsUntilMax(socket.id, thisPlayer, regenMs);
                 }
 

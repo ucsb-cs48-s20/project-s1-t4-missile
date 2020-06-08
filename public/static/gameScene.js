@@ -2,7 +2,7 @@
 import { angle } from '/static/gameCalculations.js';
 
 /* Text formatting */
-import { formatTUT, formatBUT, formatMED } from '/static/textFormatting.js';
+import { formatTUT, formatBUT, formatSMMED, formatMED } from '/static/textFormatting.js';
 
 /* Button behavior helper */
 import { assignButtonBehavior } from '/static/buttonUtils.js';
@@ -157,7 +157,7 @@ class GameScene extends Phaser.Scene {
         this.reloading = false;
 
         /* Game state variables */
-        this.noMissilesLeft = false;
+        this.missilesEmpty = false;
         this.maxMissilesClientCopy = -1;
         this.activeConsumable = false;
         this.specialAttackActive = false;
@@ -165,89 +165,87 @@ class GameScene extends Phaser.Scene {
 
         /* Initializes game state displays from the information requested in requestInitialize */
         this.socket.on('initHealth', (baseHealth) => {
-            this.healthText = this.add
-                .text(315, 15, `${baseHealth}`, formatMED)
+            this.healthText = this.add.text(315, 15, `${baseHealth}`, formatMED)
                 .setTint(0x303030)
                 .setDepth(101);
             this.shopUI.add(this.healthText);
         });
-        this.socket.on('initTimer', timer => {
-            this.timerText = this.add
-                .text(190, 15, `${timer}`, formatMED)
+        this.socket.on('initTimer', (timer) => {
+            this.timerText = this.add.text(190, 15, `${timer}`, formatMED)
                 .setTint(0x303030)
                 .setDepth(101);
             this.shopUI.add(this.timerText);
         });
-        this.socket.on('initCredits', cred => {
-            this.creditText = this.add
-                .text(700, 15, `${cred}`, formatMED)
+        this.socket.on('initCredits', (cred) => {
+            this.creditText = this.add.text(700, 15, `${cred}`, formatMED)
                 .setTint(0x303030)
                 .setDepth(101);
             this.shopUI.add(this.creditText);
         });
-        this.socket.on('initScore', score => {
-            this.scoreText = this.add
-                .text(440, 15, `${score}`, formatMED)
+        this.socket.on('initScore', (score) => {
+            this.scoreText = this.add.text(440, 15, `${score}`, formatMED)
                 .setTint(0x303030)
                 .setDepth(101);
             this.shopUI.add(this.scoreText);
         });
-        this.socket.on('initRound', round => {
-            this.roundText = this.add
-                .text(70, 15, `${round}`, formatMED)
+        this.socket.on('initRound', (round) => {
+            this.roundText = this.add.text(70, 15, `${round}`, formatMED)
                 .setTint(0x303030)
                 .setDepth(101);
             this.shopUI.add(this.roundText);
         });
-        this.socket.on('initComets', serverComets => {
-            Object.keys(serverComets).forEach(comet => {
+        this.socket.on('initComets', (serverComets) => {
+            Object.keys(serverComets).forEach((comet) => {
                 if (comet != undefined) {
-                    this.addComet(this, serverComets[comet]);
+                    this.addComet(serverComets[comet]);
                 }
             });
         });
         this.socket.on('initSpectate', () => {
             this.spectate = true;
-            this.spectateText = this.add.text(50, 300, 'Spectating', formatTUT);
+            this.spectateText = this.add.text(50, 300, 'Spectating', formatMED);
             if(this.infoButton) {
                 this.infoButton.destroy();
             }
         });
-        this.socket.on('currentPlayers', players => {
-            Object.keys(players).forEach(id => {
+        this.socket.on('currentPlayers', (players) => {
+            Object.keys(players).forEach((id) => {
                 if (players[id].playerId === this.socket.id) {
-                    this.addPlayer(this, players[id]);
+                    this.addPlayer(players[id]);
                 } else {
-                    this.addOtherPlayers(this, players[id]);
+                    this.addOtherPlayers(players[id]);
                 }
             });
         });
 
-        //Events where new objects are created
-        this.socket.on("newPlayer", playerInfo => {
-            this.addOtherPlayers(this, playerInfo);
+        /* Create new objects */
+        this.socket.on('newPlayer', (playerInfo) => {
+            this.addOtherPlayers(playerInfo);
         });
-        this.socket.on("newMissile", missileInfo => {
-            this.addMissile(this, missileInfo);
+        this.socket.on('newMissile', (missileInfo) => {
+            this.addMissile(missileInfo);
         });
-        this.socket.on("newCrosshair", crosshairInfo => {
-            this.addCrosshair(this, crosshairInfo);
+        this.socket.on('newCrosshair', (crosshairInfo) => {
+            this.addCrosshair(crosshairInfo);
         });
-        this.socket.on("missileFired", id => {
-            this.otherPlayers.getChildren().forEach(otherPlayer => {
+        this.socket.on('newComet', cometInfo => {
+            this.addComet(cometInfo);
+        });
+
+        /* Play firing animations */
+        this.socket.on('missileFired', (id) => {
+            this.otherPlayers.getChildren().forEach((otherPlayer) => {
                 if (id == otherPlayer.playerId) {
                     otherPlayer.play('fireShot');
                 }
             });
         });
-
-        this.socket.on("laserFired", (center, dir, rot) => {
-            this.displayLaser(this, center, dir, rot);
+        this.socket.on('laserFired', (center, dir, rot) => {
+            this.displayLaser(center, dir, rot);
         });
-
-        this.socket.on("flakFired", () => {
+        this.socket.on('flakFired', () => {
             let pointer = this.input.activePointer;
-            this.socket.emit("missileShot", {
+            this.socket.emit('missileShot', {
                 x: this.ship.x,
                 y: this.ship.y,
                 mouseX: pointer.x + 400 * Math.random() - 200,
@@ -256,10 +254,9 @@ class GameScene extends Phaser.Scene {
                 flakSpecial: true
             });
         });
-
-        this.socket.on("nukeFired", () => {
+        this.socket.on('nukeFired', () => {
             let pointer = this.input.activePointer;
-            this.socket.emit("missileShot", {
+            this.socket.emit('missileShot', {
                 x: this.ship.x,
                 y: this.ship.y,
                 mouseX: pointer.x,
@@ -267,70 +264,33 @@ class GameScene extends Phaser.Scene {
                 rotation: this.ship.rotation,
                 nukeSpecial: true
             });
-        })
-
-        this.socket.on("newComet", cometInfo => {
-            this.addComet(this, cometInfo);
         });
 
-        //missile count display; reload bar display
-        this.socket.on(
-            "missileCountChange",
-            (id, newAmount, maxAmount, regenTime, displayBar) => {
+        /* Missile count update */
+        this.socket.on('updateMissileCount', (id, newAmount, maxAmount, regenTime, displayBar) => {
                 if (id == this.playerId) {
                     if (this.debug) {
-                        this.missileCountText.setText(
-                            `5 - Maximum missile capacity = ${newAmount}`
-                        );
+                        this.missileCountText.setText(`5 - Maximum missile capacity = ${newAmount}`);
                     }
                     if (newAmount == 0) {
-                        this.noMissilesLeft = true;
+                        this.missilesEmpty = true;
                     } else {
-                        this.noMissilesLeft = false;
+                        this.missilesEmpty = false;
                     }
-                    this.displayMissileCount(
-                        this,
-                        this,
-                        newAmount,
-                        maxAmount,
-                        regenTime
-                    );
+                    this.displayMissileCount(this, newAmount, maxAmount);
                     if (displayBar) {
-                        this.displayReloadBar(
-                            this,
-                            this,
-                            this.ship.x,
-                            regenTime,
-                            this.maxMissilesClientCopy
-                        );
+                        this.displayReloadBar(this, this.ship.x, regenTime, this.maxMissilesClientCopy);
                     }
                 } else {
                     this.otherPlayers.getChildren().forEach(otherPlayer => {
                         if (id == otherPlayer.playerId) {
-                            this.displayMissileCount(
-                                this,
-                                otherPlayer,
-                                newAmount,
-                                maxAmount,
-                                regenTime
-                            );
+                            this.displayMissileCount(otherPlayer, newAmount, maxAmount);
                             if (displayBar) {
-                                this.displayReloadBar(
-                                    this,
-                                    otherPlayer,
-                                    otherPlayer.x,
-                                    regenTime,
-                                    this.maxMissilesClientCopy
-                                );
+                                this.displayReloadBar(otherPlayer, otherPlayer.x, regenTime, 
+                                    this.maxMissilesClientCopy);
                             }
                         }
-                        this.displayMissileCount(
-                            this,
-                            this,
-                            newAmount,
-                            maxAmount,
-                            regenTime
-                        );
+                        this.displayMissileCount(this, newAmount, maxAmount);
                     });
                 }
             }
@@ -642,7 +602,7 @@ class GameScene extends Phaser.Scene {
                 pointer.isDown &&
                 pointer.y >= UICutoffY &&
                 !this.reloading &&
-                (!this.noMissilesLeft || this.specialAttackActive)
+                (!this.missilesEmpty || this.specialAttackActive)
             ) {
                 this.ship.play('fireShot');
                 this.shot = true;
@@ -828,36 +788,24 @@ class GameScene extends Phaser.Scene {
     }
 
     //Helper add functions
-    addTankBody(self, playerInfo) {
-        return self.add
-            .sprite(
-                playerInfo.x,
-                playerInfo.y,
-                "tankbody" + (1 + Math.round((playerInfo.x - 160) / 320.0))
-            )
+    addTankBody(playerInfo) {
+        return this.add.sprite(playerInfo.x, playerInfo.y, "tankbody" + (1 + Math.round((playerInfo.x - 160) / 320.0)))
             .setScale(0.5)
             .setDepth(25);
     }
 
-    addMissileCounter(self, somePlayer, playerInfo) {
-        somePlayer.missileCountSprite = self.add
-            .sprite(playerInfo.x - 45, 575, "missile")
+    addMissileCounter(player, playerInfo) {
+        player.missileCountSprite = this.add.sprite(playerInfo.x - 45, 575, 'missile')
             .setDisplaySize(20, 30)
             .setDepth(100);
-        somePlayer.missileCountText = self.add
-            .text(
-                playerInfo.x - 15,
-                575,
-                "" + playerInfo.missiles + "/" + playerInfo.maxMissiles,
-                { fontSize: "24px" }
-            )
+        player.missileCountText = this.add.text(playerInfo.x - 15, 575, 
+            `${playerInfo.missiles}/${playerInfo.maxMissiles}`, formatSMMED)
             .setTint(0xffffff)
             .setDepth(100);
     }
 
-    addSpecialAttackHolder(self, somePlayer, playerInfo) {
-        somePlayer.specialAttackHolder = self.add
-            .sprite(playerInfo.x - 60, 650, "specialholder")
+    addSpecialAttackHolder(player, playerInfo) {
+        player.specialAttackHolder = this.add.sprite(playerInfo.x - 60, 650, 'specialholder')
             .setDisplaySize(32, 32)
             .setDepth(100);
     }
@@ -884,91 +832,80 @@ class GameScene extends Phaser.Scene {
             .setTint(color);
     }
 
-    addPlayer(self, playerInfo) {
-        self.addTankBody(self, playerInfo);
-        self.ship = self.physics.add
-            .sprite(playerInfo.x, playerInfo.y - 10, "tankbarrel")
+    addPlayer(playerInfo) {
+        this.addTankBody(playerInfo);
+        this.ship = this.physics.add.sprite(playerInfo.x, playerInfo.y - 10, 'tankbarrel')
             .setScale(0.7)
             .setDepth(20);
-        self.ship.setDrag(100);
-        self.ship.setAngularDrag(100);
-        self.ship.setMaxVelocity(200);
-        self.playerId = playerInfo.playerId;
-        self.addMissileCounter(self, self, playerInfo);
-        self.addSpecialAttackHolder(self, self, playerInfo);
-        self.maxMissilesClientCopy = playerInfo.maxMissiles;
+        this.ship.setDrag(100);
+        this.ship.setAngularDrag(100);
+        this.ship.setMaxVelocity(200);
+        this.playerId = playerInfo.playerId;
+        this.addMissileCounter(this, playerInfo);
+        this.addSpecialAttackHolder(this, playerInfo);
+        this.maxMissilesClientCopy = playerInfo.maxMissiles;
     }
 
-    addOtherPlayers(self, playerInfo) {
-        const otherTankbody = self.addTankBody(self, playerInfo);
-        const otherPlayer = self.add
-            .sprite(playerInfo.x, playerInfo.y - 10, "tankbarrel")
+    addOtherPlayers(playerInfo) {
+        const otherTankbody = this.addTankBody(playerInfo);
+        const otherPlayer = this.add.sprite(playerInfo.x, playerInfo.y - 10, 'tankbarrel')
             .setScale(0.7)
-            .setDepth(20);
+            .setDepth(2);
         otherPlayer.playerId = playerInfo.playerId;
         otherPlayer.rotation = playerInfo.rotation;
-        self.addMissileCounter(self, otherPlayer, playerInfo);
-        self.addSpecialAttackHolder(self, otherPlayer, playerInfo);
-        self.maxMissilesClientCopy = playerInfo.maxMissiles;
+        this.addMissileCounter(otherPlayer, playerInfo);
+        this.addSpecialAttackHolder(otherPlayer, playerInfo);
+        this.maxMissilesClientCopy = playerInfo.maxMissiles;
         otherTankbody.playerId = playerInfo.playerId;
-        self.otherPlayers.add(otherPlayer);
-        self.otherTankbodys.add(otherTankbody);
+        this.otherPlayers.add(otherPlayer);
+        this.otherTankbodys.add(otherTankbody);
     }
 
-    addMissile(self, missileInfo) {
+    addMissile(missileInfo) {
         let missile;
         if (!missileInfo.flakSpecial && !missileInfo.nukeSpecial) {
-            missile = self.add
-                .sprite(missileInfo.x, missileInfo.y, "missile")
+            missile = this.add.sprite(missileInfo.x, missileInfo.y, 'missile')
                 .setDepth(15)
                 .setScale(0.1875);
         } else if (missileInfo.flakSpecial) {
-            missile = self.add
-                .sprite(missileInfo.x, missileInfo.y, "missile")
+            missile = this.add.sprite(missileInfo.x, missileInfo.y, 'missile')
                 .setDepth(15)
                 .setScale(0.02);
         }else {
-            // make nuke here
-            missile = self.add
-                .sprite(missileInfo.x, missileInfo.y, "nuke-projectile")
+            missile = this.add.sprite(missileInfo.x, missileInfo.y, 'nuke-projectile')
                 .setDepth(15)
                 .setScale(0.25);
-            missile.play("nukeRevolve");
+            missile.play('nukeRevolve');
         }
-
         missile.rotation = missileInfo.rotation;
         missile.id = missileInfo.id;
-        self.missiles.add(missile);
+        this.missiles.add(missile);
     }
 
-    addCrosshair(self, crosshairInfo) {
-        const crosshair = self.add
-            .sprite(crosshairInfo.mouseX, crosshairInfo.mouseY, "crosshair")
+    addCrosshair(crosshairInfo) {
+        const crosshair = this.add.sprite(crosshairInfo.mouseX, crosshairInfo.mouseY, "crosshair")
             .setScale(0.3);
-
         crosshair.id = crosshairInfo.id;
-        self.crosshairs.add(crosshair);
+        this.crosshairs.add(crosshair);
     }
 
-    addComet(self, cometInfo) {
-        const comet = self.add
-            .sprite(cometInfo.x, cometInfo.y, "comet")
+    addComet(cometInfo) {
+        const comet = this.add.sprite(cometInfo.x, cometInfo.y, 'comet')
             .setDisplaySize(32, 64);
         comet.rotation = cometInfo.rotation;
         comet.id = cometInfo.id;
         comet.play('cometRevolve');
-        self.comets.add(comet);
+        this.comets.add(comet);
     }
 
-    displayLaser(self, center, dir, rot) {
-        let tempLaser = self.add
-            .sprite(center.x + 670 * dir.x, center.y + 670 * dir.y, "laser")
+    displayLaser(center, dir, rot) {
+        let tempLaser = this.add.sprite(center.x + 670 * dir.x, center.y + 670 * dir.y, 'laser')
             .setDisplaySize(100, 1280)
             .setDepth(5);
-        tempLaser.play("laserFlux");
+        tempLaser.play('laserFlux');
         tempLaser.rotation = rot;
         tempLaser.alpha = 1;
-        var drawLoop = setInterval(() => {
+        let drawLoop = setInterval(() => {
             tempLaser.alpha -= 0.02;
             if (tempLaser.alpha <= 0.01) {
                 tempLaser.destroy();
@@ -977,54 +914,40 @@ class GameScene extends Phaser.Scene {
         }, 16);
     }
 
-    displayReloadBar(
-        self,
-        shipThatHasThisBar,
-        positionX,
-        reloadTime,
-        newMaxMissiles
-    ) {
+    displayReloadBar(ship, positionX, reloadTime, newMaxMissiles) {
         const width = 120;
         const height = 16;
         const positionY = 708;
 
-        shipThatHasThisBar.maxMissilesClientCopy = newMaxMissiles;
+        ship.maxMissilesClientCopy = newMaxMissiles;
 
-        //show the empty bar
-        const reloadBarBase = self.add
-            .sprite(positionX, positionY, "reloadmeter")
+        const reloadBarBase = this.add.sprite(positionX, positionY, 'reloadmeter')
             .setDisplaySize(width, height)
             .setTint(0xbb0000)
             .setDepth(100);
-        const reloadBarFront = self.add
-            .sprite(positionX - width * 0.5, positionY, "reloadmeter")
+        const reloadBarFront = this.add.sprite(positionX - width * 0.5, positionY, 'reloadmeter')
             .setDisplaySize(0, height)
             .setTint(0x00ff00)
             .setDepth(101);
-        //update every frame until max missiles
+
         let timer = 0;
         let oldMaxMissiles = newMaxMissiles;
-        var drawLoop = setInterval(() => {
-            if (
-                timer >= reloadTime ||
-                shipThatHasThisBar.maxMissilesClientCopy != oldMaxMissiles
-            ) {
+
+        let drawLoop = setInterval(() => {
+            if (timer >= reloadTime || ship.maxMissilesClientCopy != oldMaxMissiles) {
                 reloadBarBase.destroy();
                 reloadBarFront.destroy();
                 clearInterval(drawLoop);
             } else {
                 let progress = timer / reloadTime;
-                reloadBarFront.setPosition(
-                    positionX - width * 0.5 + progress * width * 0.5,
-                    positionY
-                );
+                reloadBarFront.setPosition(positionX - width * 0.5 + progress * width * 0.5, positionY);
                 reloadBarFront.setDisplaySize(progress * width, height);
                 timer += 16;
             }
         }, 16);
     }
 
-    displayMissileCount(self, somePlayer, newAmount, maxAmount, regenTime) {
+    displayMissileCount(somePlayer, newAmount, maxAmount) {
         somePlayer.maxMissilesClientCopy = maxAmount;
         somePlayer.missileCountText.setText("" + newAmount + "/" + maxAmount);
     }
@@ -1225,22 +1148,6 @@ You lose when base health reaches 0.`,
             "nuke",
             "Huge explosion radius"
         )
-
-        //To add more half-buttons, just list them as follows, and they will appear in the shop at an appropriate place
-
-        /*this.makeUIHalfButtonHelper(
-            self,
-            "laserConsumable",
-            "Laser Shots\n1500",
-            "laser"
-        );
-    
-        this.makeUIHalfButtonHelper(
-            self,
-            "laserConsumable",
-            "Laser Shots\n1500",
-            "laser"
-        );*/
     }
 }
 
