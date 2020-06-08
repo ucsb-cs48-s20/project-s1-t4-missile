@@ -326,6 +326,7 @@ class GameScene extends Phaser.Scene {
                     } else {
                         this.missilesEmpty = false;
                     }
+                    console.log('entered')
                     this.displayMissileCount(this, newAmount, maxAmount);
                     if (displayBar) {
                         this.displayReloadBar(this, this.ship.x, regenTime, this.maxMissilesClientCopy);

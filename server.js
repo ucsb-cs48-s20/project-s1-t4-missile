@@ -489,7 +489,7 @@ function giveBulletsUntilMax(socketId, player, regenMs) {
             player.missiles++;
             let displayBar = false;
             if (player.missiles < player.maxMissiles) { displayBar = true; }
-            io.emit('missileCountChange', socketId, player.missiles, player.maxMissiles, regenMs, displayBar);
+            io.emit('updateMissileCount', socketId, player.missiles, player.maxMissiles, regenMs, displayBar);
             if (player.missiles >= player.maxMissiles) {
                 player.missiles = player.maxMissiles;
                 player.rechargingMissiles = false;
