@@ -36,6 +36,10 @@ class GameScene extends Phaser.Scene {
             frameWidth: 64,
             frameHeight: 128
         });
+        this.load.spritesheet("nuke-projectile", "/assets/nuke-projectile.png", {
+            frameWidth: 256,
+            frameHeight: 256
+        });
         this.load.spritesheet("explosion", "/assets/explosion.png", {
             frameWidth: 128,
             frameHeight: 128
@@ -105,6 +109,16 @@ class GameScene extends Phaser.Scene {
             frames: this.anims.generateFrameNames("laser", {
                 start: 0,
                 end: 2
+            })
+        });
+
+        this.anims.create({
+            key: "nukeMain",
+            frameRate: 20,
+            repeat: -1,
+            frames: this.anims.generateFrameNames("nuke-projectile", {
+                start: 0,
+                end: 15
             })
         });
 
@@ -897,9 +911,10 @@ class GameScene extends Phaser.Scene {
         }else {
             // make nuke here
             missile = self.add
-                .sprite(missileInfo.x, missileInfo.y, "missile")
+                .sprite(missileInfo.x, missileInfo.y, "nuke-projectile")
                 .setDepth(15)
                 .setScale(0.25);
+            missile.play("nukeMain");
         }
 
         missile.rotation = missileInfo.rotation;
