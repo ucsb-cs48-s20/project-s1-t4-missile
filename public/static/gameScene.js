@@ -119,13 +119,7 @@ class GameScene extends Phaser.Scene {
             })
         });
 
-         /* Focus data */
-         this.pointerInGame = true
-         this.game.canvas.onmouseover = () => this.pointerInGame = true
-         this.game.canvas.onmouseout = () => this.pointerInGame = false
-         this.focus = true;
-
-        /* Object groups */
+        /* Creates object groups */
         this.missiles = this.physics.add.group();
         this.comets = this.physics.add.group();
         this.otherPlayers = this.physics.add.group();
@@ -133,9 +127,11 @@ class GameScene extends Phaser.Scene {
         this.crosshairs = this.physics.add.group();
         this.shopUI = this.add.group();
 
-        /* Variables for button placement */
-        this.shopUIButtonPlacerX = 80;
-        this.shopUIButtonPlacerY = -85;
+        /* Focus data */
+        this.pointerInGame = true
+        this.game.canvas.onmouseover = () => this.pointerInGame = true
+        this.game.canvas.onmouseout = () => this.pointerInGame = false
+        this.focus = true;
 
         /* Player is set to default spectate */
         this.spectate = false;
@@ -143,7 +139,70 @@ class GameScene extends Phaser.Scene {
         /* Requests information about comets, other players, missiles on screen */
         this.socket.emit('requestInitialize');
 
-        /* Handles spectators */
+        /* UI variables */
+        this.shopUIButtonPlacerX = 80;
+        this.shopUIButtonPlacerY = -85;
+        this.UIOut = false;
+        this.UITweening = false;
+
+        /* Creates the UI */
+        this.makeUI();
+
+        /* Client input variables */
+        this.shot = false;
+        this.keypressed = false;
+        this.reloading = false;
+
+        /* Game state variables */
+        this.noMissilesLeft = false;
+        this.maxMissilesClientCopy = -1;
+        this.activeConsumable = false;
+        this.specialAttackActive = false;
+        this.specialAttackKey = this.input.keyboard.addKey('Q', false);
+
+        /* Initializes game state displays from the information requested in requestInitialize */
+        this.socket.on('initHealth', (baseHealth) => {
+            this.healthText = this.add
+                .text(315, 15, `${baseHealth}`, formatMED)
+                .setTint(0x303030)
+                .setDepth(101);
+            this.shopUI.add(this.healthText);
+        });
+        this.socket.on('initTimer', timer => {
+            this.timerText = this.add
+                .text(190, 15, `${timer}`, formatMED)
+                .setTint(0x303030)
+                .setDepth(101);
+            this.shopUI.add(this.timerText);
+        });
+        this.socket.on('initCredits', cred => {
+            this.creditText = this.add
+                .text(700, 15, `${cred}`, formatMED)
+                .setTint(0x303030)
+                .setDepth(101);
+            this.shopUI.add(this.creditText);
+        });
+        this.socket.on('initScore', score => {
+            this.scoreText = this.add
+                .text(440, 15, `${score}`, formatMED)
+                .setTint(0x303030)
+                .setDepth(101);
+            this.shopUI.add(this.scoreText);
+        });
+        this.socket.on('initRound', round => {
+            this.roundText = this.add
+                .text(70, 15, `${round}`, formatMED)
+                .setTint(0x303030)
+                .setDepth(101);
+            this.shopUI.add(this.roundText);
+        });
+        this.socket.on('initComets', serverComets => {
+            Object.keys(serverComets).forEach(comet => {
+                if (comet != undefined) {
+                    this.addComet(this, serverComets[comet]);
+                }
+            });
+        });
         this.socket.on('initSpectate', () => {
             this.spectate = true;
             this.spectateText = this.add.text(50, 200, 'Spectating', formatTUT);
@@ -151,74 +210,12 @@ class GameScene extends Phaser.Scene {
                 this.infoButton.destroy();
             }
         });
-
-        /* Creates the UI */
-        this.makeUI();
-
-        //Game variables
-        this.shot = false;
-        this.keypressed = false;
-        this.reloading = false;
-        this.UIOut = false;
-        this.UITweening = false;
-        this.noMissilesLeft = false;
-        this.maxMissilesClientCopy = -1;
-        this.activeConsumable = false;
-        this.specialAttackActive = false;
-        this.specialAttackKey = this.input.keyboard.addKey('Q', false);
-
-        this.created = true;
-
-        //Initializing server-handled objects
-        let UITextY = 15;
-        this.socket.on("initHealth", baseHealth => {
-            this.healthText = this.add
-                .text(315, UITextY, `${baseHealth}`, { fontSize: "32px" })
-                .setTint(0x303030)
-                .setDepth(101);
-            this.shopUI.add(this.healthText);
-        });
-        this.socket.on("initTimer", timer => {
-            this.timerText = this.add
-                .text(190, UITextY, `${timer}`, { fontSize: "32px" })
-                .setTint(0x303030)
-                .setDepth(101);
-            this.shopUI.add(this.timerText);
-        });
-        this.socket.on("initCredits", cred => {
-            this.creditText = this.add
-                .text(700, UITextY, `${cred}`, { fontSize: "32px" })
-                .setTint(0x303030)
-                .setDepth(101);
-            this.shopUI.add(this.creditText);
-        });
-        this.socket.on("initScore", score => {
-            this.scoreText = this.add
-                .text(440, UITextY, `${score}`, { fontSize: "32px" })
-                .setTint(0x303030)
-                .setDepth(101);
-            this.shopUI.add(this.scoreText);
-        });
-        this.socket.on("initRound", round => {
-            this.roundText = this.add
-                .text(70, UITextY, `${round}`, { fontSize: "32px" })
-                .setTint(0x303030)
-                .setDepth(101);
-            this.shopUI.add(this.roundText);
-        });
-        this.socket.on("currentPlayers", players => {
+        this.socket.on('currentPlayers', players => {
             Object.keys(players).forEach(id => {
                 if (players[id].playerId === this.socket.id) {
                     this.addPlayer(this, players[id]);
                 } else {
                     this.addOtherPlayers(this, players[id]);
-                }
-            });
-        });
-        this.socket.on("initComets", serverComets => {
-            Object.keys(serverComets).forEach(comet => {
-                if (comet != undefined) {
-                    this.addComet(this, serverComets[comet]);
                 }
             });
         });
@@ -598,7 +595,7 @@ class GameScene extends Phaser.Scene {
     }
 
     update() {
-        if (this.created && !this.spectate && this.ship) {
+        if (!this.spectate && this.ship) {
             //Mouse handling
             let pointer = this.input.activePointer;
             this.ship.rotation = angle(
@@ -1018,27 +1015,57 @@ class GameScene extends Phaser.Scene {
         somePlayer.missileCountText.setText("" + newAmount + "/" + maxAmount);
     }
 
+    /* Creates the UI */
     makeUI() {
         const shopUIBackground = this.add
             .sprite(640, -40, "shopbg")
             .setDisplaySize(1280, 200)
             .setTint(0xffffff)
-            .setDepth(100);
+            .setDepth(1);
         this.shopUI.add(shopUIBackground);
 
+        /* If the user is not spectating, create an info button and create the shop */
         if (!this.spectate) {
             this.infoButton = this.add.image(1220, 50, 'info')
                 .setScale(0.5)
-                .setDepth(100)
+                .setDepth(1)
                 .setInteractive()
                 .on('pointerover', () => {
-                    this.roundInfoText = this.add.text(10, 185, 'The current\nround', textFormatSmall).setDepth(102);
-                    this.timerInfoText = this.add.text(120, 185, 'How many\nseconds until\nthe round/break\nends', textFormatSmall).setDepth(102);
-                    this.healthInfoText = this.add.text(240, 185, 'Current base\nhealth', textFormatSmall).setDepth(102);
-                    this.scoreInfoText = this.add.text(360, 185, 'Current game score', textFormatSmall).setDepth(102);
-                    this.creditInfoText = this.add.text(640, 185, 'Current amount\nof credits', textFormatSmall).setDepth(102);
-                    this.missileCountInfoText = this.add.text(this.ship.x - 100, 600, 'The amount of missiles you have', textFormatSmall).setDepth(102);
-                    this.instructionsText = this.add.text(990, 185, "Click anywhere to fire a missile.\nThe missile will explode at the\ncrosshair, and the explosion will do\ndamage to the comets.\n\nIf you purchase a fireable consumable,\npress 'q' and click to fire\nin the desired direction.\n\nAs the rounds progress, comets will\nincrease in number, speed, and damage.\nIf a comet reaches the base,\nyour base will receive damage equal\nto the comet's current health.\n\nYou lose when base health reaches 0.", textFormatSmall);
+                    this.roundInfoText = this.add.text(10, 185, 
+`The current
+round`,
+                        formatTUT).setDepth(2);
+                    this.timerInfoText = this.add.text(100, 185, 
+`Seconds remaining
+until the 
+round/break ends`, 
+                        formatTUT).setDepth(2);
+                    this.healthInfoText = this.add.text(240, 185, 
+`Current base 
+health`, 
+                        formatTUT).setDepth(2);
+                    this.scoreInfoText = this.add.text(360, 185, 'Current game score', formatTUT).setDepth(2);
+                    this.creditInfoText = this.add.text(640, 185, 'Current amount of credits', formatTUT).setDepth(2);
+                    this.missileCountInfoText = this.add.text(this.ship.x - 100, 600, 
+                        'The amount of missiles you have', formatTUT).setDepth(2);
+                    this.instructionsText = this.add.text(900, 165, 
+`Firing Missiles: 
+Click anywhere to fire a missile.
+The missile explodes at the crosshair, 
+and the explosion damage to the comets.
+
+Firing Consumables:
+If you purchase a fireable consumable, 
+press 'q' and click to fire in the desired direction.
+
+Win/Loss Condition:
+As the rounds progress, 
+comets increase in number, speed, and damage.
+If a comet reaches the base, 
+your base will receive damage equal to 
+the comet's current health.
+You lose when base health reaches 0.`, 
+                        formatTUT);
                 })
                 .on('pointerout', () => {
                     if (this.roundInfoText) {
