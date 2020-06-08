@@ -126,7 +126,7 @@ class GameScene extends Phaser.Scene {
         this.missiles = this.physics.add.group();
         this.comets = this.physics.add.group();
         this.otherPlayers = this.physics.add.group();
-        this.otherTankbodys = this.physics.add.group();
+        this.otherTankbodies = this.physics.add.group();
         this.crosshairs = this.physics.add.group();
         this.shopUI = this.add.group();
 
@@ -163,37 +163,42 @@ class GameScene extends Phaser.Scene {
         this.specialAttackActive = false;
         this.specialAttackKey = this.input.keyboard.addKey('Q', false);
 
-        /* Initializes game state displays from the information requested in requestInitialize */
+        /* Handles data returned from requestInitialize */
         this.socket.on('initHealth', (baseHealth) => {
             this.healthText = this.add.text(315, 15, `${baseHealth}`, formatMED)
                 .setTint(0x303030)
                 .setDepth(101);
             this.shopUI.add(this.healthText);
         });
+
         this.socket.on('initTimer', (timer) => {
             this.timerText = this.add.text(190, 15, `${timer}`, formatMED)
                 .setTint(0x303030)
                 .setDepth(101);
             this.shopUI.add(this.timerText);
         });
+
         this.socket.on('initCredits', (cred) => {
             this.creditText = this.add.text(700, 15, `${cred}`, formatMED)
                 .setTint(0x303030)
                 .setDepth(101);
             this.shopUI.add(this.creditText);
         });
+
         this.socket.on('initScore', (score) => {
             this.scoreText = this.add.text(440, 15, `${score}`, formatMED)
                 .setTint(0x303030)
                 .setDepth(101);
             this.shopUI.add(this.scoreText);
         });
+
         this.socket.on('initRound', (round) => {
             this.roundText = this.add.text(70, 15, `${round}`, formatMED)
                 .setTint(0x303030)
                 .setDepth(101);
             this.shopUI.add(this.roundText);
         });
+
         this.socket.on('initComets', (serverComets) => {
             Object.keys(serverComets).forEach((comet) => {
                 if (comet != undefined) {
@@ -201,6 +206,7 @@ class GameScene extends Phaser.Scene {
                 }
             });
         });
+
         this.socket.on('initSpectate', () => {
             this.spectate = true;
             this.spectateText = this.add.text(50, 300, 'Spectating', formatMED);
@@ -208,6 +214,7 @@ class GameScene extends Phaser.Scene {
                 this.infoButton.destroy();
             }
         });
+
         this.socket.on('currentPlayers', (players) => {
             Object.keys(players).forEach((id) => {
                 if (players[id].playerId === this.socket.id) {
@@ -218,21 +225,25 @@ class GameScene extends Phaser.Scene {
             });
         });
 
-        /* Create new objects */
+        /* Handles object creation */
         this.socket.on('newPlayer', (playerInfo) => {
             this.addOtherPlayers(playerInfo);
         });
+
         this.socket.on('newMissile', (missileInfo) => {
             this.addMissile(missileInfo);
         });
+
         this.socket.on('newCrosshair', (crosshairInfo) => {
             this.addCrosshair(crosshairInfo);
         });
+
         this.socket.on('newComet', cometInfo => {
             this.addComet(cometInfo);
         });
 
-        /* Play firing animations */
+
+        /* Handles firing animations */
         this.socket.on('missileFired', (id) => {
             this.otherPlayers.getChildren().forEach((otherPlayer) => {
                 if (id == otherPlayer.playerId) {
@@ -240,9 +251,11 @@ class GameScene extends Phaser.Scene {
                 }
             });
         });
+
         this.socket.on('laserFired', (center, dir, rot) => {
             this.displayLaser(center, dir, rot);
         });
+
         this.socket.on('flakFired', () => {
             let pointer = this.input.activePointer;
             this.socket.emit('missileShot', {
@@ -254,6 +267,7 @@ class GameScene extends Phaser.Scene {
                 flakSpecial: true
             });
         });
+
         this.socket.on('nukeFired', () => {
             let pointer = this.input.activePointer;
             this.socket.emit('missileShot', {
@@ -266,7 +280,42 @@ class GameScene extends Phaser.Scene {
             });
         });
 
-        /* Missile count update */
+        /* Handles game object updates */
+        this.socket.on('updateBase', (info) => {
+            this.comets.getChildren().forEach((comet) => {
+                if (comet.id == info[0]) {
+                    this.healthText.setText(`${info[1]}`);
+                    const explosion = this.add.sprite(comet.x, comet.y, 'explosion', 0).setScale(1);
+                    explosion.play('explode');
+                    explosion.once(Phaser.Animations.Events.SPRITE_ANIMATION_COMPLETE, () => { explosion.destroy(); });
+                    comet.destroy();
+                }
+            });
+        });
+
+        this.socket.on('updateMissiles', (serverMissiles) => {
+            this.missiles.getChildren().forEach((missile) => {
+                missile.setPosition(serverMissiles[missile.id].x, serverMissiles[missile.id].y);
+            });
+        });
+
+        this.socket.on('updateComets', (serverComets) => {
+            this.comets.getChildren().forEach((comet) => {
+                if (serverComets[comet.id] != undefined) {
+                    comet.setPosition(serverComets[comet.id].x, serverComets[comet.id].y);
+                }
+            });
+        });
+
+        this.socket.on('playerMoved', (playerInfo) => {
+            this.otherPlayers.getChildren().forEach((otherPlayer) => {
+                if (playerInfo.playerId === otherPlayer.playerId) {
+                    otherPlayer.setRotation(playerInfo.rotation);
+                }
+            });
+        });
+
+        /* Handles UI updates */
         this.socket.on('updateMissileCount', (id, newAmount, maxAmount, regenTime, displayBar) => {
                 if (id == this.playerId) {
                     if (this.debug) {
@@ -305,30 +354,76 @@ class GameScene extends Phaser.Scene {
                 }
                 this.incomingStatusText = this.add.text(50, 200, `${info.status} in ${info.timer}...`, formatMED);
             } 
-        })
+        });
 
-        //Events where objects are destroyed
-        this.socket.on("missileDestroyed", (missileId, size, time) => {
-            this.missiles.getChildren().forEach(missile => {
+        this.socket.on('updateTimer', (timer) => {
+            this.timerText.setText(`${timer}`);
+        });
+
+        this.socket.on('updateCredits', (credits) => {
+            this.creditText.setText(`${credits}`);
+        });
+
+        this.socket.on('updateScore', (score) => {
+            this.scoreText.setText(`${score}`);
+        });
+
+        this.socket.on('updateCost', (info) => {
+            if (info[0] == 'speed') {
+                this.speedUpgradeText.setText(`Missile\nSpeed\n\n${info[1]}`);
+            } else if (info[0] == 'damage') {
+                this.damageUpgradeText.setText(`Missile\nDamage\n\n${info[1]}`);
+            } else if (info[0] == 'radius') {
+                this.radiusUpgradeText.setText(`Explosion\nRadius\n\n${info[1]}`);
+            } else if (info[0] == 'regenSpeed') {
+                this.regenUpgradeText.setText(`Ammo Regen\nSpeed\n\n${info[1]}`);
+            } else if (info[0] == 'maxMissiles') {
+                this.missileCountUpgradeText.setText(`Ammo\nCapacity\n\n${info[1]}`);
+            }
+        });
+
+        this.socket.on('updateSpecialAttack', (id, newAttackName, color) => {
+            if (id == this.playerId) {
+                this.updateSpecialAttackIcon(this, newAttackName, color);
+                if (newAttackName === 'none') {
+                    this.specialAttackActive = false;
+                    this.activeConsumable = false;
+                } else {
+                    this.activeConsumable = true;
+                }
+            } else {
+                this.otherPlayers.getChildren().forEach((otherPlayer) => {
+                    if (id == otherPlayer.playerId) {
+                        this.updateSpecialAttackIcon(
+                            otherPlayer,
+                            newAttackName,
+                            color
+                        );
+                    }
+                });
+            }
+        });
+
+        this.socket.on('updateRound', (round) => {
+            this.roundText.setText(`${round}`);
+        });
+
+        /* Handles object destruction */
+        this.socket.on('missileDestroyed', (missileId, size, time) => {
+            this.missiles.getChildren().forEach((missile) => {
                 if (missile.id == missileId) {
-                    const explosion = this.add
-                        .sprite(missile.x, missile.y, "explosion", 0)
+                    const explosion = this.add.sprite(missile.x, missile.y, 'explosion', 0)
                         .setScale(size / 96);
-                    explosion.play("explode");
+                    explosion.play('explode');
                     explosion.anims.setTimeScale(40 / time);
-                    explosion.once(
-                        Phaser.Animations.Events.SPRITE_ANIMATION_COMPLETE,
-                        () => {
-                            explosion.destroy();
-                        }
-                    );
+                    explosion.once(Phaser.Animations.Events.SPRITE_ANIMATION_COMPLETE, () => { explosion.destroy(); });
                     missile.destroy();
                 }
             });
         });
 
-        this.socket.on("crosshairDestroyed", crosshairId => {
-            this.crosshairs.getChildren().forEach(crosshair => {
+        this.socket.on("crosshairDestroyed", (crosshairId) => {
+            this.crosshairs.getChildren().forEach((crosshair) => {
                 if (crosshair.id == crosshairId) {
                     crosshair.destroy();
                 }
@@ -336,24 +431,26 @@ class GameScene extends Phaser.Scene {
         });
 
         this.socket.on("cometDestroyed", (cometId, size, time) => {
-            this.comets.getChildren().forEach(comet => {
+            this.comets.getChildren().forEach((comet) => {
                 if (comet.id == cometId) {
-                    const explosion = this.add
-                        .sprite(comet.x, comet.y, "explosion", 0)
+                    const explosion = this.add.sprite(comet.x, comet.y, "explosion", 0)
                         .setScale(size / 96);
                     explosion.play("explode");
                     explosion.anims.setTimeScale(40 / time);
-                    explosion.once(
-                        Phaser.Animations.Events.SPRITE_ANIMATION_COMPLETE,
-                        () => {
-                            explosion.destroy();
-                        }
-                    );
+                    explosion.once(Phaser.Animations.Events.SPRITE_ANIMATION_COMPLETE,() => { explosion.destroy(); });
                     comet.destroy();
                 }
             });
         });
 
+        /* Handles game over & switch to endScene */
+        this.socket.on("gameOver", data => {
+            data["socket"] = this.socket;
+            this.scene.start("endScene", data);
+            this.socket = undefined;
+        });
+
+        /* Handles player disconnect */
         this.socket.on("disconnect", playerId => {
             this.otherPlayers.getChildren().forEach(otherPlayer => {
                 if (playerId === otherPlayer.playerId) {
@@ -366,7 +463,7 @@ class GameScene extends Phaser.Scene {
                     otherPlayer.destroy();
                 }
             });
-            this.otherTankbodys.getChildren().forEach(otherTankbody => {
+            this.otherTankbodies.getChildren().forEach((otherTankbody) => {
                 if (playerId === otherTankbody.playerId) {
                     otherTankbody.destroy();
                 }
@@ -376,195 +473,65 @@ class GameScene extends Phaser.Scene {
                 this.socket.close();
             }
         });
-        this.socket.on("gameOver", data => {
-            data["socket"] = this.socket;
-            console.log("game -> end");
-            this.scene.start("endScene", data);
-            this.socket = undefined;
-            console.log(this.socket);
-        });
 
-        //Events where object states are updated
-        this.socket.on("baseDamaged", info => {
-            this.comets.getChildren().forEach(comet => {
-                if (comet.id == info[0]) {
-                    this.healthText.setText(`${info[1]}`);
-                    const explosion = this.add
-                        .sprite(comet.x, comet.y, "explosion", 0)
-                        .setScale(1);
-                    explosion.play("explode");
-                    explosion.once(
-                        Phaser.Animations.Events.SPRITE_ANIMATION_COMPLETE,
-                        () => {
-                            explosion.destroy();
-                        }
-                    );
-                    comet.destroy();
-                }
-            });
+        /* Handles entering debug mode */        
+        this.socket.on('debug', data => {
+            this.debug = true;
+            this.debugMode = -1;
+            this.debugText = this.add.text(this.ship.x - 20, this.ship.y, 'Debug', formatSMMED).setDepth(100);
+            this.debugRoundText = this.add.text(900, 120, `1 - Round`).setDepth(150);
+            this.debugBaseHealthText = this.add.text(900, 140, `2 - Base Health`).setDepth(150);
+            this.debugTimerText = this.add.text(900, 160, `3 - Timer`).setDepth(150);
+            this.debugCreditText = this.add.text(900, 180, `4 - Credits`).setDepth(150);
+            this.maxMissilesText = this.add.text(900, 200, `5 - Maximum missile capacity`).setDepth(150);
+            this.regenSpeedText = this.add.text(900, 220, `6 - Regen speed = ${data.regenSpeed}s`).setDepth(150);
+            this.cometLimitText = this.add.text(900, 240, `7 - Maximum number of comets = ${data.cometLimit}`)
+                .setDepth(150);
+            this.cometRateText = this.add.text(900, 260, `8 - Comet spawn rate = ${data.cometRate}`).setDepth(150);
+            this.cometHealthText = this.add.text(900, 280, `9 - Comet health = ${data.cometHealth}`).setDepth(150);
+            this.cometSpeedText = this.add.text(900, 300, `0 - Comet speed = ${data.cometSpeed}`).setDepth(150);
         });
-        this.socket.on("missileUpdate", serverMissiles => {
-            this.missiles.getChildren().forEach(missile => {
-                //console.log(serverMissiles[missile.id].x + "," + serverMissiles[missile.id].y)
-                missile.setPosition(
-                    serverMissiles[missile.id].x,
-                    serverMissiles[missile.id].y
-                );
-                //console.log(serverMissiles[missile.id].x + "," + serverMissiles[missile.id].y)
-            });
-        });
-        this.socket.on("cometUpdate", serverComets => {
-            this.comets.getChildren().forEach(comet => {
-                if (serverComets[comet.id] != undefined) {
-                    comet.setPosition(
-                        serverComets[comet.id].x,
-                        serverComets[comet.id].y
-                    );
-                }
-            });
-        });
-        this.socket.on("playerMoved", playerInfo => {
-            this.otherPlayers.getChildren().forEach(otherPlayer => {
-                if (playerInfo.playerId === otherPlayer.playerId) {
-                    otherPlayer.setRotation(playerInfo.rotation);
-                }
-            });
-        });
-        this.socket.on("timerUpdate", timer => {
-            this.timerText.setText(`${timer}`);
-        });
-        this.socket.on("updateCredits", credits => {
-            this.creditText.setText(`${credits}`);
-        });
-        this.socket.on("updateScore", score => {
-            this.scoreText.setText(`${score}`);
-        });
-        this.socket.on("updateCost", info => {
-            if (info[0] == "speed") {
-                this.speedUpgradeText.setText(`Missile\nSpeed\n\n${info[1]}`);
-            } else if (info[0] == "damage") {
-                this.damageUpgradeText.setText(`Missile\nDamage\n\n${info[1]}`);
-            } else if (info[0] == "radius") {
-                this.radiusUpgradeText.setText(
-                    `Explosion\nRadius\n\n${info[1]}`
-                );
-            } else if (info[0] == "regenSpeed") {
-                this.regenUpgradeText.setText(
-                    `Ammo Regen\nSpeed\n\n${info[1]}`
-                );
-            } else if (info[0] == "maxMissiles") {
-                this.missileCountUpgradeText.setText(
-                    `Ammo\nCapacity\n\n${info[1]}`
-                );
-            }
-        });
-
-        this.socket.on("updateSpecialAttack", (id, newAttackName, color) => {
-            if (id == this.playerId) {
-                this.updateSpecialAttackIcon(this, this, newAttackName, color);
-                if (newAttackName === 'none') {
-                    this.specialAttackActive = false;
-                    this.activeConsumable = false;
-                }else {
-                    this.activeConsumable = true;
-                }
-            } else {
-                this.otherPlayers.getChildren().forEach(otherPlayer => {
-                    if (id == otherPlayer.playerId) {
-                        this.updateSpecialAttackIcon(
-                            this,
-                            otherPlayer,
-                            newAttackName,
-                            color
-                        );
-                    }
-                });
-            }
-        });
-        this.socket.on("updateRound", round => {
-            this.roundText.setText(`${round}`);
-        });
-        this.socket.on("regenSpeedChange", newRegen => {
+    
+        /* Handles debug mode commands */
+        this.socket.on('regenSpeedChange', (newRegen) => {
             if (this.debug) {
                 this.regenSpeedText.setText(`6 - Regen speed = ${newRegen}s`);
             }
         });
-        this.socket.on("cometLimitChange", cometLimit => {
+
+        this.socket.on('cometLimitChange', (cometLimit) => {
             if (this.debug) {
                 this.cometLimitText.setText(
                     `7 - Maximum number of comets = ${cometLimit}`
                 );
             }
         });
-        this.socket.on("cometRateChange", cometRate => {
+
+        this.socket.on('cometRateChange', (cometRate) => {
             if (this.debug) {
                 this.cometRateText.setText(
                     `8 - Comet spawn rate = ${cometRate}`
                 );
             }
         });
-        this.socket.on("cometHealthChange", cometHealth => {
+
+        this.socket.on('cometHealthChange', (cometHealth) => {
             if (this.debug) {
                 this.cometHealthText.setText(
                     `9 - Comet health = ${cometHealth}`
                 );
             }
         });
-        this.socket.on("cometSpeedChange", cometSpeed => {
+
+        this.socket.on('cometSpeedChange', (cometSpeed) => {
             if (this.debug) {
                 this.cometSpeedText.setText(`0 - Comet speed = ${cometSpeed}`);
             }
         });
-        this.socket.on("baseHealthChange", health => {
+        this.socket.on('baseHealthChange', (health) => {
             if (this.debug) {
                 this.healthText.setText(`${health}`);
             }
-        });
-        this.socket.on("reload", () => {
-            location.reload();
-        });
-        this.socket.on("debug", data => {
-            this.debug = true;
-            this.debugMode = -1;
-            this.debugText = this.add
-                .text(this.ship.x - 20, this.ship.y, "Debug", {
-                    fontSize: "24px"
-                })
-                .setDepth(100);
-            this.debugRoundText = this.add
-                .text(900, 120, `1 - Round`)
-                .setDepth(150);
-            this.debugBaseHealthText = this.add
-                .text(900, 140, `2 - Base Health`)
-                .setDepth(150);
-            this.debugTimerText = this.add
-                .text(900, 160, `3 - Timer`)
-                .setDepth(150);
-            this.debugCreditText = this.add
-                .text(900, 180, `4 - Credits`)
-                .setDepth(150);
-            this.maxMissilesText = this.add
-                .text(900, 200, `5 - Maximum missile capacity`)
-                .setDepth(150);
-            this.regenSpeedText = this.add
-                .text(900, 220, `6 - Regen speed = ${data.regenSpeed}s`)
-                .setDepth(150);
-            this.cometLimitText = this.add
-                .text(
-                    900,
-                    240,
-                    `7 - Maximum number of comets = ${data.cometLimit}`
-                )
-                .setDepth(150);
-            this.cometRateText = this.add
-                .text(900, 260, `8 - Comet spawn rate = ${data.cometRate}`)
-                .setDepth(150);
-            this.cometHealthText = this.add
-                .text(900, 280, `9 - Comet health = ${data.cometHealth}`)
-                .setDepth(150);
-            this.cometSpeedText = this.add
-                .text(900, 300, `0 - Comet speed = ${data.cometSpeed}`)
-                .setDepth(150);
         });
     }
 
@@ -810,23 +777,19 @@ class GameScene extends Phaser.Scene {
             .setDepth(100);
     }
 
-    updateSpecialAttackIcon(self, somePlayer, newAttackName, color) {
-        if (somePlayer.specialAttackIcon != undefined) {
-            somePlayer.specialAttackIcon.destroy();
+    updateSpecialAttackIcon(player, newAttackName, color) {
+        if (player.specialAttackIcon != undefined) {
+            player.specialAttackIcon.destroy();
         }
-        if (newAttackName == "none") {
-            if (self === somePlayer) {
-                self.specialAttackHolder.setTint(0xffffff);
+        if (newAttackName == 'none') {
+            if (this === player) {
+                this.specialAttackHolder.setTint(0xffffff);
             }
             return;
         }
 
-        somePlayer.specialAttackIcon = self.add
-            .sprite(
-                somePlayer.specialAttackHolder.x,
-                somePlayer.specialAttackHolder.y,
-                newAttackName
-            )
+        player.specialAttackIcon = this.add.sprite(player.specialAttackHolder.x, player.specialAttackHolder.y,      
+            newAttackName)
             .setDisplaySize(24, 24)
             .setDepth(101)
             .setTint(color);
@@ -858,7 +821,7 @@ class GameScene extends Phaser.Scene {
         this.maxMissilesClientCopy = playerInfo.maxMissiles;
         otherTankbody.playerId = playerInfo.playerId;
         this.otherPlayers.add(otherPlayer);
-        this.otherTankbodys.add(otherTankbody);
+        this.otherTankbodies.add(otherTankbody);
     }
 
     addMissile(missileInfo) {
@@ -1042,7 +1005,9 @@ You lose when base health reaches 0.`,
         let ypos = this.shopUIButtonPlacerY;
         this.shopUIButtonPlacerX += 160;
 
-        this[name + 'Text'] = this.add.text(xpos - 40, ypos - 25, text, formatBUT).setDepth(2);
+        this[name + 'Text'] = this.add.text(xpos - 40, ypos - 25, text, formatBUT)
+            .setDepth(2)
+            .setTint(0x202020);
         this[name] = this.add.image(xpos, ypos, 'button')
             .setDepth(1)
             .setScale(1.5)
@@ -1077,12 +1042,12 @@ You lose when base health reaches 0.`,
             .setDepth(2)
             .setTint(0x202020);
         this[name] = this.add.image(xpos, ypos - 19, 'halfbutton')
-            .setDepth(101)
+            .setDepth(1)
             .setScale(1.25)
             .setTint(0xcfcfcf)
             .setInteractive()
             .on('pointerover', () => {
-                this.upgradeHelpText = this.add.text(xpos - 60, ypos + 270, description, textFormatSmall).setDepth(2);
+                this.upgradeHelpText = this.add.text(xpos - 60, ypos + 270, description, formatTUT).setDepth(2);
             })
             .on('pointerout', () => {
                 if (this.upgradeHelpText) {

@@ -337,7 +337,7 @@ io.on('connect', socket => {
         })
         socket.on('changeTimer', increment => {
             timer += increment;
-            io.emit('timerUpdate', timer);
+            io.emit('updateTimer', timer);
         })
         socket.on('changeCredits', increment => {
             players[socket.id].credits += increment;
@@ -573,7 +573,7 @@ function updateMissiles() {
                 io.emit('crosshairDestroyed', id);
             }
         })
-        io.emit('missileUpdate', missiles);
+        io.emit('updateMissiles', missiles);
     }
 }
 
@@ -585,7 +585,7 @@ function updateComets() {
                 comets[id].y = comets[id].y + comets[id].speedY;
             }
         })
-        io.emit('cometUpdate', comets);
+        io.emit('updateComets', comets);
     }
 }
 
@@ -598,7 +598,7 @@ function detectCollisions() {
                     baseHealth -= comets[cometId].hp;
                     comets[cometId] = undefined;
                     if (baseHealth > 0) {
-                        io.emit('baseDamaged', [cometId, baseHealth]);
+                        io.emit('updateBase', [cometId, baseHealth]);
                     } else {
                         cometsDestroyedStats = [];
                         Object.keys(players).forEach(playerId => {
@@ -826,7 +826,7 @@ function clearGame() {
 setInterval(() => {
     if (gameState == 'game') {
         timer--;
-        io.emit('timerUpdate', timer);
+        io.emit('updateTimer', timer);
         if (!roundOver && timer <= 5) {
             io.emit('updateIncomingStatus', {
                 timer: timer,
