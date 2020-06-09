@@ -167,35 +167,35 @@ class GameScene extends Phaser.Scene {
         this.socket.on('initHealth', (baseHealth) => {
             this.healthText = this.add.text(315, 15, `${baseHealth}`, formatMED)
                 .setTint(0x303030)
-                .setDepth(101);
+                .setDepth(1);
             this.shopUI.add(this.healthText);
         });
 
         this.socket.on('initTimer', (timer) => {
             this.timerText = this.add.text(190, 15, `${timer}`, formatMED)
                 .setTint(0x303030)
-                .setDepth(101);
+                .setDepth(1);
             this.shopUI.add(this.timerText);
         });
 
         this.socket.on('initCredits', (cred) => {
             this.creditText = this.add.text(700, 15, `${cred}`, formatMED)
                 .setTint(0x303030)
-                .setDepth(101);
+                .setDepth(1);
             this.shopUI.add(this.creditText);
         });
 
         this.socket.on('initScore', (score) => {
             this.scoreText = this.add.text(440, 15, `${score}`, formatMED)
                 .setTint(0x303030)
-                .setDepth(101);
+                .setDepth(1);
             this.shopUI.add(this.scoreText);
         });
 
         this.socket.on('initRound', (round) => {
             this.roundText = this.add.text(70, 15, `${round}`, formatMED)
                 .setTint(0x303030)
-                .setDepth(101);
+                .setDepth(1);
             this.shopUI.add(this.roundText);
         });
 
@@ -479,18 +479,18 @@ class GameScene extends Phaser.Scene {
         this.socket.on('debug', data => {
             this.debug = true;
             this.debugMode = -1;
-            this.debugText = this.add.text(this.ship.x - 20, this.ship.y, 'Debug', formatSMMED).setDepth(100);
-            this.debugRoundText = this.add.text(900, 120, `1 - Round`).setDepth(150);
-            this.debugBaseHealthText = this.add.text(900, 140, `2 - Base Health`).setDepth(150);
-            this.debugTimerText = this.add.text(900, 160, `3 - Timer`).setDepth(150);
-            this.debugCreditText = this.add.text(900, 180, `4 - Credits`).setDepth(150);
-            this.maxMissilesText = this.add.text(900, 200, `5 - Maximum missile capacity`).setDepth(150);
-            this.regenSpeedText = this.add.text(900, 220, `6 - Regen speed = ${data.regenSpeed}s`).setDepth(150);
+            this.debugText = this.add.text(this.ship.x - 20, this.ship.y, 'Debug', formatSMMED).setDepth(3);
+            this.debugRoundText = this.add.text(900, 120, `1 - Round`).setDepth(3);
+            this.debugBaseHealthText = this.add.text(900, 140, `2 - Base Health`).setDepth(3);
+            this.debugTimerText = this.add.text(900, 160, `3 - Timer`).setDepth(3);
+            this.debugCreditText = this.add.text(900, 180, `4 - Credits`).setDepth(3);
+            this.maxMissilesText = this.add.text(900, 200, `5 - Maximum missile capacity`).setDepth(3);
+            this.regenSpeedText = this.add.text(900, 220, `6 - Regen speed = ${data.regenSpeed}s`).setDepth(3);
             this.cometLimitText = this.add.text(900, 240, `7 - Maximum number of comets = ${data.cometLimit}`)
-                .setDepth(150);
-            this.cometRateText = this.add.text(900, 260, `8 - Comet spawn rate = ${data.cometRate}`).setDepth(150);
-            this.cometHealthText = this.add.text(900, 280, `9 - Comet health = ${data.cometHealth}`).setDepth(150);
-            this.cometSpeedText = this.add.text(900, 300, `0 - Comet speed = ${data.cometSpeed}`).setDepth(150);
+                .setDepth(3);
+            this.cometRateText = this.add.text(900, 260, `8 - Comet spawn rate = ${data.cometRate}`).setDepth(3);
+            this.cometHealthText = this.add.text(900, 280, `9 - Comet health = ${data.cometHealth}`).setDepth(3);
+            this.cometSpeedText = this.add.text(900, 300, `0 - Comet speed = ${data.cometSpeed}`).setDepth(3);
         });
     
         /* Handles debug mode commands */
@@ -851,7 +851,7 @@ You lose when base health reaches 0.`,
             .setTint(0xcfcfcf)
             .setInteractive()
             .on('pointerover', () => {
-                this.upgradeHelpText = this.add.text(xpos - 60, ypos + 270, description, formatTUT).setDepth(200);
+                this.upgradeHelpText = this.add.text(xpos - 60, ypos + 270, description, formatTUT).setDepth(2);
             })
             .on('pointerout', () => {
                 if (this.upgradeHelpText) {
@@ -910,18 +910,18 @@ You lose when base health reaches 0.`,
     addMissileCounter(player, playerInfo) {
         player.missileCountSprite = this.add.sprite(playerInfo.x - 45, 575, 'missile')
             .setDisplaySize(20, 30)
-            .setDepth(100);
+            .setDepth(3);
         player.missileCountText = this.add.text(playerInfo.x - 15, 575, 
             `${playerInfo.missiles}/${playerInfo.maxMissiles}`, formatSMMED)
             .setTint(0xffffff)
-            .setDepth(100);
+            .setDepth(3);
     }
 
     /* Adds the special attack holder */
     addSpecialAttackHolder(player, playerInfo) {
         player.specialAttackHolder = this.add.sprite(playerInfo.x - 60, 650, 'specialholder')
             .setDisplaySize(32, 32)
-            .setDepth(100);
+            .setDepth(3);
     }
 
     /* ----- UI update helper functions ----- */
@@ -973,7 +973,7 @@ You lose when base health reaches 0.`,
         player.specialAttackIcon = this.add.sprite(player.specialAttackHolder.x, player.specialAttackHolder.y,      
             newAttackName)
             .setDisplaySize(24, 24)
-            .setDepth(101)
+            .setDepth(3)
             .setTint(color);
     }
 
@@ -989,11 +989,11 @@ You lose when base health reaches 0.`,
         const reloadBarBase = this.add.sprite(positionX, positionY, 'reloadmeter')
             .setDisplaySize(width, height)
             .setTint(0xbb0000)
-            .setDepth(100);
+            .setDepth(3);
         const reloadBarFront = this.add.sprite(positionX - width * 0.5, positionY, 'reloadmeter')
             .setDisplaySize(0, height)
             .setTint(0x00ff00)
-            .setDepth(101);
+            .setDepth(3);
 
         let timer = 0;
         let oldMaxMissiles = newMaxMissiles;
@@ -1026,7 +1026,7 @@ You lose when base health reaches 0.`,
         this.addTankBody(playerInfo);
         this.ship = this.physics.add.sprite(playerInfo.x, playerInfo.y - 10, 'tankbarrel')
             .setScale(0.7)
-            .setDepth(20);
+            .setDepth(2);
         this.playerId = playerInfo.playerId;
         this.addMissileCounter(this, playerInfo);
         this.addSpecialAttackHolder(this, playerInfo);
@@ -1053,7 +1053,7 @@ You lose when base health reaches 0.`,
     addTankBody(playerInfo) {
         return this.add.sprite(playerInfo.x, playerInfo.y, 'tankbody' + (1 + Math.round((playerInfo.x - 160) / 320.0)))
             .setScale(0.5)
-            .setDepth(25);
+            .setDepth(1);
     }
 
     /* Adds a missile to the screen */
@@ -1061,15 +1061,15 @@ You lose when base health reaches 0.`,
         let missile;
         if (!missileInfo.flakSpecial && !missileInfo.nukeSpecial) {
             missile = this.add.sprite(missileInfo.x, missileInfo.y, 'missile')
-                .setDepth(15)
+                .setDepth(2)
                 .setScale(0.1875);
         } else if (missileInfo.flakSpecial) {
             missile = this.add.sprite(missileInfo.x, missileInfo.y, 'missile')
-                .setDepth(15)
+                .setDepth(2)
                 .setScale(0.02);
         }else {
             missile = this.add.sprite(missileInfo.x, missileInfo.y, 'nuke-projectile')
-                .setDepth(15)
+                .setDepth(2)
                 .setScale(0.25);
             missile.play('nukeRevolve');
         }
@@ -1100,7 +1100,7 @@ You lose when base health reaches 0.`,
     displayLaser(center, dir, rot) {
         let tempLaser = this.add.sprite(center.x + 670 * dir.x, center.y + 670 * dir.y, 'laser')
             .setDisplaySize(100, 1280)
-            .setDepth(5);
+            .setDepth(3);
         tempLaser.play('laserFlux');
         tempLaser.rotation = rot;
         tempLaser.alpha = 1;
