@@ -48,7 +48,6 @@ const Chat = () => {
     useEffect(() => {
         // receive message event from server
         socket.on("message", (message) => {
-            console.log("received message.");
             setMessages((msgs) => {
                 return ([...msgs, message]);
             });
