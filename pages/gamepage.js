@@ -117,7 +117,7 @@ const PageLayout = () => {
             <Head>
                 <script src="//cdn.jsdelivr.net/npm/phaser@3.22.0/dist/phaser.js"></script>
             </Head>
-            <Favicon url="/static/images/favicon.ico"></Favicon>
+            <Favicon url="/assets/site/favicon.ico"></Favicon>
             <h1>{`${pageTitle}`}</h1>
             <DynamicGameWindow />
         </div>

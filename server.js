@@ -462,7 +462,6 @@ io.on('connect', (socket) => {
         /* Handles users joining the chat room */
         socket.on('join', (obj, callback) => {
             const { error, user } = addUser({ id: socket.id, name: obj.name, room: 'Room' });
-            console.log(`Adding ${obj.name} to room ${user.room}`);
 
             if (error) {
                 return (callback(error));

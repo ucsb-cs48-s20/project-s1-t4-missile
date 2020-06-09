@@ -16,9 +16,8 @@ class LobbyScene extends Phaser.Scene {
 
     /* ----- Loads assets ----- */
     preload() {
-        this.load.image('background', '/assets/background.png');
-        this.load.image("start", "/assets/start.png");
-        this.load.image('info', '/assets/info.png');
+        this.load.image('background', '/assets/game/background/background.png');
+        this.load.image("start", "/assets/game/ui/start.png");
     }
 
     /* ----- Code that runs when scene starts ----- */

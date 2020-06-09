@@ -24,48 +24,46 @@ class GameScene extends Phaser.Scene {
     preload() {
         
         /* Background sprites */
-        this.load.image('background', '/assets/background.png');
-        this.load.image('base', '/assets/base.png');
+        this.load.image('background', '/assets/game/background/background.png');
+        this.load.image('base', '/assets/game/background/base.png');
         
         /* Player/game sprites */
-        this.load.image('tankbody1', '/assets/tankbody1.png');
-        this.load.image('tankbody2', '/assets/tankbody2.png');
-        this.load.image('tankbody3', '/assets/tankbody3.png');
-        this.load.image('tankbody4', '/assets/tankbody4.png');
-        this.load.image('missile', '/assets/missile.png');
-        this.load.image('crosshair', '/assets/crosshairs.png');
-        this.load.image('flak', '/assets/flak-icon.png');
-        this.load.image('nuke', '/assets/nuke-icon.png');
-
-        /* UI Sprites */
-        this.load.image('button', '/assets/button.png');
-        this.load.image('halfbutton', '/assets/half-button.png');
-        this.load.image('reloadmeter', '/assets/reload-meter-tex.png');
-        this.load.image('shopbg', '/assets/shop-ui-main.png');
-        this.load.image('specialholder', '/assets/special-attack-holder.png');
-        this.load.image('info', '/assets/info.png');
-
-        /* Spritesheets */
-        this.load.spritesheet('tankbarrel', '/assets/tankbarrel.png', {
+        this.load.image('tankbody1', '/assets/game/sprites/tankbody1.png');
+        this.load.image('tankbody2', '/assets/game/sprites/tankbody2.png');
+        this.load.image('tankbody3', '/assets/game/sprites/tankbody3.png');
+        this.load.image('tankbody4', '/assets/game/sprites/tankbody4.png');
+        this.load.image('missile', '/assets/game/sprites/missile.png');
+        this.load.image('crosshair', '/assets/game/sprites/crosshairs.png');
+        this.load.spritesheet('tankbarrel', '/assets/game/sprites/tankbarrel.png', {
             frameWidth: 32,
             frameHeight: 256
         });
-        this.load.spritesheet('comet', '/assets/comet.png', {
+        this.load.spritesheet('comet', '/assets/game/sprites/comet.png', {
             frameWidth: 64,
             frameHeight: 128
         });
-        this.load.spritesheet('nuke-projectile', '/assets/nuke-projectile.png', {
+        this.load.spritesheet('nuke-projectile', '/assets/game/sprites/nuke-projectile.png', {
             frameWidth: 256,
             frameHeight: 256
         });
-        this.load.spritesheet('explosion', '/assets/explosion.png', {
+        this.load.spritesheet('explosion', '/assets/game/sprites/explosion.png', {
             frameWidth: 128,
             frameHeight: 128
         });
-        this.load.spritesheet('laser', 'assets/laser-bar.png', {
+        this.load.spritesheet('laser', '/assets/game/sprites/laser-bar.png', {
             frameWidth: 64,
             frameHeight: 64
         });
+
+        /* UI Sprites */
+        this.load.image('button', '/assets/game/ui/button.png');
+        this.load.image('halfbutton', '/assets/game/ui/half-button.png');
+        this.load.image('reloadmeter', '/assets/game/ui/reload-meter-tex.png');
+        this.load.image('shopbg', '/assets/game/ui/shop-ui-main.png');
+        this.load.image('specialholder', '/assets/game/ui/special-attack-holder.png');
+        this.load.image('info', '/assets/game/ui/info.png');
+        this.load.image('flak', '/assets/game/ui/flak-icon.png');
+        this.load.image('nuke', '/assets/game/ui/nuke-icon.png');
     }
 
     /* ----- Code that runs on scene start ----- */

@@ -22,8 +22,8 @@ class EndScene extends Phaser.Scene {
 
     /* ----- Loads the assets used in the scene ----- */
     preload() {
-        this.load.image('background', '/assets/background.png');
-        this.load.image('button', '/assets/button.png');
+        this.load.image('background', '/assets/game/background/background.png');
+        this.load.image('button', '/assets/game/ui/button.png');
     }
 
     /* ----- Code run on scene start ----- */
