@@ -445,14 +445,19 @@ class GameScene extends Phaser.Scene {
         });
 
         /* Handles game over & switch to endScene */
-        this.socket.on('gameOver', data => {
+        this.socket.on('gameOver', (data) => {
             data['socket'] = this.socket;
             this.scene.start('endScene', data);
             this.socket = undefined;
         });
 
+        /* If all players leave, reload the screen*/
+        this.socket.on('reloadGame', () => {
+            location.reload();
+        })
+
         /* Handles player disconnect */
-        this.socket.on('disconnect', playerId => {
+        this.socket.on('disconnect', (playerId) => {
             this.otherPlayers.getChildren().forEach(otherPlayer => {
                 if (playerId === otherPlayer.playerId) {
                     otherPlayer.missileCountSprite.destroy();
@@ -476,7 +481,7 @@ class GameScene extends Phaser.Scene {
         });
 
         /* Handles entering debug mode */        
-        this.socket.on('debug', data => {
+        this.socket.on('debug', (data) => {
             this.debug = true;
             this.debugMode = -1;
             this.debugText = this.add.text(this.ship.x - 20, this.ship.y, 'Debug', formatSMMED).setDepth(3);
@@ -710,13 +715,12 @@ class GameScene extends Phaser.Scene {
 
     /* Creates the info button */
     makeInfoButton() {
-
-        /* Info button displays text on hover over, removes text when not hovering */
         this.infoButton = this.add.image(1220, 50, 'info')
             .setScale(0.5)
             .setDepth(1)
             .setInteractive()
             .on('pointerover', () => {
+                /* Creates tooltips on hover */
                 this.roundInfoText = this.add.text(10, 185, 
 `The current
 round`,
@@ -754,6 +758,7 @@ You lose when base health reaches 0.`,
                     formatTUT);
             })
             .on('pointerout', () => {
+                /* When not hovering, removes text */
                 if (this.roundInfoText) {
                     this.roundInfoText.destroy();
                 }

@@ -4,15 +4,15 @@ import { formatBUT, formatMED, formatLG } from '/static/textFormatting.js'
 /* Button behavior helper */
 import { assignButtonBehavior } from '/static/buttonUtils.js'
 
-/* Scene that displays results and stats about the game */
+/* ---------- Scene that displays results and stats about the game ---------- */
 class EndScene extends Phaser.Scene {
     
-    /* Defines the key identifier for the scene */
+    /* ----- Defines the key identifier for the scene ----- */
     constructor() {
         super({key: 'endScene'});
     }
 
-    /* Receives the socket and statistics about the game */
+    /* ----- Receives the socket and statistics about the game ----- */
     init(data) {
         this.socket = data.socket;
         this.round = data.round;
@@ -20,13 +20,13 @@ class EndScene extends Phaser.Scene {
         this.cometsDestroyedStats = data.cometsDestroyedStats;
     }
 
-    /* Loads the assets used in the scene */
+    /* ----- Loads the assets used in the scene ----- */
     preload() {
         this.load.image('background', '/assets/background.png');
         this.load.image('button', '/assets/button.png');
     }
 
-    /* Code run on scene start */
+    /* ----- Code run on scene start ----- */
     create() {
 
         /* Displays assets */

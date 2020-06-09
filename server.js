@@ -80,7 +80,7 @@ io.on('connect', socket => {
         console.log(players);
 
         if (gameState == 'lobby') {
-            io.emit('initUsers', users);
+            io.emit('updateUsers', users);
         } else if (gameState == 'game') {
             setTimeout(() => { socket.emit('inProgress') }, 500);
         } else {
@@ -135,7 +135,7 @@ io.on('connect', socket => {
         })
 
         socket.on('requestUsers', () => {
-            socket.emit('initUsers', users);
+            socket.emit('updateUsers', users);
         })
 
         //Handles client inputs
@@ -148,7 +148,7 @@ io.on('connect', socket => {
                         playerSlots[i] = undefined;
                     }
                 }
-                io.emit('initUsers', users);
+                io.emit('updateUsers', users);
             } else {
                 let nextSlot = getNextSlot();
                 if (nextSlot != -1) {
@@ -175,7 +175,7 @@ io.on('connect', socket => {
                         debugging: false,
                         speed: 10,
                     };
-                    io.emit('initUsers', users);
+                    io.emit('updateUsers', users);
                 }
             }
         })
@@ -375,6 +375,9 @@ io.on('connect', socket => {
                 removeFromSlot(socket.id);
             }
             delete users[socket.id];
+            if(gameState == 'lobby') {
+                io.emit('updateUsers', users);
+            }
             io.emit('disconnect', socket.id);
             if (Object.keys(players).length == 0) {
                 if (countdown) {
@@ -383,7 +386,7 @@ io.on('connect', socket => {
                     countdown = false;
                 }
                 clearGame();
-                io.emit('reload');
+                io.emit('reloadGame');
                 io.emit('clearLobby');
                 gameState = 'lobby';
             }
