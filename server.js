@@ -524,6 +524,7 @@ io.on('connect', (socket) => {
                         speedY: Math.sin(angle) * cometSpeed,
                         rotation: angle - Math.PI / 2,
                         hp: cometHealth,
+                        dmg: 1,
                         id: i,
                         credits: 100 * cometHealth,
                         radius: 55,
