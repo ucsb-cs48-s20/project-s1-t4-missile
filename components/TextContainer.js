@@ -1,6 +1,6 @@
 import React from 'react';
 
-import onlineIcon from '../public/assets/onlineIcon.png';
+import onlineIcon from '../public/assets/site/onlineIcon.png';
 import ScrollToBottom from 'react-scroll-to-bottom';
 import "./TextContainer.scss";
 

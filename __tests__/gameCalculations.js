@@ -14,7 +14,7 @@ describe('utils/gameCalculations', () => {
         it('throws an error when any parameter is not of type number', () => {
             expect(() => {
                 angle('x', 0, 20, 40)
-            }).toThrow('all arguments must be numbers');
+            }).toThrow('All arguments must be numbers.\n x1 is not a number');
         })
     })
 })
