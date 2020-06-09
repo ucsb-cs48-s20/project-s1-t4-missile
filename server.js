@@ -1,4 +1,10 @@
-//Server setup
+/* Chat util functions */
+const { addUser, removeUser, getUser, getAllUsers } = require('./utils/chatUsers.js');
+
+/* Calculate distance between 2 points */
+const { distance } = require('./utils/serverCalculations.js');
+
+/* ----- Server setup ----- */
 const app = require('express')();
 const server = require('http').Server(app);
 const io = require('socket.io')(server)
@@ -8,9 +14,6 @@ const dev = process.env.NODE_ENV
 const nextApp = next({ dev });
 const nextHandler = nextApp.getRequestHandler();
 const PORT = process.env.PORT || 3000;
-
-const { addUser, removeUser, getUser, getAllUsers } = require('./utils/chatUsers.js');
-const { distance } = require('./utils/serverCalculations.js');
 
 nextApp.prepare().then(() => {
     app.get('*', (req, res) => {
