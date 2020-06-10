@@ -27,28 +27,43 @@ nextApp.prepare().then(() => {
 app.use(cors())
 
 /* ----- Game variables ----- */
+/* Initial game state variables, used for initialization & reset */
+const initialRound = 1;
+const initialNumComets = 0;
+const initialBaseHealth = 50;
+const initialMissileId = 0;
+const initialTimer = 60;
+const initialRoundOver = false;
+const initialScore = 0;
+const initialGameState = 'lobby';
+const initialCometLimit = 10;
+const initialCometRate = 2100;
+const initialCometHealth = 1;
+const initialCometSpeed = 1.5;
+const initialUltimateComet = false;
+
 /* Game state variables */
-let round = 1;
-let numComets = 0;
-let baseHealth = 50;
-let missileId = 0;
-let timer = 60;
-let roundOver = false;
+let round = initialRound;
+let numComets = initialNumComets;
+let baseHealth = initialBaseHealth;
+let missileId = initialMissileId;
+let timer = initialTimer;
+let roundOver = initialRoundOver;
+let score = initialScore;
+let gameState = initialGameState;
+let cometLimit = initialCometLimit;
+let cometRate = initialCometRate;
+let cometHealth = initialCometHealth;
+let cometSpeed = initialCometSpeed;
+let ultimateComet = initialUltimateComet;
+
+/* Countdown and timer variables */
 let countdown = false;
-let score = 0;
 let countdownTimer = undefined;
 let gameTimeout = undefined;
-let gameState = 'lobby';
 
 /* Consumable damage constants */
 const laserDamage = 4;
-
-/* Difficulty-based variables */
-let cometLimit = 10;
-let cometRate = 2100;
-let cometHealth = 1;
-let cometSpeed = 1.5;
-let ultimateComet = false;
 
 /* Objects */
 let players = {};
@@ -98,7 +113,7 @@ io.on('connect', (socket) => {
 
         /* Allows users to switch roles in the lobby */
         socket.on('attemptSwitchRole', () => {
-            /* Allows players to switch to spectator freely */
+            /* Switches player to spectator role, frees the playerSlot */
             if (users[socket.id].role == 'player') {
                 users[socket.id].role = 'spectator';
                 delete players[socket.id];
@@ -109,9 +124,10 @@ io.on('connect', (socket) => {
                 }
                 io.emit('updateUsers', users);
             } else {
-                /* Only allows spectators to change into users if there is a slot open */
+                /* Gets the next available playerSlot */
                 let nextSlot = getNextSlot();
                 if (nextSlot != -1) {
+                    /* Switches user to player and creates player data if available playerSlot exists */
                     users[socket.id].role = 'player';
                     playerSlots[nextSlot] = socket.id;
                     players[socket.id] = {
@@ -706,6 +722,7 @@ function fireLaser(socketID) {
             'x': localPos.x - projection.x,
             'y': localPos.y - projection.y
         };
+        /* Calculates laser damage to comet and destroys if appropriate */
         let squareDistFromLaser = (orthogonalPart.x * orthogonalPart.x) + (orthogonalPart.y * orthogonalPart.y); 
         if (squareDistFromLaser < 10000) { 
             thisComet.hp -= laserDamage;
@@ -904,6 +921,7 @@ function destroyComet(cometId, awardPlayerSocketID) {
     let size = comets[cometId].radius;
     let time = comets[cometId].durationLimit + 5;
 
+    /* Remove the comet from client screens */
     comets[cometId] = undefined;
     io.emit('cometDestroyed', cometId, size, time);
 }
@@ -965,27 +983,32 @@ function increaseDifficulty() {
 
 /* Clears/resets all game values */
 function clearGame() {
+    /* Clears all game objects except for the players */
     gameState = 'end';
     Object.keys(missiles).forEach(missileId => {
         delete missiles[missileId];
-    })
+    });
     Object.keys(comets).forEach(cometId => {
         delete comets[cometId];
-    })
+    });
     Object.keys(explosions).forEach(explosionId => {
         delete explosions[explosionId];
-    })
-    numComets = 0;
-    baseHealth = 50;
-    missileId = 0;
-    timer = 60;
-    round = 1;
-    cometLimit = 10;
-    cometRate = 2100;
-    cometHealth = 1;
-    cometSpeed = 1.5;
-    ultimateComet = false;
-    score = 0;
-    roundOver = false;
+    });
+    /* Resets game values to initial values */
+    round = initialRound;
+    numComets = initialNumComets;
+    baseHealth = initialBaseHealth;
+    missileId = initialMissileId;
+    timer = initialTimer;
+    roundOver = initialRoundOver;
+    score = initialScore;
+    gameState = initialGameState;
+
+    cometLimit = initialCometLimit;
+    cometRate = initialCometRate;
+    cometHealth = initialCometHealth;
+    cometSpeed = initialCometSpeed;
+    ultimateComet = initialUltimateComet;
+
 }
 

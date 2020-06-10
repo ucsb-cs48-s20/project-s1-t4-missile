@@ -105,6 +105,7 @@ class GameScene extends Phaser.Scene {
                 end: 15
             })
         });
+
         this.anims.create({
             key: 'cometRevolve',
             frameRate: 20,
@@ -114,6 +115,7 @@ class GameScene extends Phaser.Scene {
                 end: 15
             })
         });
+
         this.anims.create({
             key: 'cometRevolve2',
             frameRate: 20,
@@ -123,6 +125,7 @@ class GameScene extends Phaser.Scene {
                 end: 15
             })
         });
+
         this.anims.create({
             key: 'cometRevolve3',
             frameRate: 20,
@@ -132,6 +135,7 @@ class GameScene extends Phaser.Scene {
                 end: 15
             })
         });
+
         this.anims.create({
             key: 'cometRevolve4',
             frameRate: 20,
@@ -141,6 +145,7 @@ class GameScene extends Phaser.Scene {
                 end: 15
             })
         });
+
         this.anims.create({
             key: 'cometRevolve5',
             frameRate: 20,
@@ -150,6 +155,7 @@ class GameScene extends Phaser.Scene {
                 end: 15
             })
         });
+
         this.anims.create({
             key: 'cometRevolveUlt',
             frameRate: 20,
@@ -159,7 +165,8 @@ class GameScene extends Phaser.Scene {
                 end: 15
             })
         });
-        this.anims.create({
+        this.ani
+        ms.create({
             key: 'fireShot',
             frameRate: 20,
             frames: this.anims.generateFrameNames('tankbarrel', {
@@ -167,6 +174,7 @@ class GameScene extends Phaser.Scene {
                 end: 8
             })
         });
+
         this.anims.create({
             key: 'laserFlux',
             frameRate: 8,
@@ -232,7 +240,8 @@ class GameScene extends Phaser.Scene {
         this.specialAttackActive = false;
         this.specialAttackKey = this.input.keyboard.addKey('Q', false);
 
-        /* Handles data returned from requestInitialize */
+        /* --- Handles data returned from requestInitialize --- */
+        /* Creates health display */
         this.socket.on('initHealth', (baseHealth) => {
             this.healthText = this.add.text(315, 15, `${baseHealth}`, formatMED)
                 .setTint(0x303030)
@@ -240,6 +249,7 @@ class GameScene extends Phaser.Scene {
             this.shopUI.add(this.healthText);
         });
 
+        /* Creates timer display */
         this.socket.on('initTimer', (timer) => {
             this.timerText = this.add.text(190, 15, `${timer}`, formatMED)
                 .setTint(0x303030)
@@ -247,6 +257,7 @@ class GameScene extends Phaser.Scene {
             this.shopUI.add(this.timerText);
         });
 
+        /* Creates credits display */
         this.socket.on('initCredits', (cred) => {
             this.creditText = this.add.text(700, 15, `${cred}`, formatMED)
                 .setTint(0x303030)
@@ -254,13 +265,14 @@ class GameScene extends Phaser.Scene {
             this.shopUI.add(this.creditText);
         });
 
+        /* Creates score display */
         this.socket.on('initScore', (score) => {
             this.scoreText = this.add.text(440, 15, `${score}`, formatMED)
                 .setTint(0x303030)
                 .setDepth(1);
             this.shopUI.add(this.scoreText);
         });
-
+        /* Creates round display */
         this.socket.on('initRound', (round) => {
             this.roundText = this.add.text(70, 15, `${round}`, formatMED)
                 .setTint(0x303030)
@@ -268,6 +280,9 @@ class GameScene extends Phaser.Scene {
             this.shopUI.add(this.roundText);
         });
 
+        /* Creates all comets that currently exist     */
+        /* Empty if the game just started              */
+        /* Used for players who join games in progress */
         this.socket.on('initComets', (serverComets) => {
             Object.keys(serverComets).forEach((comet) => {
                 if (comet != undefined) {
@@ -276,6 +291,7 @@ class GameScene extends Phaser.Scene {
             });
         });
 
+        /* Sets spectate member variable to true and creates text display */
         this.socket.on('initSpectate', () => {
             this.spectate = true;
             this.spectateText = this.add.text(50, 300, 'Spectating', formatMED);
@@ -284,6 +300,7 @@ class GameScene extends Phaser.Scene {
             }
         });
 
+        /* Creates sprites for all players */
         this.socket.on('currentPlayers', (players) => {
             Object.keys(players).forEach((id) => {
                 if (players[id].playerId === this.socket.id) {
@@ -294,20 +311,24 @@ class GameScene extends Phaser.Scene {
             });
         });
 
-        /* Handles object creation */
+        /* --- Handles object creation --- */
+        /* Creates new player sprite when a new player joins */
         this.socket.on('newPlayer', (playerInfo) => {
             this.addOtherPlayers(playerInfo);
         });
 
+        /* Creates a new missile when a missile is fired */
         this.socket.on('newMissile', (missileInfo) => {
             this.addMissile(missileInfo);
         });
 
+        /* Creates a new crosshair when a missile is fired */
         this.socket.on('newCrosshair', (crosshairInfo) => {
             this.addCrosshair(crosshairInfo);
         });
 
-        this.socket.on('newComet', cometInfo => {
+        /* Creates a new comet when a comet is generated */
+        this.socket.on('newComet', (cometInfo) => {
             this.addComet(cometInfo);
         });
 
@@ -349,7 +370,9 @@ class GameScene extends Phaser.Scene {
             });
         });
 
-        /* Handles game object updates */
+        /* --- Handles game object updates --- */
+        /* Updates the base health display and creates a comet explosion at the location on the base if a comet */
+        /* collides with the base                                                                               */
         this.socket.on('updateBase', (info) => {
             this.comets.getChildren().forEach((comet) => {
                 if (comet.id == info[0]) {
@@ -362,12 +385,14 @@ class GameScene extends Phaser.Scene {
             });
         });
 
+        /* Updates missiles with new location */
         this.socket.on('updateMissiles', (serverMissiles) => {
             this.missiles.getChildren().forEach((missile) => {
                 missile.setPosition(serverMissiles[missile.id].x, serverMissiles[missile.id].y);
             });
         });
 
+        /* Updates comet with new location */
         this.socket.on('updateComets', (serverComets) => {
             this.comets.getChildren().forEach((comet) => {
                 if (serverComets[comet.id] != undefined) {
@@ -376,6 +401,7 @@ class GameScene extends Phaser.Scene {
             });
         });
 
+        /* Updates barrel rotation */
         this.socket.on('playerMoved', (playerInfo) => {
             this.otherPlayers.getChildren().forEach((otherPlayer) => {
                 if (playerInfo.playerId === otherPlayer.playerId) {
@@ -384,7 +410,8 @@ class GameScene extends Phaser.Scene {
             });
         });
 
-        /* Handles UI updates */
+        /* --- Handles UI updates --- */
+        /* Updates the missile count and reload bar animations when a missile is fired */
         this.socket.on('updateMissileCount', (id, newAmount, maxAmount, regenTime, displayBar) => {
                 if (id == this.playerId) {
                     if (this.debug) {
@@ -414,6 +441,7 @@ class GameScene extends Phaser.Scene {
             }
         );
 
+        /* Creates/updates incoming round/break status */
         this.socket.on('updateIncomingStatus', (info) => {
             if (info.timer == 0) {
                 this.incomingStatusText.destroy();
@@ -425,18 +453,22 @@ class GameScene extends Phaser.Scene {
             } 
         });
 
+        /* Updates the timer display */
         this.socket.on('updateTimer', (timer) => {
             this.timerText.setText(`${timer}`);
         });
 
+        /* Updates the credits display */
         this.socket.on('updateCredits', (credits) => {
             this.creditText.setText(`${credits}`);
         });
 
+        /* Updates the score display */
         this.socket.on('updateScore', (score) => {
             this.scoreText.setText(`${score}`);
         });
 
+        /* Adjusts the cost display of each upgrade */
         this.socket.on('updateCost', (info) => {
             if (info[0] == 'speed') {
                 this.speedUpgradeText.setText(`Missile\nSpeed\n\n${info[1]}`);
@@ -451,6 +483,7 @@ class GameScene extends Phaser.Scene {
             }
         });
 
+        /* Updates the special attack icon */
         this.socket.on('updateSpecialAttack', (id, newAttackName, color) => {
             if (id == this.playerId) {
                 this.updateSpecialAttackIcon(this, newAttackName, color);
@@ -463,21 +496,19 @@ class GameScene extends Phaser.Scene {
             } else {
                 this.otherPlayers.getChildren().forEach((otherPlayer) => {
                     if (id == otherPlayer.playerId) {
-                        this.updateSpecialAttackIcon(
-                            otherPlayer,
-                            newAttackName,
-                            color
-                        );
+                        this.updateSpecialAttackIcon(otherPlayer, newAttackName, color);
                     }
                 });
             }
         });
 
+        /* Updates round display */
         this.socket.on('updateRound', (round) => {
             this.roundText.setText(`${round}`);
         });
 
-        /* Handles object destruction */
+        /* --- Handles object destruction --- */
+        /* Removes the missile and plays an explosion animation at its destruction location */
         this.socket.on('missileDestroyed', (missileId, size, time) => {
             this.missiles.getChildren().forEach((missile) => {
                 if (missile.id == missileId) {
@@ -491,6 +522,7 @@ class GameScene extends Phaser.Scene {
             });
         });
 
+        /* Removes the crosshair from screen */
         this.socket.on('crosshairDestroyed', (crosshairId) => {
             this.crosshairs.getChildren().forEach((crosshair) => {
                 if (crosshair.id == crosshairId) {
@@ -499,6 +531,7 @@ class GameScene extends Phaser.Scene {
             });
         });
 
+        /* Removes the comet and plays an explosion anmiation at its destruction location */
         this.socket.on('cometDestroyed', (cometId, size, time) => {
             this.comets.getChildren().forEach((comet) => {
                 if (comet.id == cometId) {
@@ -519,14 +552,15 @@ class GameScene extends Phaser.Scene {
             this.socket = undefined;
         });
 
-        /* If all players leave, reload the screen*/
+        /* If all players leave, reload the screen */
         this.socket.on('reloadGame', () => {
             location.reload();
         })
 
         /* Handles player disconnect */
         this.socket.on('disconnect', (playerId) => {
-            this.otherPlayers.getChildren().forEach(otherPlayer => {
+            /* Deletes the appropriate player sprite */
+            this.otherPlayers.getChildren().forEach((otherPlayer) => {
                 if (playerId === otherPlayer.playerId) {
                     otherPlayer.missileCountSprite.destroy();
                     otherPlayer.missileCountText.destroy();
@@ -543,6 +577,7 @@ class GameScene extends Phaser.Scene {
                 }
             });
 
+            /* Closes the socket for the player that disconnects */
             if (playerId == this.playerId) {
                 this.socket.close();
             }
@@ -573,6 +608,7 @@ class GameScene extends Phaser.Scene {
             }
         });
 
+        /* Updates cometLimit display for debuggers */
         this.socket.on('cometLimitChange', (cometLimit) => {
             if (this.debug) {
                 this.cometLimitText.setText(
@@ -581,6 +617,7 @@ class GameScene extends Phaser.Scene {
             }
         });
 
+        /* Updates cometRate display for debuggers */
         this.socket.on('cometRateChange', (cometRate) => {
             if (this.debug) {
                 this.cometRateText.setText(
@@ -589,6 +626,7 @@ class GameScene extends Phaser.Scene {
             }
         });
 
+        /* Updates cometHealth display for debuggers */
         this.socket.on('cometHealthChange', (cometHealth) => {
             if (this.debug) {
                 this.cometHealthText.setText(
@@ -597,11 +635,14 @@ class GameScene extends Phaser.Scene {
             }
         });
 
+        /* Updates cometSpeed display for debuggers */
         this.socket.on('cometSpeedChange', (cometSpeed) => {
             if (this.debug) {
                 this.cometSpeedText.setText(`0 - Comet speed = ${cometSpeed}`);
             }
         });
+
+        /* Updates baseHealth display for debuggers */
         this.socket.on('baseHealthChange', (health) => {
             if (this.debug) {
                 this.healthText.setText(`${health}`);
@@ -761,9 +802,7 @@ class GameScene extends Phaser.Scene {
     }
 
     /* ---------- Helper functions ---------- */
-
     /* ----- UI creation helper functions ----- */
-
     /* Main create UI function */
     makeUI() {
 
@@ -1009,7 +1048,6 @@ Try to survive for as long as you can!`,
     }
 
     /* ----- UI update helper functions ----- */
-
     /* Moves the UI downwards when user hovers over it */
     moveUI(pointer, UICutoffY) {
         if (!this.UITweening) {
@@ -1041,7 +1079,6 @@ Try to survive for as long as you can!`,
 
     /* Updates the special attack icon with the purchased consumable */
     updateSpecialAttackIcon(player, newAttackName, color) {
-
         /* Clears the special attack holder */
         if (player.specialAttackIcon != undefined) {
             player.specialAttackIcon.destroy();
@@ -1104,7 +1141,6 @@ Try to survive for as long as you can!`,
     }
 
     /* ----- Object creation helper functions ----- */
-
     /* Main function for adding players */
     addPlayer(playerInfo) {
         this.addTankBody(playerInfo);
