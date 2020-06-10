@@ -409,7 +409,6 @@ class GameScene extends Phaser.Scene {
                                     this.maxMissilesClientCopy);
                             }
                         }
-                        this.displayMissileCount(this, newAmount, maxAmount);
                     });
                 }
             }
@@ -887,7 +886,7 @@ You lose when base health reaches 0.`,
 
         this.makeHalfButton(
             'laserConsumable',
-            'Laser\n1500',
+            'Laser\n1000',
             'laser',
             'Fires a laser beam in\na line,hitting multiple\ntargets. Grants 3 uses'
         );
@@ -896,12 +895,12 @@ You lose when base health reaches 0.`,
             'flakConsumable',
             'Flak\n1500',
             'flak',
-            'For 10 seconds, fire\nnumerous smaller missiles\nnear the cursor location'
+            'For 15 seconds, fire\nnumerous smaller missiles\nnear the cursor location'
         );
 
         this.makeHalfButton(
             'nukeConsumable',
-            'Nuke\n1500',
+            'Nuke\n1000',
             'nuke',
             'Huge explosion radius'
         )

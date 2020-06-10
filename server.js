@@ -279,7 +279,7 @@ io.on('connect', (socket) => {
                 let upgradeDone = attemptUpgrade(socket.id, upgrade, 5, cost, 600); 
                 if (upgradeDone) {
                     let regenMs = (1.0 / players[socket.id].regenSpeed) * 1000;
-                    io.emit('missileCountChange', socket.id, players[socket.id].missiles, players[socket.id].maxMissiles, regenMs, true);
+                    io.emit('updateMissileCount', socket.id, players[socket.id].missiles, players[socket.id].maxMissiles, regenMs, true);
                     players[socket.id].rechargingMissiles = false;
                     regenAmmo(socket.id, players[socket.id], regenMs);
                 }
@@ -289,7 +289,7 @@ io.on('connect', (socket) => {
         /* Purchases a consumable if the player has enough money */
         socket.on('attemptBuyConsumable', (consumableName) => {
             if (consumableName == 'laser') {
-                let bought = attemptBuyConsumable(socket.id, consumableName, 1500);
+                let bought = attemptBuyConsumable(socket.id, consumableName, 1000);
                 if (bought) {
                     players[socket.id].specialAttackAmmo = 3;
                 }
@@ -299,7 +299,7 @@ io.on('connect', (socket) => {
                     players[socket.id].specialAttackAmmo = 1;
                 }
             } else if (consumableName == 'nuke') {
-                let bought = attemptBuyConsumable(socket.id, consumableName, 1500);
+                let bought = attemptBuyConsumable(socket.id, consumableName, 1000);
                 if (bought) {
                     players[socket.id].specialAttackAmmo = 1;
                 }
@@ -388,7 +388,7 @@ io.on('connect', (socket) => {
         socket.on('changeMaxMissiles', (increment) => {
             players[socket.id].maxMissiles += increment;
             let regenMs = (1.0 / players[socket.id].regenSpeed) * 1000;
-            io.emit('missileCountChange', socket.id, players[socket.id].missiles, players[socket.id].maxMissiles, regenMs, true);
+            io.emit('updateMissileCount', socket.id, players[socket.id].missiles, players[socket.id].maxMissiles, regenMs, true);
             players[socket.id].rechargingMissiles = false;
             regenAmmo(socket.id, players[socket.id], regenMs);
         });
@@ -507,7 +507,7 @@ io.on('connect', (socket) => {
     let numPlrs = Object.keys(players).length;
     numPlrs = Math.max(numPlrs, 1); //To avoid divide by 0 error 
     /* Calculates how fast to generate comets by number of players */
-    let timer = (cometRate - 250 + Math.ceil(Math.random() * 500)) / numPlrs;
+    let timer = (cometRate - 250 + Math.ceil(Math.random() * 500)) / (numPlrs / 1.3);
     setTimeout(() => {
         /* Checks if it's an appropriate time to spawn comets */
         if (!roundOver && gameState == 'game' && numComets < cometLimit) {
@@ -720,15 +720,15 @@ function fireLaser(socketID) {
 function fireFlak(socketID) {
     let tick = 0;
 
-    /* Fires flacks for 500 ticks */
+    /* Fires flacks for 1500 ticks */
     const flakDuration = setInterval(() => {
-        if (tick < 500) {
+        if (tick < 1500) {
             io.to(socketID).emit('flakFired');
             tick++;
         } else {
             clearInterval(flakDuration);
         }
-    }, 15);
+    }, 10);
 }
 
 /* Tells the client that a nuke fired */
