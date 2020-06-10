@@ -165,8 +165,7 @@ class GameScene extends Phaser.Scene {
                 end: 15
             })
         });
-        this.ani
-        ms.create({
+        this.anims.create({
             key: 'fireShot',
             frameRate: 20,
             frames: this.anims.generateFrameNames('tankbarrel', {
