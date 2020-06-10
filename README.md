@@ -1,45 +1,53 @@
 # Missile Defense
 
-Missile defense game with multiplayer support.
+Realtime multiplayer missile defense game, inspired by Atari's 1980 title Missile Command!
 
-Xinyi Zhang (XhenryZhang)
+Work with up to 3 other players to defend your base from the falling comets for as long as you can.
 
-Brian Qiu (brianlqiu)
+Upgrade your turrets and use special consumables to keep the onslaught of comets at bay as they increase in number and strength.
 
-Jeffrey Sun (jsun454)
+## Creators
 
-Parth Atre (parthatre)
+- Xinyi Zhang (XhenryZhang)
 
-Alexander Lancaster (zonkman)
+- Brian Qiu (brianlqiu)
 
-# Tech Stack
+- Jeffrey Sun (jsun454)
 
-next.js + socket.io + Phaser3
+- Parth Atre (parthatre)
 
-# Description
+- Alexander Lancaster (zonkman)
 
-A website where players can join rooms and play games of missile defense up to 4 players. Players can join using a lobby code. The game includes a scaling difficulty system and an upgrade system.
+## Tech Stack
 
-# User Roles
+- Next.js 
+- Socket.io
+- Phaser3
 
-Player - the people playing the game
+## User Roles
 
-# Roles and Permissions
+- Players - Users who assume control of a turret and can play the game
+- Spectators - Users who can watch players play the game
+
+## Roles and Permissions
 
 There are no restrictions on who can play the game.
 
-# How to run/develop 
+## Development Instructions
 
-1. Run `npm install` to install all dependencies (including next.js, Phaser, and socket.io).
+- Run `npm install` to install all dependencies (including next.js, Phaser, and socket.io).
+- Use `npm run devsite` to make Next rebuild the pages and boot up the server on `localhost:3000`, which is necessary if you've made changes to any React components  
+- Use `npm run devgame` to restart the server, which is necessary if changes were made to `server.js` or you want to reset the gamestate
+- Refresh if all you need to do is see changes made in any of the static Javascript files rendered on the client side (any game related code besides `server.js`)
 
-2. a) If this is your first time running/you've made changes to the html (stuff unrelated to the game), run `npm run devsite`. This automatically rebuilds the code with next and then starts up the server on localhost:3000.<br/><br/> b) If you've made changes to server.js but not the html, run `npm run devgame` to just restart the server.<br/><br/> c) If you've only made changes to game.js, a simple refresh should let you see the changes you've made without restarting the server.
-
-# Storybook setup
+## Storybook Setup
 
 1. Use `npm run storybook` to open React Storybook locally on localhost:6006.
 
 2. Use `npm run build-storybook` to create a static storybook for Github Pages.
 
-# [Deployment Instructions](./docs/DEPLOY.md)
+## Deployment Instructions
+
+Deployment instructions can be found [here](./docs/DEPLOY.md)
 
 
