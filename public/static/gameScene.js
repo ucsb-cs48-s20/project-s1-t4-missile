@@ -816,13 +816,24 @@ Firing Consumables:
 If you purchase a fireable consumable, 
 press 'q' and click to fire in the desired direction.
 
-Win/Loss Condition:
+Difficulty Scaling:
 As the rounds progress, 
-comets increase in number, speed, and damage.
+comets increase in number, speed, and health.
+The color of the comet signifies it's 
+health value:
+Comet with orange trail and white core = 1 hp
+Comet with orange trail and yellow core = 2 hp
+Comet with pink trail and white core = 3 hp
+Comet with scarlet trail and orange core = 4 hp
+Comet with light blue trail and core = 5 hp
+Comet with dark blue trail and core = 6 hp
+
+The Goal:
 If a comet reaches the base, 
 your base will receive damage equal to 
 the comet's current health.
-You lose when base health reaches 0.`, 
+You lose when base health reaches 0.
+Try to survive for as long as you can!`, 
                     formatTUT);
             })
             .on('pointerout', () => {
