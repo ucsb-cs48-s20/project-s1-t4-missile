@@ -49,21 +49,21 @@ let baseHealth = initialBaseHealth;
 let missileId = initialMissileId;
 let timer = initialTimer;
 let roundOver = initialRoundOver;
-let countdown = initialCountdown;
 let score = initialScore;
 let gameState = initialGameState;
-let countdownTimer = undefined;
-let gameTimeout = undefined;
-
-/* Consumable damage constants */
-const laserDamage = 4;
-
-/* Difficulty-based variables */
 let cometLimit = initialCometLimit;
 let cometRate = initialCometRate;
 let cometHealth = initialCometHealth;
 let cometSpeed = initialCometSpeed;
 let ultimateComet = initialUltimateComet;
+
+/* Countdown and timer variables */
+let countdown = false;
+let countdownTimer = undefined;
+let gameTimeout = undefined;
+
+/* Consumable damage constants */
+const laserDamage = 4;
 
 /* Objects */
 let players = {};
