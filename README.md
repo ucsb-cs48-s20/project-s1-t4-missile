@@ -1,5 +1,7 @@
 # Missile Defense
 
+![Game picture](https://github.com/ucsb-cs48-s20/project-s1-t4-missile/blob/master/missiledefense.png)
+
 Realtime multiplayer missile defense game, inspired by Atari's 1980 title Missile Command!
 
 Work with up to 3 other players to defend your base from the falling comets for as long as you can.
