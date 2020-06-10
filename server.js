@@ -45,9 +45,10 @@ const laserDamage = 4;
 
 /* Difficulty-based variables */
 let cometLimit = 10;
-let cometRate = 1500;
+let cometRate = 2100;
 let cometHealth = 1;
-let cometSpeed = 2.5;
+let cometSpeed = 1.5;
+let ultimateComet = false;
 
 /* Objects */
 let players = {};
@@ -260,22 +261,22 @@ io.on('connect', (socket) => {
         /* Upgrades an attribute for a player if they have enough money */
         socket.on('attemptUpgrade', upgrade => {
             if (upgrade == 'speed') {
-                let cost = 1000 + (players[socket.id].speed - 10) * 100;
-                attemptUpgrade(socket.id, upgrade, 1, cost, 100);
+                let cost = 1000 + (players[socket.id].speed - 10) * 500;
+                attemptUpgrade(socket.id, upgrade, 1, cost, 500);
             } else if (upgrade == 'damage') {
-                let cost = 900 + (players[socket.id].damage * 100);
-                attemptUpgrade(socket.id, upgrade, 1, cost, 100);
+                let cost = 500 + (players[socket.id].damage * 1500);
+                attemptUpgrade(socket.id, upgrade, 1, cost, 1500);
             } else if (upgrade == 'radius') {
-                let cost = 400 + ((players[socket.id].radius - 40) / 10) * 100;
-                attemptUpgrade(socket.id, upgrade, 5, cost, 100);
+                let cost = 400 + ((players[socket.id].radius - 40) / 10.0) * 800;
+                attemptUpgrade(socket.id, upgrade, 5, cost, 400);
             } else if (upgrade == 'regenSpeed') {
-                let cost = 100 + Math.round(1000 * players[socket.id].regenSpeed);
-                if (attemptUpgrade(socket.id, upgrade, 0.1, cost, 100)) {
+                let cost = -1500 + Math.round(5000 * players[socket.id].regenSpeed);
+                if (attemptUpgrade(socket.id, upgrade, 0.1, cost, 500)) {
                     io.to(socket.id).emit('regenSpeedChange', players[socket.id].regenSpeed);
                 }
             } else if (upgrade == 'maxMissiles') {
-                let cost = 400 * players[socket.id].maxMissiles;
-                let upgradeDone = attemptUpgrade(socket.id, upgrade, 1, cost, 400); 
+                let cost = 600 * (players[socket.id].maxMissiles / 5);
+                let upgradeDone = attemptUpgrade(socket.id, upgrade, 5, cost, 600); 
                 if (upgradeDone) {
                     let regenMs = (1.0 / players[socket.id].regenSpeed) * 1000;
                     io.emit('missileCountChange', socket.id, players[socket.id].missiles, players[socket.id].maxMissiles, regenMs, true);
@@ -293,12 +294,12 @@ io.on('connect', (socket) => {
                     players[socket.id].specialAttackAmmo = 3;
                 }
             } else if (consumableName == 'flak') {
-                let bought = attemptBuyConsumable(socket.id, consumableName, 100);
+                let bought = attemptBuyConsumable(socket.id, consumableName, 1500);
                 if (bought) {
                     players[socket.id].specialAttackAmmo = 1;
                 }
             } else if (consumableName == 'nuke') {
-                let bought = attemptBuyConsumable(socket.id, consumableName, 200);
+                let bought = attemptBuyConsumable(socket.id, consumableName, 1500);
                 if (bought) {
                     players[socket.id].specialAttackAmmo = 1;
                 }
@@ -517,19 +518,43 @@ io.on('connect', (socket) => {
                     let startX = 10 + Math.ceil(Math.random() * 1260);
                     let endX = 10 + Math.ceil(Math.random() * 1260);
                     let angle = Math.atan2(720, endX - startX);
-                    comets[i] = {
-                        x: startX,
-                        y: 0,
-                        speedX: Math.cos(angle) * cometSpeed,
-                        speedY: Math.sin(angle) * cometSpeed,
-                        rotation: angle - Math.PI / 2,
-                        hp: cometHealth,
-                        dmg: 1,
-                        id: i,
-                        credits: 100 * cometHealth,
-                        radius: 55,
-                        durationLimit: 40
+                    let minHealth = 1;
+                    if (cometHealth >= 3) {
+                        minHealth = cometHealth - 2;
                     }
+                    let maxHealth = cometHealth + 1;
+                    let speed = (Math.random() * (cometSpeed - (cometSpeed / 2)) + (cometSpeed / 2));
+                    let health = Math.floor(Math.random() * (maxHealth - minHealth)) + minHealth;
+                    if (ultimateComet == true && Math.random() * 200 < 2) {
+                        comets[i] = {
+                            x: startX,
+                            y: 0,
+                            speedX: Math.cos(angle) * 0.1,
+                            speedY: Math.sin(angle) * 0.1,
+                            rotation: angle - Math.PI / 2,
+                            hp: 50 + (round * 2),
+                            id: i,
+                            credits: 1000,
+                            dmg: 20,
+                            radius: 200,
+                            durationLimit: 40
+                        }
+                    } else {
+                        comets[i] = {
+                            x: startX,
+                            y: 0,
+                            speedX: Math.cos(angle) * speed,
+                            speedY: Math.sin(angle) * speed,
+                            rotation: angle - Math.PI / 2,
+                            hp: health,
+                            dmg: health,
+                            id: i,
+                            credits: 100 * health,
+                            radius: 50 + (health * 5),
+                            durationLimit: 40
+                        }
+                    }
+                    
                     /* Tell clients about the new comet */
                     io.emit('newComet', comets[i]);
                     break;
@@ -820,7 +845,8 @@ function detectBaseCollisions() {
                 if (comets[cometId].y >= 600) {
                     /* Removes the comet and decreases the base's health by the comet's health */
                     numComets--;
-                    baseHealth -= comets[cometId].hp;
+                    let dmg = comets[cometId].dmg < comets[cometId].hp ? comets[cometId].dmg : comets[cometId].hp;
+                    baseHealth -= dmg;
                     comets[cometId] = undefined;
                     if (baseHealth > 0) {
                         /* The base is still alive, update clients with new base health */
@@ -919,14 +945,16 @@ function explosionDamage() {
 /* Function to increase difficulty */
 function increaseDifficulty() {
     cometLimit += 10;
-    if (cometRate >= 750) {
-        cometRate -= 250;
+    if (cometRate >= 600) {
+        cometRate -= 100;
     }
-    if (round % 3 == 0) {
+    if (round % 3 == 0 && cometHealth < 5) {
         cometHealth++;
+    }else if (cometHealth == 5) {
+        ultimateComet = true;
     }
-    if (round % 2 == 0) {
-        cometSpeed += 0.5;
+    if (round % 2 == 0 && cometSpeed < 5) {
+        cometSpeed += 0.25;
     }
     /* Updates users in debug mode */
     io.emit('cometLimitChange', cometLimit);
@@ -953,9 +981,10 @@ function clearGame() {
     timer = 60;
     round = 1;
     cometLimit = 10;
-    cometRate = 1500;
+    cometRate = 2100;
     cometHealth = 1;
-    cometSpeed = 2.5;
+    cometSpeed = 1.5;
+    ultimateComet = false;
     score = 0;
     roundOver = false;
 }

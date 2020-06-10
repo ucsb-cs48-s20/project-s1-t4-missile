@@ -42,6 +42,26 @@ class GameScene extends Phaser.Scene {
             frameWidth: 64,
             frameHeight: 128
         });
+        this.load.spritesheet("comet2", "/assets/game/sprites/comet_hp2.png", {
+            frameWidth: 64,
+            frameHeight: 128
+        });
+        this.load.spritesheet("comet3", "/assets/game/sprites/comet_hp3.png", {
+            frameWidth: 64,
+            frameHeight: 128
+        });
+        this.load.spritesheet("comet4", "/assets/game/sprites/comet_hp4.png", {
+            frameWidth: 64,
+            frameHeight: 128
+        });
+        this.load.spritesheet("comet5", "/assets/game/sprites/comet_hp5.png", {
+            frameWidth: 64,
+            frameHeight: 128
+        });
+        this.load.spritesheet("cometUlt", "/assets/game/sprites/comet_ultimate.png", {
+            frameWidth: 64,
+            frameHeight: 128
+        });
         this.load.spritesheet('nuke-projectile', '/assets/game/sprites/nuke-projectile.png', {
             frameWidth: 256,
             frameHeight: 256
@@ -64,6 +84,9 @@ class GameScene extends Phaser.Scene {
         this.load.image('info', '/assets/game/ui/info.png');
         this.load.image('flak', '/assets/game/ui/flak-icon.png');
         this.load.image('nuke', '/assets/game/ui/nuke-icon.png');
+
+        /* Music */
+        this.load.audio('bgm', '/assets/game/music/underground_base_starbreak.mp3');
     }
 
     /* ----- Code that runs on scene start ----- */
@@ -91,7 +114,51 @@ class GameScene extends Phaser.Scene {
                 end: 15
             })
         });
-
+        this.anims.create({
+            key: 'cometRevolve2',
+            frameRate: 20,
+            repeat: -1,
+            frames: this.anims.generateFrameNames('comet2', {
+                start: 0,
+                end: 15
+            })
+        });
+        this.anims.create({
+            key: 'cometRevolve3',
+            frameRate: 20,
+            repeat: -1,
+            frames: this.anims.generateFrameNames('comet3', {
+                start: 0,
+                end: 15
+            })
+        });
+        this.anims.create({
+            key: 'cometRevolve4',
+            frameRate: 20,
+            repeat: -1,
+            frames: this.anims.generateFrameNames('comet4', {
+                start: 0,
+                end: 15
+            })
+        });
+        this.anims.create({
+            key: 'cometRevolve5',
+            frameRate: 20,
+            repeat: -1,
+            frames: this.anims.generateFrameNames('comet5', {
+                start: 0,
+                end: 15
+            })
+        });
+        this.anims.create({
+            key: 'cometRevolveUlt',
+            frameRate: 20,
+            repeat: -1,
+            frames: this.anims.generateFrameNames('cometUlt', {
+                start: 0,
+                end: 15
+            })
+        });
         this.anims.create({
             key: 'fireShot',
             frameRate: 20,
@@ -119,6 +186,10 @@ class GameScene extends Phaser.Scene {
                 end: 15
             })
         });
+
+        /* Load Music */
+        this.music = this.sound.add('bgm', { loop: true, volume: 0.8 });
+        this.music.play();
 
         /* Creates object groups */
         this.missiles = this.physics.add.group();
@@ -791,7 +862,7 @@ You lose when base health reaches 0.`,
         );
         this.makeButton(
             'damageUpgrade',
-            'Missile\nDamage\n\n1000',
+            'Missile\nDamage\n\n2000',
             'damage',
             'Increases the damage\nof your missiles'
         );
@@ -809,7 +880,7 @@ You lose when base health reaches 0.`,
         );
         this.makeButton(
             'missileCountUpgrade',
-            'Ammo\nCapacity\n\n800',
+            'Ammo\nCapacity\n\n600',
             'maxMissiles',
             'Increases how many\nmissiles you can store'
         );
@@ -823,14 +894,14 @@ You lose when base health reaches 0.`,
 
         this.makeHalfButton(
             'flakConsumable',
-            'Flak\n100',
+            'Flak\n1500',
             'flak',
             'For 10 seconds, fire\nnumerous smaller missiles\nnear the cursor location'
         );
 
         this.makeHalfButton(
             'nukeConsumable',
-            'Nuke\n200',
+            'Nuke\n1500',
             'nuke',
             'Huge explosion radius'
         )
@@ -1091,11 +1162,40 @@ You lose when base health reaches 0.`,
 
     /* Adds a comet to the screen */
     addComet(cometInfo) {
-        const comet = this.add.sprite(cometInfo.x, cometInfo.y, 'comet')
+        let comet;
+        if (cometInfo.hp == 1) {
+            comet = this.add
+            .sprite(cometInfo.x, cometInfo.y, "comet")
             .setDisplaySize(32, 64);
+            comet.play("cometRevolve");
+        } else if (cometInfo.hp == 2) {
+            comet = this.add
+            .sprite(cometInfo.x, cometInfo.y, "comet2")
+            .setDisplaySize(32, 64);
+            comet.play("cometRevolve2");
+        } else if (cometInfo.hp == 3) {
+            comet = this.add
+            .sprite(cometInfo.x, cometInfo.y, "comet3")
+            .setDisplaySize(32, 64);
+            comet.play("cometRevolve3");
+        } else if (cometInfo.hp == 4) {
+            comet = this.add
+            .sprite(cometInfo.x, cometInfo.y, "comet4")
+            .setDisplaySize(32, 64);
+            comet.play("cometRevolve4");
+        } else if (cometInfo.hp == 5) {
+            comet = this.add
+            .sprite(cometInfo.x, cometInfo.y, "comet5")
+            .setDisplaySize(32, 64);
+            comet.play("cometRevolve5");
+        } else {
+            comet = this.add
+            .sprite(cometInfo.x, cometInfo.y, "cometUlt")
+            .setDisplaySize(32, 64);
+            comet.play("cometRevolveUlt");
+        }
         comet.rotation = cometInfo.rotation;
         comet.id = cometInfo.id;
-        comet.play('cometRevolve');
         this.comets.add(comet);
     }
 
