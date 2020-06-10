@@ -1,19 +1,21 @@
+/* Use React */
 import React from 'react';
 
-import "./Message.scss";
-
+/* Allow emoji messages */
 import ReactEmoji from "react-emoji";
 
-// event object contains info about details of the event
+/* Style sheet */
+import "./Message.scss";
+
+/* ----- Displays a single message ----- */
 const Message = (props) => {
+    /* Checks if the message was sent by the player */
     let isSentByCurrentUser = false;
     const trimmedName = props.name.trim();
-    
     if (props.message.user === trimmedName) {
         isSentByCurrentUser = true;
     }
 
-    // todo: differentiate chat elements between sent text and received text
     return(
         isSentByCurrentUser ? (
             <div className="messageContainer justifyEnd">
