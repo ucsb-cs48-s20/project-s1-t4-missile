@@ -1,12 +1,16 @@
+/* React Hooks */
 import React, { useRef } from 'react';
 
+/* Style sheet */
 import "./Input.scss";
 
-// event object contains info about details of the event
+/* ----- Displays the input box where players can type their messages ----- */
 const Input = (props) => {
+    /* Sets up React Hooks */
     const input = useRef()
     const sendButton = useRef()
     
+    /* Focuses and unfocuses the chat area in response to React Hooks */
     if (!props.focus) {
         if (input.current) {
             input.current.blur()

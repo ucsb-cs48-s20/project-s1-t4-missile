@@ -9,6 +9,11 @@ PRs should be in the form:
 ```
 In this PR:
 
-  - Change 1
-  - Change 2
+- Change 1
+- Change 2
+
+To test:
+
+- Test 1
+- Test 2
 ```

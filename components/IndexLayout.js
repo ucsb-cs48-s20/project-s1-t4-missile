@@ -1,11 +1,18 @@
+/* React Hooks */
 import React, { useState } from "react";
-import Link from "next/link";
-import Head from "next/head";
+
+/* Client-side transitions */
 import Router from 'next/router';
 
+/* Head component */
+import Head from "next/head";
+
+/* Style sheet */
 import "./IndexLayout.scss";
 
-const Layout = (props) => {
+/* ----- Displays the index page ----- */
+const Layout = () => {
+    /* React Hook for the player's name */
     const [name, setName] = useState("");
 
     return (
