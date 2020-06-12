@@ -278,34 +278,37 @@ io.on('connect', (socket) => {
 
         /* Upgrades an attribute for a player if they have enough money */
         socket.on('attemptUpgrade', upgrade => {
-            if (upgrade == 'speed') {
-                let cost = 1000 + (players[socket.id].speed - 10) * 500;
-                attemptUpgrade(socket.id, upgrade, 1, cost, 500);
-            } else if (upgrade == 'damage') {
-                let cost = 500 + (players[socket.id].damage * 1500);
-                attemptUpgrade(socket.id, upgrade, 1, cost, 1500);
-            } else if (upgrade == 'radius') {
-                let cost = 400 + ((players[socket.id].radius - 40) / 10.0) * 800;
-                attemptUpgrade(socket.id, upgrade, 5, cost, 400);
-            } else if (upgrade == 'regenSpeed') {
-                let cost = -1500 + Math.round(5000 * players[socket.id].regenSpeed);
-                if (attemptUpgrade(socket.id, upgrade, 0.1, cost, 500)) {
-                    io.to(socket.id).emit('regenSpeedChange', players[socket.id].regenSpeed);
-                }
-            } else if (upgrade == 'maxMissiles') {
-                let cost = 600 * (players[socket.id].maxMissiles / 5);
-                let upgradeDone = attemptUpgrade(socket.id, upgrade, 5, cost, 600);
-                if (upgradeDone) {
-                    let regenMs = (1.0 / players[socket.id].regenSpeed) * 1000;
-                    io.emit('updateMissileCount', socket.id, players[socket.id].missiles, players[socket.id].maxMissiles, regenMs, true);
-                    players[socket.id].rechargingMissiles = false;
-                    regenAmmo(socket.id, players[socket.id], regenMs);
+            if (players[socket.id] != undefined) {
+                if (upgrade == 'speed') {
+                    let cost = 1000 + (players[socket.id].speed - 10) * 500;
+                    attemptUpgrade(socket.id, upgrade, 1, cost, 500);
+                } else if (upgrade == 'damage') {
+                    let cost = 500 + (players[socket.id].damage * 1500);
+                    attemptUpgrade(socket.id, upgrade, 1, cost, 1500);
+                } else if (upgrade == 'radius') {
+                    let cost = 400 + ((players[socket.id].radius - 40) / 10.0) * 800;
+                    attemptUpgrade(socket.id, upgrade, 5, cost, 400);
+                } else if (upgrade == 'regenSpeed') {
+                    let cost = -1500 + Math.round(5000 * players[socket.id].regenSpeed);
+                    if (attemptUpgrade(socket.id, upgrade, 0.1, cost, 500)) {
+                        io.to(socket.id).emit('regenSpeedChange', players[socket.id].regenSpeed);
+                    }
+                } else if (upgrade == 'maxMissiles') {
+                    let cost = 600 * (players[socket.id].maxMissiles / 5);
+                    let upgradeDone = attemptUpgrade(socket.id, upgrade, 5, cost, 600);
+                    if (upgradeDone) {
+                        let regenMs = (1.0 / players[socket.id].regenSpeed) * 1000;
+                        io.emit('updateMissileCount', socket.id, players[socket.id].missiles, players[socket.id].maxMissiles, regenMs, true);
+                        players[socket.id].rechargingMissiles = false;
+                        regenAmmo(socket.id, players[socket.id], regenMs);
+                    }
                 }
             }
         });
 
         /* Purchases a consumable if the player has enough money */
         socket.on('attemptBuyConsumable', (consumableName) => {
+            if(players[socket.id] != undefined) {
             if (consumableName == 'laser') {
                 let bought = attemptBuyConsumable(socket.id, consumableName, 1000);
                 if (bought) {
@@ -322,6 +325,7 @@ io.on('connect', (socket) => {
                     players[socket.id].specialAttackAmmo = 1;
                 }
             }
+        }
         });
 
         /* ----- End scene events ----- */
@@ -334,6 +338,7 @@ io.on('connect', (socket) => {
 
         /* Handles players using special consumables */
         socket.on('specialShot', () => {
+            if(players[socket.id] != undefined) {
             let myPlayer = players[socket.id];
             if (myPlayer.specialAttack == 'none') { return; }
             else if (myPlayer.specialAttack == 'laser') {
@@ -351,6 +356,7 @@ io.on('connect', (socket) => {
                 myPlayer.specialAttack = 'none';
                 io.emit('updateSpecialAttack', socket.id, 'none', 0x000000);
             }
+        }
         });
 
         /* ----- Debug mode events ----- */
