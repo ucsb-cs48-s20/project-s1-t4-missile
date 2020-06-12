@@ -195,7 +195,7 @@ class GameScene extends Phaser.Scene {
         });
 
         /* Load Music */
-        this.music = this.sound.add('bgm', { loop: true, volume: 0.8 });
+        this.music = this.sound.add('bgm', { loop: true, volume: 0.4 });
         this.music.play();
 
         /* Creates object groups */
