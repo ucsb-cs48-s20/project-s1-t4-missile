@@ -165,6 +165,7 @@ class GameScene extends Phaser.Scene {
                 end: 15
             })
         });
+
         this.anims.create({
             key: 'fireShot',
             frameRate: 20,
@@ -554,11 +555,12 @@ class GameScene extends Phaser.Scene {
         /* If all players leave, reload the screen */
         this.socket.on('reloadGame', () => {
             location.reload();
-        })
+        });
 
         /* Handles player disconnect */
         this.socket.on('disconnect', (playerId) => {
             /* Deletes the appropriate player sprite */
+            console.log("Disconnect detected!");
             this.otherPlayers.getChildren().forEach((otherPlayer) => {
                 if (playerId === otherPlayer.playerId) {
                     otherPlayer.missileCountSprite.destroy();
@@ -910,7 +912,7 @@ Try to survive for as long as you can!`,
         );
         this.makeButton(
             'damageUpgrade',
-            'Missile\nDamage\n\n2000',
+            'Missile\nDamage\n\n2500',
             'damage',
             'Increases the damage\nof your missiles'
         );

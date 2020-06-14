@@ -32,7 +32,8 @@ game.scene.add('gameScene', new GameScene());
 game.scene.add('endScene', new EndScene());
 
 /* Starts the client at the lobbyScene */
-game.scene.start('lobbyScene', socket); 
+game.scene.start('lobbyScene', socket);
+
 
 
 

@@ -88,7 +88,6 @@ io.on('connect', (socket) => {
     /* Handles game socket connections */
     if (socket.handshake.query.purpose === 'game') {
         console.log(`> Game socket <${socket.id}> connected`);
-
         /* Initializes the user's name & role to default spectate */
         let username = socket.handshake.query.name;
         users[socket.id] = {
@@ -149,7 +148,7 @@ io.on('connect', (socket) => {
                         specialAttackAmmo: 0,
 
                         debugging: false,
-                        speed: 10,
+                        speed: 8,
                     };
                     io.emit('updateUsers', users);
                 }
@@ -217,13 +216,13 @@ io.on('connect', (socket) => {
                     } else {
                         missiles[missileId].dmg = 3;
                     }
-                    missiles[missileId].radius = players[socket.id].radius / 2.7;
+                    missiles[missileId].radius = 20;
                     missiles[missileId].speedX = -1 * Math.cos(missileData.rotation + Math.PI / 2) * players[socket.id].speed * 1.3;
                     missiles[missileId].speedY = -1 * Math.sin(missileData.rotation + Math.PI / 2) * players[socket.id].speed * 1.3;
                 } else if (missiles[missileId].nukeSpecial) {
                     /* Nuke damage/radius scaling */
                     missiles[missileId].dmg = players[socket.id].damage + 1;
-                    missiles[missileId].radius = players[socket.id].radius * 6;
+                    missiles[missileId].radius = players[socket.id].radius * 6 < 480 ? players[socket.id].radius * 6 : 480;
                     missiles[missileId].speedX = -1 * Math.cos(missileData.rotation + Math.PI / 2) * players[socket.id].speed;
                     missiles[missileId].speedY = -1 * Math.sin(missileData.rotation + Math.PI / 2) * players[socket.id].speed;
                 } else {
@@ -279,9 +278,9 @@ io.on('connect', (socket) => {
             if (upgrade == 'speed') {
                 let cost = 1000 + (players[socket.id].speed - 10) * 500;
                 attemptUpgrade(socket.id, upgrade, 1, cost, 500);
-            } else if (upgrade == 'damage') {
-                let cost = 500 + (players[socket.id].damage * 1500);
-                attemptUpgrade(socket.id, upgrade, 1, cost, 1500);
+            } else if (upgrade == 'damage' && players[socket.id].damage <= 4) {
+                let cost = 500 + (players[socket.id].damage * 2000);
+                attemptUpgrade(socket.id, upgrade, 1, cost, 2000);
             } else if (upgrade == 'radius') {
                 let cost = 400 + ((players[socket.id].radius - 40) / 10.0) * 800;
                 attemptUpgrade(socket.id, upgrade, 5, cost, 400);
@@ -475,6 +474,7 @@ io.on('connect', (socket) => {
     } else {
         /* Handles chat socket */
         console.log(`> Chat socket <${socket.id}> connected`);
+        chatSocket = socket;
 
         /* Handles users joining the chat room */
         socket.on('join', (obj, callback) => {
@@ -548,7 +548,7 @@ io.on('connect', (socket) => {
                             speedX: Math.cos(angle) * 0.1,
                             speedY: Math.sin(angle) * 0.1,
                             rotation: angle - Math.PI / 2,
-                            hp: 50 + (round * 2),
+                            hp: 50 + (round * 4),
                             id: i,
                             credits: 1000,
                             dmg: 20,
@@ -739,7 +739,7 @@ function fireFlak(socketID) {
 
     /* Fires flacks for 1500 ticks */
     const flakDuration = setInterval(() => {
-        if (tick < 1500) {
+        if (tick < 1000) {
             io.to(socketID).emit('flakFired');
             tick++;
         } else {
@@ -971,7 +971,7 @@ function increaseDifficulty() {
     }else if (cometHealth == 5) {
         ultimateComet = true;
     }
-    if (round % 2 == 0 && cometSpeed < 5) {
+    if (round % 2 == 0 && cometSpeed < 4.5) {
         cometSpeed += 0.25;
     }
     /* Updates users in debug mode */

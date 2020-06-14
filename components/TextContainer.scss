@@ -4,6 +4,7 @@
     background-image: linear-gradient(rgb(42, 0, 82), rgb(57, 11, 165));
     height: 25%;
     justify-content: space-between;
+    padding-bottom: 30px;
 }
 
 .title {
@@ -29,10 +30,4 @@
 
 .textContainer h1 {
     margin-bottom: 0px;
-}
-
-@media (min-width: 320px) and (max-width: 1200px) {
-    .textContainer {
-        display: none;
-    }
 }

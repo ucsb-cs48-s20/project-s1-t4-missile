@@ -165,9 +165,7 @@ class LobbyScene extends Phaser.Scene {
             this.scene.start('gameScene', this.socket);
             this.socket = undefined;
         })
-
     }
-
 }
 
 export default LobbyScene;

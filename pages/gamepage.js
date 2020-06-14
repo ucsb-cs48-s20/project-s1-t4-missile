@@ -3,7 +3,6 @@ import dynamic from "next/dynamic";
 import styles from "../components/styles";
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/router";
-import Head from "next/head";
 
 // Hook
 let cachedScripts = [];
@@ -110,13 +109,17 @@ const PageLayout = () => {
         return () => {
             document.body.style = oldBodyStyle;
         };
-    }, [oldBodyStyle]);
+    }, [oldBodyStyle, Router]);
+
+    /* ensures page back disconnects the game socket */
+    useEffect(() => {
+        window.onpopstate = (e) => {
+            window.location.reload(false);
+        };
+    });
 
     return (
         <div style={styles.container}>
-            <Head>
-                <script src="//cdn.jsdelivr.net/npm/phaser@3.22.0/dist/phaser.js"></script>
-            </Head>
             <Favicon url="/assets/site/favicon.ico"></Favicon>
             <h1>{`${pageTitle}`}</h1>
             <DynamicGameWindow />
