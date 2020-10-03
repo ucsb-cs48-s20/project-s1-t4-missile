@@ -16,7 +16,7 @@ class LobbyScene extends Phaser.Scene {
 
     /* ----- Loads assets ----- */
     preload() {
-        this.load.image('background', '/assets/game/background/background.png');
+        this.load.image('title', '/assets/game/background/title-screen.jpg');
         this.load.image("start", "/assets/game/ui/start.png");
     }
 
@@ -24,7 +24,7 @@ class LobbyScene extends Phaser.Scene {
     create() {
 
         /* Draws background */
-        this.add.image(640, 360, 'background').setScale(5);
+        this.add.image(640, 360, 'title').setScale(0.65, 0.65);
 
         /* Prevents right clicking to open context menu */
         this.game.canvas.oncontextmenu = (e) => e.preventDefault()
@@ -42,17 +42,17 @@ class LobbyScene extends Phaser.Scene {
         this.gameFinished = false;
 
         /* Creates start button */
-        this.startButton = this.add.image(640, 500, 'start').setTint(0xcfcfcf)
+        this.startButton = this.add.image(640, 600, 'start').setTint(0xcfcfcf)
             .setScale(0.5)
             .setInteractive()
             .on('pointerover', () => {
                 /* If user is a spectator, tooltip shows that tells them they can't start game */
                 if(!this.gameFinished && !this.inProgress && this.role == 'spectator') {
-                    this.spectatorHelpText = this.add.text(520, 600, 'Only players can start the game.\nClick on your name to switch roles.', formatTUT);
+                    this.spectatorHelpText = this.add.text(this.startButton.x - 120, this.startButton.y - 110, 'Only players can start the game.\nClick on your name to switch roles.', formatTUT);
                 }
                 /* If user tries to start game when game is finished*/
                 else if(this.gameFinished) {
-                    this.gameFinishedText = this.add.text(520, 600, 'Cannot start game until players return.', 
+                    this.gameFinishedText = this.add.text(this.startButton.x - 120, this.startButton.y - 110, 'Cannot start game until players return.', 
                         formatTUT);
                 }
                 this.startButton.setTint(0xfcfcfc);

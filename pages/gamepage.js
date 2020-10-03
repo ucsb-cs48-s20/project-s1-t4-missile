@@ -114,14 +114,14 @@ const PageLayout = () => {
     /* ensures page back disconnects the game socket */
     useEffect(() => {
         window.onpopstate = (e) => {
-            window.location.reload(false);
+            window.location.reload();
         };
     });
 
     return (
         <div style={styles.container}>
             <Favicon url="/assets/site/favicon.ico"></Favicon>
-            <h1>{`${pageTitle}`}</h1>
+            <h1 style={styles.h1}>{`${pageTitle}`}</h1>
             <DynamicGameWindow />
         </div>
     );

@@ -7,6 +7,10 @@ const styles = {
         backgroundSize: 'cover',
     },
 
+    h1: {
+        fontSize: '55px'
+    },
+
     container: {
         textAlign: 'center',
     },
