@@ -17,7 +17,7 @@ class LobbyScene extends Phaser.Scene {
     /* ----- Loads assets ----- */
     preload() {
         this.load.image('title', '/assets/game/background/title-screen.jpg');
-        this.load.image("start", "/assets/game/ui/start.png");
+        this.load.image("start", "/assets/game/ui/start-button.png");
     }
 
     /* ----- Code that runs when scene starts ----- */
@@ -43,7 +43,7 @@ class LobbyScene extends Phaser.Scene {
 
         /* Creates start button */
         this.startButton = this.add.image(640, 600, 'start').setTint(0xcfcfcf)
-            .setScale(0.5)
+            .setScale(1.5)
             .setInteractive()
             .on('pointerover', () => {
                 /* If user is a spectator, tooltip shows that tells them they can't start game */
