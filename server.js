@@ -217,13 +217,13 @@ io.on('connect', (socket) => {
                         } else {
                             missiles[missileId].dmg = 3;
                         }
-                        missiles[missileId].radius = players[socket.id].radius / 2.7;
+                        missiles[missileId].radius = players[socket.id].radius / 2.7 < 40 ? players[socket.id].radius / 2.7 : 40;
                         missiles[missileId].speedX = -1 * Math.cos(missileData.rotation + Math.PI / 2) * players[socket.id].speed * 1.3;
                         missiles[missileId].speedY = -1 * Math.sin(missileData.rotation + Math.PI / 2) * players[socket.id].speed * 1.3;
                     } else if (missiles[missileId].nukeSpecial) {
                         /* Nuke damage/radius scaling */
                         missiles[missileId].dmg = players[socket.id].damage + 1;
-                        missiles[missileId].radius = players[socket.id].radius * 6;
+                        missiles[missileId].radius = players[socket.id].radius * 6 < 480 ? players[socket.id].radius * 6 : 480;
                         missiles[missileId].speedX = -1 * Math.cos(missileData.rotation + Math.PI / 2) * players[socket.id].speed;
                         missiles[missileId].speedY = -1 * Math.sin(missileData.rotation + Math.PI / 2) * players[socket.id].speed;
                     } else {
@@ -233,31 +233,10 @@ io.on('connect', (socket) => {
                         missiles[missileId].speedX = -1 * Math.cos(missileData.rotation + Math.PI / 2) * players[socket.id].speed;
                         missiles[missileId].speedY = -1 * Math.sin(missileData.rotation + Math.PI / 2) * players[socket.id].speed;
                     }
-<<<<<<< HEAD
-                    missiles[missileId].radius = 20;
-                    missiles[missileId].speedX = -1 * Math.cos(missileData.rotation + Math.PI / 2) * players[socket.id].speed * 1.3;
-                    missiles[missileId].speedY = -1 * Math.sin(missileData.rotation + Math.PI / 2) * players[socket.id].speed * 1.3;
-                } else if (missiles[missileId].nukeSpecial) {
-                    /* Nuke damage/radius scaling */
-                    missiles[missileId].dmg = players[socket.id].damage + 1;
-                    missiles[missileId].radius = players[socket.id].radius * 6 < 480 ? players[socket.id].radius * 6 : 480;
-                    missiles[missileId].speedX = -1 * Math.cos(missileData.rotation + Math.PI / 2) * players[socket.id].speed;
-                    missiles[missileId].speedY = -1 * Math.sin(missileData.rotation + Math.PI / 2) * players[socket.id].speed;
-                } else {
-                    /* Normal missiles */
-                    missiles[missileId].dmg = players[socket.id].damage;
-                    missiles[missileId].radius = players[socket.id].radius;
-                    missiles[missileId].speedX = -1 * Math.cos(missileData.rotation + Math.PI / 2) * players[socket.id].speed;
-                    missiles[missileId].speedY = -1 * Math.sin(missileData.rotation + Math.PI / 2) * players[socket.id].speed;
-                }
-                missiles[missileId].startX = missiles[missileId].x
-                missiles[missileId].startY = missiles[missileId].y
-                missiles[missileId].playerId = socket.id;
-=======
+                    
                     missiles[missileId].startX = missiles[missileId].x
                     missiles[missileId].startY = missiles[missileId].y
                     missiles[missileId].playerId = socket.id;
->>>>>>> master
 
                     /* Tells client to render a new missile on their end */
                     io.emit('newMissile', missiles[missileId]);
