@@ -201,66 +201,69 @@ io.on('connect', (socket) => {
 
         /* Handles missile firing */
         socket.on('missileShot', (missileData) => {
-            let thisPlayer = players[socket.id];
-            if (thisPlayer.missiles > 0 || missileData['flakSpecial'] === true || missileData['nukeSpecial'] === true) {
-                missileData['id'] = missileId;
-                /* Adds new missile to missile object */
-                missiles[missileId] = missileData;
-                /* Handles flak firing */
-                if (missiles[missileId].flakSpecial) {
-                    /* Flak damage/radius scaling */
-                    if (players[socket.id].damage < 3) {
-                        missiles[missileId].dmg = 1;
-                    } else if (players[socket.id].damage < 5) {
-                        missiles[missileId].dmg = 2;
+            if (players[socket.id] != undefined) {
+                let thisPlayer = players[socket.id];
+                if (thisPlayer.missiles > 0 || missileData['flakSpecial'] === true || missileData['nukeSpecial'] === true) {
+                    missileData['id'] = missileId;
+                    /* Adds new missile to missile object */
+                    missiles[missileId] = missileData;
+                    /* Handles flak firing */
+                    if (missiles[missileId].flakSpecial) {
+                        /* Flak damage/radius scaling */
+                        if (players[socket.id].damage < 3) {
+                            missiles[missileId].dmg = 1;
+                        } else if (players[socket.id].damage < 5) {
+                            missiles[missileId].dmg = 2;
+                        } else {
+                            missiles[missileId].dmg = 3;
+                        }
+                        missiles[missileId].radius = players[socket.id].radius / 2.7 < 40 ? players[socket.id].radius / 2.7 : 40;
+                        missiles[missileId].speedX = -1 * Math.cos(missileData.rotation + Math.PI / 2) * players[socket.id].speed * 1.3;
+                        missiles[missileId].speedY = -1 * Math.sin(missileData.rotation + Math.PI / 2) * players[socket.id].speed * 1.3;
+                    } else if (missiles[missileId].nukeSpecial) {
+                        /* Nuke damage/radius scaling */
+                        missiles[missileId].dmg = players[socket.id].damage + 1;
+                        missiles[missileId].radius = players[socket.id].radius * 6 < 480 ? players[socket.id].radius * 6 : 480;
+                        missiles[missileId].speedX = -1 * Math.cos(missileData.rotation + Math.PI / 2) * players[socket.id].speed;
+                        missiles[missileId].speedY = -1 * Math.sin(missileData.rotation + Math.PI / 2) * players[socket.id].speed;
                     } else {
-                        missiles[missileId].dmg = 3;
+                        /* Normal missiles */
+                        missiles[missileId].dmg = players[socket.id].damage;
+                        missiles[missileId].radius = players[socket.id].radius;
+                        missiles[missileId].speedX = -1 * Math.cos(missileData.rotation + Math.PI / 2) * players[socket.id].speed;
+                        missiles[missileId].speedY = -1 * Math.sin(missileData.rotation + Math.PI / 2) * players[socket.id].speed;
                     }
-                    missiles[missileId].radius = 20;
-                    missiles[missileId].speedX = -1 * Math.cos(missileData.rotation + Math.PI / 2) * players[socket.id].speed * 1.3;
-                    missiles[missileId].speedY = -1 * Math.sin(missileData.rotation + Math.PI / 2) * players[socket.id].speed * 1.3;
-                } else if (missiles[missileId].nukeSpecial) {
-                    /* Nuke damage/radius scaling */
-                    missiles[missileId].dmg = players[socket.id].damage + 1;
-                    missiles[missileId].radius = players[socket.id].radius * 6 < 480 ? players[socket.id].radius * 6 : 480;
-                    missiles[missileId].speedX = -1 * Math.cos(missileData.rotation + Math.PI / 2) * players[socket.id].speed;
-                    missiles[missileId].speedY = -1 * Math.sin(missileData.rotation + Math.PI / 2) * players[socket.id].speed;
-                } else {
-                    /* Normal missiles */
-                    missiles[missileId].dmg = players[socket.id].damage;
-                    missiles[missileId].radius = players[socket.id].radius;
-                    missiles[missileId].speedX = -1 * Math.cos(missileData.rotation + Math.PI / 2) * players[socket.id].speed;
-                    missiles[missileId].speedY = -1 * Math.sin(missileData.rotation + Math.PI / 2) * players[socket.id].speed;
-                }
-                missiles[missileId].startX = missiles[missileId].x
-                missiles[missileId].startY = missiles[missileId].y
-                missiles[missileId].playerId = socket.id;
+                    
+                    missiles[missileId].startX = missiles[missileId].x
+                    missiles[missileId].startY = missiles[missileId].y
+                    missiles[missileId].playerId = socket.id;
 
-                /* Tells client to render a new missile on their end */
-                io.emit('newMissile', missiles[missileId]);
+                    /* Tells client to render a new missile on their end */
+                    io.emit('newMissile', missiles[missileId]);
 
-                /* If missile is not a flak, then generate a crosshair */
-                if (!missiles[missileId].flakSpecial) {
-                    io.emit('newCrosshair', missiles[missileId]);
-                }
-                /* Tells all users that a missile was fired */
-                socket.broadcast.emit('missileFired', socket.id);
+                    /* If missile is not a flak, then generate a crosshair */
+                    if (!missiles[missileId].flakSpecial) {
+                        io.emit('newCrosshair', missiles[missileId]);
+                    }
+                    /* Tells all users that a missile was fired */
+                    socket.broadcast.emit('missileFired', socket.id);
 
-                /* For normal missiles, update the missile count */
-                if (!missiles[missileId].flakSpecial && !missiles[missileId].nukeSpecial) {
-                    let displayBar = false;
-                    if (thisPlayer.missiles == thisPlayer.maxMissiles) { displayBar = true; }
-                    thisPlayer.missiles--;
-                    let regenMs = (1.0 / thisPlayer.regenSpeed) * 1000;
-                    io.emit('updateMissileCount', socket.id, thisPlayer.missiles, thisPlayer.maxMissiles, regenMs, displayBar);
-                    regenAmmo(socket.id, thisPlayer, regenMs);
-                }
+                    /* For normal missiles, update the missile count */
+                    if (!missiles[missileId].flakSpecial && !missiles[missileId].nukeSpecial) {
+                        let displayBar = false;
+                        if (thisPlayer.missiles == thisPlayer.maxMissiles) { displayBar = true; }
+                        thisPlayer.missiles--;
+                        let regenMs = (1.0 / thisPlayer.regenSpeed) * 1000;
+                        io.emit('updateMissileCount', socket.id, thisPlayer.missiles, thisPlayer.maxMissiles, regenMs, displayBar);
+                        regenAmmo(socket.id, thisPlayer, regenMs);
+                    }
 
-                /* Change the missile id */
-                if (missileId > 1000) {
-                    missileId = 0;
-                } else {
-                    missileId++;
+                    /* Change the missile id */
+                    if (missileId > 1000) {
+                        missileId = 0;
+                    } else {
+                        missileId++;
+                    }
                 }
             }
         })
@@ -275,34 +278,37 @@ io.on('connect', (socket) => {
 
         /* Upgrades an attribute for a player if they have enough money */
         socket.on('attemptUpgrade', upgrade => {
-            if (upgrade == 'speed') {
-                let cost = 1000 + (players[socket.id].speed - 10) * 500;
-                attemptUpgrade(socket.id, upgrade, 1, cost, 500);
-            } else if (upgrade == 'damage' && players[socket.id].damage <= 4) {
-                let cost = 500 + (players[socket.id].damage * 2000);
-                attemptUpgrade(socket.id, upgrade, 1, cost, 2000);
-            } else if (upgrade == 'radius') {
-                let cost = 400 + ((players[socket.id].radius - 40) / 10.0) * 800;
-                attemptUpgrade(socket.id, upgrade, 5, cost, 400);
-            } else if (upgrade == 'regenSpeed') {
-                let cost = -1500 + Math.round(5000 * players[socket.id].regenSpeed);
-                if (attemptUpgrade(socket.id, upgrade, 0.1, cost, 500)) {
-                    io.to(socket.id).emit('regenSpeedChange', players[socket.id].regenSpeed);
-                }
-            } else if (upgrade == 'maxMissiles') {
-                let cost = 600 * (players[socket.id].maxMissiles / 5);
-                let upgradeDone = attemptUpgrade(socket.id, upgrade, 5, cost, 600); 
-                if (upgradeDone) {
-                    let regenMs = (1.0 / players[socket.id].regenSpeed) * 1000;
-                    io.emit('updateMissileCount', socket.id, players[socket.id].missiles, players[socket.id].maxMissiles, regenMs, true);
-                    players[socket.id].rechargingMissiles = false;
-                    regenAmmo(socket.id, players[socket.id], regenMs);
+            if (players[socket.id] != undefined) {
+                if (upgrade == 'speed') {
+                    let cost = 1000 + (players[socket.id].speed - 10) * 500;
+                    attemptUpgrade(socket.id, upgrade, 1, cost, 500);
+                } else if (upgrade == 'damage' && players[socket.id].damage <= 4) {
+                    let cost = 500 + (players[socket.id].damage * 1500);
+                    attemptUpgrade(socket.id, upgrade, 1, cost, 1500);
+                } else if (upgrade == 'radius') {
+                    let cost = 400 + ((players[socket.id].radius - 40) / 10.0) * 800;
+                    attemptUpgrade(socket.id, upgrade, 5, cost, 400);
+                } else if (upgrade == 'regenSpeed') {
+                    let cost = -1500 + Math.round(5000 * players[socket.id].regenSpeed);
+                    if (attemptUpgrade(socket.id, upgrade, 0.1, cost, 500)) {
+                        io.to(socket.id).emit('regenSpeedChange', players[socket.id].regenSpeed);
+                    }
+                } else if (upgrade == 'maxMissiles') {
+                    let cost = 600 * (players[socket.id].maxMissiles / 5);
+                    let upgradeDone = attemptUpgrade(socket.id, upgrade, 5, cost, 600);
+                    if (upgradeDone) {
+                        let regenMs = (1.0 / players[socket.id].regenSpeed) * 1000;
+                        io.emit('updateMissileCount', socket.id, players[socket.id].missiles, players[socket.id].maxMissiles, regenMs, true);
+                        players[socket.id].rechargingMissiles = false;
+                        regenAmmo(socket.id, players[socket.id], regenMs);
+                    }
                 }
             }
         });
 
         /* Purchases a consumable if the player has enough money */
         socket.on('attemptBuyConsumable', (consumableName) => {
+            if(players[socket.id] != undefined) {
             if (consumableName == 'laser') {
                 let bought = attemptBuyConsumable(socket.id, consumableName, 1000);
                 if (bought) {
@@ -319,6 +325,7 @@ io.on('connect', (socket) => {
                     players[socket.id].specialAttackAmmo = 1;
                 }
             }
+        }
         });
 
         /* ----- End scene events ----- */
@@ -331,6 +338,7 @@ io.on('connect', (socket) => {
 
         /* Handles players using special consumables */
         socket.on('specialShot', () => {
+            if(players[socket.id] != undefined) {
             let myPlayer = players[socket.id];
             if (myPlayer.specialAttack == 'none') { return; }
             else if (myPlayer.specialAttack == 'laser') {
@@ -348,6 +356,7 @@ io.on('connect', (socket) => {
                 myPlayer.specialAttack = 'none';
                 io.emit('updateSpecialAttack', socket.id, 'none', 0x000000);
             }
+        }
         });
 
         /* ----- Debug mode events ----- */
@@ -372,7 +381,7 @@ io.on('connect', (socket) => {
         socket.on('changeCometSpeed', (increment) => {
             cometSpeed += increment;
             io.to(socket.id).emit('cometSpeedChange', cometSpeed);
-        }); 
+        });
 
         /* Allows debuggers to change the round */
         socket.on('changeRound', () => {
@@ -445,7 +454,7 @@ io.on('connect', (socket) => {
             delete users[socket.id];
 
             /* Updates the user list for users in the lobby */
-            if(gameState == 'lobby') {
+            if (gameState == 'lobby') {
                 io.emit('updateUsers', users);
             }
 
@@ -485,9 +494,9 @@ io.on('connect', (socket) => {
             }
 
             socket.emit('message', { user: 'admin', text: `${user.name}, welcome to the room!` });
-            socket.broadcast.to(user.room).emit('message', { 
-                user: 'admin', 
-                text: `${user.name} has joined the room.` 
+            socket.broadcast.to(user.room).emit('message', {
+                user: 'admin',
+                text: `${user.name} has joined the room.`
             });
             socket.join(user.room);
 
@@ -570,7 +579,7 @@ io.on('connect', (socket) => {
                             durationLimit: 40
                         }
                     }
-                    
+
                     /* Tell clients about the new comet */
                     io.emit('newComet', comets[i]);
                     break;
@@ -723,8 +732,8 @@ function fireLaser(socketID) {
             'y': localPos.y - projection.y
         };
         /* Calculates laser damage to comet and destroys if appropriate */
-        let squareDistFromLaser = (orthogonalPart.x * orthogonalPart.x) + (orthogonalPart.y * orthogonalPart.y); 
-        if (squareDistFromLaser < 10000) { 
+        let squareDistFromLaser = (orthogonalPart.x * orthogonalPart.x) + (orthogonalPart.y * orthogonalPart.y);
+        if (squareDistFromLaser < 10000) {
             thisComet.hp -= laserDamage;
             if (thisComet.hp <= 0) {
                 destroyComet(cometId, socketID);
@@ -776,9 +785,9 @@ function updateMissiles() {
 
             /* Calculates distance between crosshair and starting point, and missile location and starting point.*/
             let travelDist = distance(missiles[id].x, missiles[id].y, missiles[id].startX, missiles[id].startY);
-            let targetDist = distance(missiles[id].mouseX, missiles[id].mouseY, missiles[id].startX, 
+            let targetDist = distance(missiles[id].mouseX, missiles[id].mouseY, missiles[id].startX,
                 missiles[id].startY);
-            let isAtTarget = (missiles[id].x >= missiles[id].mouseX - 10) 
+            let isAtTarget = (missiles[id].x >= missiles[id].mouseX - 10)
                 && (missiles[id].x <= missiles[id].mouseX + 10) && (missiles[id].y >= missiles[id].mouseY - 10)
                 && (missiles[id].y <= missiles[id].mouseY + 10);
             /* If the missile has traveled the appropriate distance or longer, then create an explosion at where the crosshair is */
@@ -874,12 +883,12 @@ function detectBaseCollisions() {
                         Object.keys(players).forEach(playerId => {
                             cometsDestroyedStats.push({
                                 name: players[playerId].name,
-                                cometsDestroyed: players[playerId].cometsDestroyed    
+                                cometsDestroyed: players[playerId].cometsDestroyed
                             })
                         })
-                        io.emit('gameOver', { 
-                            round: round, 
-                            score: score, 
+                        io.emit('gameOver', {
+                            round: round,
+                            score: score,
                             cometsDestroyedStats: cometsDestroyedStats
                         });
                         io.emit('gameFinished');
@@ -933,8 +942,8 @@ function explosionDamage() {
             Object.keys(comets).forEach(cometId => {
                 if (comets[cometId] != undefined && explosions[explosionId] != undefined) {
                     /* Calculates distance between a valid comet and a valid explosion */
-                    let dist = distance(comets[cometId].x, comets[cometId].y, explosions[explosionId].x, 
-                        explosions[explosionId].y); 
+                    let dist = distance(comets[cometId].x, comets[cometId].y, explosions[explosionId].x,
+                        explosions[explosionId].y);
                     /* If comet is within explosion distance, decrease the comet health and destroy it if appropriate */
                     if (dist < explosions[explosionId].currentRadius && !(explosionId in comets[cometId])) {
                         comets[cometId].hp -= explosions[explosionId].dmg;
@@ -968,7 +977,7 @@ function increaseDifficulty() {
     }
     if (round % 3 == 0 && cometHealth < 5) {
         cometHealth++;
-    }else if (cometHealth == 5) {
+    } else if (cometHealth == 5) {
         ultimateComet = true;
     }
     if (round % 2 == 0 && cometSpeed < 4.5) {
